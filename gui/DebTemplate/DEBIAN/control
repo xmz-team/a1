@@ -1,0 +1,11 @@
+Package: io.github.xmz-team.a1gui
+Section: App
+Maintainer: XMX-Team <ad-ios334@outlook.com>, LF
+Architecture: iphoneos-arm64
+Version: 0.0.4+alpha-1
+Pre-Depends: firmware (>= 14.0), a1
+Description: This is the GUI graphical interface version of A1 (new A1 App),for the time being, only rootless is supported.
+Name: A1 App(New)
+Author: LF
+Icon: file:///var/jb/Applications/a1.app/AppIcon.png
+Conflicts: official.ad.and.lf.app.a1
