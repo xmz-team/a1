@@ -1,0 +1,20 @@
+#!/bin/bash
+
+if [ -f '/etc/profile' ]; then
+    source /etc/profile
+elif [ -f '/var/jb/etc/profile' ]; then
+    source /var/jb/etc/profile
+else
+    echo 'Where the fuck "profile"?' 1>&2
+fi
+
+if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
+    jb="/var/jb"
+else
+    jb=""
+fi
+
+jb_a1="$jb/a1"
+
+rm -f "$jb_a1/config.conf"
+rm -f "$jb_a1/autofonf.ini"

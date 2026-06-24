@@ -1,0 +1,28 @@
+#!/bin/bash
+
+if [ -f '/etc/profile' ]; then
+    source /etc/profile
+elif [ -f '/var/jb/etc/profile' ]; then
+    source /var/jb/etc/profile
+else
+    echo 'Where the fuck "profile"?' 1>&2
+fi
+
+if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
+    jb="/var/jb"
+else
+    jb=""
+fi
+
+jb_a1="$jb/a1"
+
+# a1 will not store the backup directly in local now, so annotate it.
+# rm -f "$jb/usr/local/bin/a1.bak"
+# rm -f "$jb/usr/local/bin/a1.experimental.bak"
+rm -f "$jb_a1/a1_experimental.sh"
+rm -f "$jb_a1/a1_tee_log.sh"
+rm -f "$jb_a1/config.conf"
+rm -f "$jb_a1/high_priority.list"
+rm -f "$jb_a1/low_priority.list"
+rm -f "$jb_a1/autoconf.ini"
+rm -f "$jb_a1/custom_priority.list"
