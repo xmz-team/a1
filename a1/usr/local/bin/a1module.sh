@@ -817,7 +817,7 @@ add_to_db() {
         --arg author "$author" \
         --arg maintainer "$maintainer" \
         --arg version "$version" \
-        --arg description "$description" \
+        --argjson description "$description" \
         --arg path "$path" \
         --arg target "$target" \
         --arg date "$($DATE '+%Y-%m-%d')" \
