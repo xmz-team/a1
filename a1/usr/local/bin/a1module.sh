@@ -442,7 +442,7 @@ format_display_text() {
     if echo "$json" | $JQ -e ".$field | type == \"array\"" >/dev/null 2>&1; then
         # 數組格式
         # echo "$json" | $JQ -r ".$field[]" | while IFS= read -r line; do
-	echo "$json" | $JQ -r ".$field" | while IFS= read -r line; do
+	    echo "$json" | $JQ -r ".$field" | while IFS= read -r line; do
             echo "  $line"
         done
     elif echo "$json" | $JQ -e ".$field | type == \"string\"" >/dev/null 2>&1; then
@@ -864,64 +864,111 @@ add_to_db() {
 
 list_modules() {
     echo "=== 官方模組 ==="
-    $JQ -r '.modules.official | to_entries[] | 
-          "  \(.key): \(.value.name) (v\(.value.version))\n" +
-          "    作者: \(.value.author), 維護者: \(.value.maintainer)\n" +
-          "    目標: \(.value.target)\n" +
-          "    描述: \(.value.description)\n" +
-          "    安裝日期: \(.value.installed_date)\n" +
-          (if (.value.depends | length) > 0 then 
-               "    模塊依賴:\n" + 
-               (.value.depends[] | "      - \(.)") + "\n"
-          else "" end) +
-          (if (.value.depends_apt | length) > 0 then 
-               "    系統依賴:\n" + 
-               (.value.depends_apt[] | "      - \(.)") + "\n"
-          else "" end) +
-          (if (.value.update_log | length) > 0 then 
-               "    更新日誌:\n" + 
-               (.value.update_log[] | "      - \(.)") + "\n"
-          else "" end)' "$MODULE_DB" 2>/dev/null || echo "  暫無官方模組"
     
-    echo -e "\n=== 用戶模組 ==="
-    $JQ -r '.modules.user | to_entries[] | 
-          "  \(.key): \(.value.name) (v\(.value.version))\n" +
-          "    作者: \(.value.author), 維護者: \(.value.maintainer)\n" +
-          "    目標: \(.value.target)\n" +
-          "    描述: \(.value.description)\n" +
-          "    安裝日期: \(.value.installed_date)\n" +
-          (if (.value.depends | length) > 0 then 
-               "    模塊依賴:\n" + 
-               (.value.depends[] | "      - \(.)") + "\n"
-          else "" end) +
-          (if (.value.depends_apt | length) > 0 then 
-               "    系統依賴:\n" + 
-               (.value.depends_apt[] | "      - \(.)") + "\n"
-          else "" end) +
-          (if (.value.update_log | length) > 0 then 
-               "    更新日誌:\n" + 
-               (.value.update_log[] | "      - \(.)") + "\n"
-          else "" end)' "$MODULE_DB" 2>/dev/null || echo "  暫無用戶模組"
-}
-
-enable_module() {
-    local module_id="$1"
+    # 获取所有官方模块的 key
+    local keys=$($JQ -r '.modules.official | keys[]' "$MODULE_DB" 2>/dev/null)
     
-    if ! $JQ -e ".modules.official[\"$module_id\"] or .modules.user[\"$module_id\"]" \
-        "$MODULE_DB" > /dev/null 2>&1; then
-        cerr "${RED}[Error]${NC}: 模塊不存在: $module_id"
-        return 1
+    if [ -z "$keys" ]; then
+        echo "  暫無官方模組"
+    else
+        for key in $keys; do
+            echo ""
+            # 获取模块基本信息
+            local name=$($JQ -r ".modules.official[\"$key\"].name" "$MODULE_DB")
+            local version=$($JQ -r ".modules.official[\"$key\"].version" "$MODULE_DB")
+            local author=$($JQ -r ".modules.official[\"$key\"].author" "$MODULE_DB")
+            local maintainer=$($JQ -r ".modules.official[\"$key\"].maintainer" "$MODULE_DB")
+            local target=$($JQ -r ".modules.official[\"$key\"].target" "$MODULE_DB")
+            local installed_date=$($JQ -r ".modules.official[\"$key\"].installed_date" "$MODULE_DB")
+            
+            echo "  $key: $name (v$version)"
+            echo "    作者: $author, 維護者: $maintainer"
+            echo "    目標: $target"
+            echo "    描述:"
+            
+            # 单独处理 description 数组
+            local desc_count=$($JQ -r ".modules.official[\"$key\"].description | length" "$MODULE_DB" 2>/dev/null)
+            if [ -n "$desc_count" ] && [ "$desc_count" -gt 0 ]; then
+                $JQ -r ".modules.official[\"$key\"].description[] | \"      - \\(.)\"" "$MODULE_DB"
+            else
+                echo "      (無描述)"
+            fi
+            
+            echo "    安裝日期: $installed_date"
+            
+            # 处理 depends
+            local dep_count=$($JQ -r ".modules.official[\"$key\"].depends | length" "$MODULE_DB" 2>/dev/null)
+            if [ -n "$dep_count" ] && [ "$dep_count" -gt 0 ]; then
+                echo "    模塊依賴:"
+                $JQ -r ".modules.official[\"$key\"].depends[] | \"      - \\(.)\"" "$MODULE_DB"
+            fi
+            
+            # 处理 depends_apt
+            local apt_count=$($JQ -r ".modules.official[\"$key\"].depends_apt | length" "$MODULE_DB" 2>/dev/null)
+            if [ -n "$apt_count" ] && [ "$apt_count" -gt 0 ]; then
+                echo "    系統依賴:"
+                $JQ -r ".modules.official[\"$key\"].depends_apt[] | \"      - \\(.)\"" "$MODULE_DB"
+            fi
+            
+            # 处理 update_log
+            local log_count=$($JQ -r ".modules.official[\"$key\"].update_log | length" "$MODULE_DB" 2>/dev/null)
+            if [ -n "$log_count" ] && [ "$log_count" -gt 0 ]; then
+                echo "    更新日誌:"
+                $JQ -r ".modules.official[\"$key\"].update_log[] | \"      - \\(.)\"" "$MODULE_DB"
+            fi
+        done
     fi
     
-    $JQ --arg id "$module_id" \
-       '.enabled_modules |= (. + [$id] | unique)' "$ENABLED_DB" > "${ENABLED_DB}.tmp"
+    echo ""
+    echo "=== 用戶模組 ==="
     
-    if [ $? -eq 0 ]; then
-        $MV "${ENABLED_DB}.tmp" "$ENABLED_DB"
-        echo -e "${GREEN}✓${NC} 模塊已啟用: $module_id"
+    # 用户模块同样处理
+    local user_keys=$($JQ -r '.modules.user | keys[]' "$MODULE_DB" 2>/dev/null)
+    
+    if [ -z "$user_keys" ]; then
+        echo "  暫無用戶模組"
     else
-        cerr "${RED}[Error]${NC}: 啟用失敗"
-        return 1
+        for key in $user_keys; do
+            echo ""
+            local name=$($JQ -r ".modules.user[\"$key\"].name" "$MODULE_DB")
+            local version=$($JQ -r ".modules.user[\"$key\"].version" "$MODULE_DB")
+            local author=$($JQ -r ".modules.user[\"$key\"].author" "$MODULE_DB")
+            local maintainer=$($JQ -r ".modules.user[\"$key\"].maintainer" "$MODULE_DB")
+            local target=$($JQ -r ".modules.user[\"$key\"].target" "$MODULE_DB")
+            local installed_date=$($JQ -r ".modules.user[\"$key\"].installed_date" "$MODULE_DB")
+            
+            echo "  $key: $name (v$version)"
+            echo "    作者: $author, 維護者: $maintainer"
+            echo "    目標: $target"
+            echo "    描述:"
+            
+            local desc_count=$($JQ -r ".modules.user[\"$key\"].description | length" "$MODULE_DB" 2>/dev/null)
+            if [ -n "$desc_count" ] && [ "$desc_count" -gt 0 ]; then
+                $JQ -r ".modules.user[\"$key\"].description[] | \"      - \\(.)\"" "$MODULE_DB"
+            else
+                echo "      (無描述)"
+            fi
+            
+            echo "    安裝日期: $installed_date"
+            
+            local dep_count=$($JQ -r ".modules.user[\"$key\"].depends | length" "$MODULE_DB" 2>/dev/null)
+            if [ -n "$dep_count" ] && [ "$dep_count" -gt 0 ]; then
+                echo "    模塊依賴:"
+                $JQ -r ".modules.user[\"$key\"].depends[] | \"      - \\(.)\"" "$MODULE_DB"
+            fi
+            
+            local apt_count=$($JQ -r ".modules.user[\"$key\"].depends_apt | length" "$MODULE_DB" 2>/dev/null)
+            if [ -n "$apt_count" ] && [ "$apt_count" -gt 0 ]; then
+                echo "    系統依賴:"
+                $JQ -r ".modules.user[\"$key\"].depends_apt[] | \"      - \\(.)\"" "$MODULE_DB"
+            fi
+            
+            local log_count=$($JQ -r ".modules.user[\"$key\"].update_log | length" "$MODULE_DB" 2>/dev/null)
+            if [ -n "$log_count" ] && [ "$log_count" -gt 0 ]; then
+                echo "    更新日誌:"
+                $JQ -r ".modules.user[\"$key\"].update_log[] | \"      - \\(.)\"" "$MODULE_DB"
+            fi
+        done
     fi
 }
 
