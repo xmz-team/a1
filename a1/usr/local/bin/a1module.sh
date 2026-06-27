@@ -61,7 +61,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 cerr() {
-    builtin printf "%s\n" >&2
+    builtin printf "%s\n" "$@" >&2
 }
 
 check_commands() {
@@ -441,7 +441,8 @@ format_display_text() {
     
     if echo "$json" | $JQ -e ".$field | type == \"array\"" >/dev/null 2>&1; then
         # 數組格式
-        echo "$json" | $JQ -r ".$field[]" | while IFS= read -r line; do
+        # echo "$json" | $JQ -r ".$field[]" | while IFS= read -r line; do
+	echo "$json" | $JQ -r ".$field" | while IFS= read -r line; do
             echo "  $line"
         done
     elif echo "$json" | $JQ -e ".$field | type == \"string\"" >/dev/null 2>&1; then
@@ -939,36 +940,7 @@ disable_module() {
     fi
 }
 
-load_modules() {
-    echo "已棄用,不加載模塊,由a1自動加載"
-  if false; then
-    echo "加載啟用的模塊..."
-    local enabled_modules=$($JQ -r '.enabled_modules[]' "$ENABLED_DB" 2>/dev/null)
-    
-    if [ -z "$enabled_modules" ]; then
-        echo "沒有啟用的模塊"
-        return 0
-    fi
-    
-    local count=0
-    while IFS= read -r module_id; do
-        local module_path=$($JQ -r \
-            ".modules.official[\"$module_id\"].path // 
-             .modules.user[\"$module_id\"].path // empty" \
-            "$MODULE_DB" 2>/dev/null)
-        
-        if [ -n "$module_path" ] && [ -f "$module_path" ]; then
-            source "$module_path"
-            echo -e "${GREEN}✓${NC} 已加載: $module_id"
-            ((count++))
-        else
-            echo -e "${YELLOW}[Warn]${NC}: 模塊文件不存在: $module_id"
-        fi
-    done <<< "$enabled_modules"
-    
-    echo "已加載 $count 個模塊"
-  fi
-}
+load_modules() { echo "已棄用,不加載模塊,由a1,a1ctl,a1mod自動加載"; }
 
 remove_module() {
     local module_id="$1"

@@ -37,7 +37,7 @@ out_3() {
 
 # 輔助函數
 cerr() {
-    builtin printf "%s\n" >&2
+    builtin printf "%s\n" "$@" >&2
 }
 
 # 初始化緩存變量
@@ -902,7 +902,8 @@ main() {
         while true; do
             for ((i=$LOOP_SLEEP_INTERVAL; i>=1; i--)); do
                 printf "\rNext Circulate Time:%3ds" $i
-                read -t 1 -n 1
+                # read -t 1 -n 1
+		sleep 1
             done
             read_a1_config
             [ "$LOOP_MODE" != "true" ] && break
@@ -918,7 +919,8 @@ main() {
 
     echo "All operations completed successfully"
     echo "done."
-    read -t 1 -n 1
+    # read -t 1 -n 1
+    sleep 1
 }
 
 if [ "$use_sudo_a1" = "false" ]; then

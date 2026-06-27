@@ -56,7 +56,7 @@ echo() {
 }
 
 cerr() {
-    builtin printf "%s\n" >&2
+    builtin printf "%s\n" "$@" >&2
 }
 
 _a1_conf() {
