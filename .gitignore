@@ -3,3 +3,16 @@ gui/oldDeb/*
 .idea
 gui/old/*
 gui/src/old/*
+
+
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.tfstate
+secrets/
+credentials.json
+*.secret
+.terraform/

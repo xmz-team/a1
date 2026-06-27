@@ -37,7 +37,7 @@ out_3() {
 
 # 輔助函數
 cerr() {
-    builtin printf "$@\n" >&2
+    builtin printf "%s\n" >&2
 }
 
 # 初始化緩存變量

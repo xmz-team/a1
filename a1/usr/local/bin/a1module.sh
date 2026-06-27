@@ -61,7 +61,7 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 cerr() {
-    builtin printf "$@\n" >&2
+    builtin printf "%s\n" >&2
 }
 
 check_commands() {
