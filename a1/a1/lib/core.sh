@@ -369,7 +369,7 @@ _a1_set_priority_renice() {
     local renice_value=$((priority - 20))
     [ "$renice_value" -lt -20 ] && renice_value=-20
     [ "$renice_value" -gt 19 ] && renice_value=19
-    $jb/usr/bin/renice $renice_value -p "$pid" >/dev/null 2>&1
+    "$raise_power" "$jb/usr/bin/renice $renice_value -p $pid >/dev/null 2>&1"
     return $?
 }
 # by jetsamctl set priority
@@ -377,15 +377,15 @@ _a1_set_priority_jetsamctl() {
     local pid="$1"
     local priority="$2"
     if command -v jetsamctl >/dev/null 2>&1; then
-        jetsamctl set priority "$pid" "$priority" >/dev/null 2>&1
+        "$raise_power" "jetsamctl set priority $pid $priority >/dev/null 2>&1"
         return $?
     fi
     if [ -x "$jb/usr/bin/jetsamctl" ]; then
-        "$jb/usr/bin/jetsamctl" set priority "$pid" "$priority" >/dev/null 2>&1
+        "$raise_power" "$jb/usr/bin/jetsamctl set priority $pid $priority >/dev/null 2>&1"
         return $?
     fi
     if [ -x "$jb/usr/bin/jetsamctl_" ]; then
-        "$jb/usr/bin/jetsamctl_" -p "$priority" "$pid" >/dev/null 2>&1
+        "$raise_power" "$jb/usr/bin/jetsamctl_ -p $priority $pid >/dev/null 2>&1"
         return $?
     fi
     return 1
@@ -404,21 +404,37 @@ _a1_set_priority() {
 }
 # process tweak func
 _a1_adjust_process_auto() {
-    local pid="$1"
-    local process_name="$2"
-    local priority="$3"
+    local pid=$1
+    local process_name=$2
+    local priority=$3
+    
     [ -z "$pid" ] || [ -z "$process_name" ] && return 1
     if ! $ps -p "$pid" >/dev/null 2>&1; then
         return 1
     fi
 
-    if _a1_set_priority "$pid" "$priority"; then
+    local renice_value=$((priority - 20))
+    [ "$renice_value" -lt -20 ] && renice_value=-20
+    [ "$renice_value" -gt 19 ] && renice_value=19
+
+    if "$raise_power" "$jb/usr/bin/renice $renice_value -p $pid >/dev/null 2>&1"; then
         [ "$DEBUG_MODE" = "true" ] && echo "  [Auto] $process_name (PID:$pid) -> $priority"
         return 0
     fi
-
+    
+    if $jb/usr/bin/command -v jetsamctl >/dev/null 2>&1 && "$raise_power" "$jb/usr/bin/jetsamctl set priority $pid $priority >/dev/null 2>&1"; then
+        [ "$DEBUG_MODE" = "true" ] && echo "  [Auto] $process_name (PID:$pid) -> $priority"
+        return 0
+    fi
+    
+    if [ -x "$jb/usr/bin/jetsamctl_" ] && "$raise_power $jb/usr/bin/jetsamctl_ -p $priority $pid >/dev/null 2>&1"; then
+        [ "$DEBUG_MODE" = "true" ] && echo "  [Auto] $process_name (PID:$pid) -> $priority"
+        return 0
+    fi
+    
     return 1
 }
+
 adjust_process_auto() { _a1_adjust_process_auto; }
 # get target process list (用于动态优化)
 _a1_get_target_processes() {

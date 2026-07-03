@@ -70,39 +70,62 @@ apply_custom_priority() {
 optimize_system() {
     echo "Optimizing system priorities..."
     echo ""
+    
     wait_for_springboard
-    echo "Boosting critical processes (jetsam priority: $HIGH_PRIORITY):"
-    local count=0
-    for process in "${HIGH_PRIORITY_LIST[@]}"; do
-        local pid=$(_a1_find_pid_by_name "$process")
-        if [ -n "$pid" ] && [ "$pid" -gt 0 ] 2>/dev/null; then
-            if _a1_set_priority "$pid" "$HIGH_PRIORITY"; then
-                [ "$DEBUG_MODE" = "true" ] && echo "  ✓ $process (PID:$pid)"
-                ((count++))
+    
+    # 1. 应用高优先级列表
+    if [ ${#HIGH_PRIORITY_LIST[@]} -gt 0 ]; then
+        echo "Boosting critical processes (jetsam priority: $HIGH_PRIORITY):"
+        echo "If it fails, please try to re-execute it with sudo a1"
+        local count=0
+        for process in "${HIGH_PRIORITY_LIST[@]}"; do
+            local pid=$(_a1_find_pid_by_name "$process")
+            if [ -n "$pid" ] && [ "$pid" -gt 0 ] 2>/dev/null; then
+                if _a1_set_priority "$pid" "$HIGH_PRIORITY"; then
+                    [ "$DEBUG_MODE" = "true" ] && echo "  ✓ $process (PID:$pid) -> $HIGH_PRIORITY"
+                    ((count++))
+                fi
+            else
+                [ "$DEBUG_MODE" = "true" ] && echo "  ✗ $process not found"
             fi
-        fi
-    done
-    echo "  Adjusted $count processes to priority $HIGH_PRIORITY"
-    echo ""
-    echo "Lowering non-essential processes (jetsam priority: $LOW_PRIORITY):"
-    count=0
-    for process in "${LOW_PRIORITY_LIST[@]}"; do
-        local pid=$(_a1_find_pid_by_name "$process")
-        if [ -n "$pid" ] && [ "$pid" -gt 0 ] 2>/dev/null; then
-            if _a1_set_priority "$pid" "$LOW_PRIORITY"; then
-                [ "$DEBUG_MODE" = "true" ] && echo "  ✓ $process (PID:$pid)"
-                ((count++))
+        done
+        echo "  Adjusted $count processes to priority $HIGH_PRIORITY"
+        echo ""
+    else
+        echo "${A1_YELLOW}Warning: No high priority processes defined${A1_NC}"
+        echo ""
+    fi
+    
+    # 2. 应用低优先级列表
+    if [ ${#LOW_PRIORITY_LIST[@]} -gt 0 ]; then
+        echo "Lowering non-essential processes (jetsam priority: $LOW_PRIORITY):"
+        local count=0
+        for process in "${LOW_PRIORITY_LIST[@]}"; do
+            local pid=$(_a1_find_pid_by_name "$process")
+            if [ -n "$pid" ] && [ "$pid" -gt 0 ] 2>/dev/null; then
+                if _a1_set_priority "$pid" "$LOW_PRIORITY"; then
+                    [ "$DEBUG_MODE" = "true" ] && echo "  ✓ $process (PID:$pid) -> $LOW_PRIORITY"
+                    ((count++))
+                fi
+            else
+                [ "$DEBUG_MODE" = "true" ] && echo "  ✗ $process not found"
             fi
-        fi
-    done
-    echo "  Adjusted $count processes to priority $LOW_PRIORITY"
-    echo ""
-    # 自定义优先级
+        done
+        echo "  Adjusted $count processes to priority $LOW_PRIORITY"
+        echo ""
+    else
+        echo "${A1_YELLOW}Warning: No low priority processes defined${A1_NC}"
+        echo ""
+    fi
+    
+    # 3. 应用自定义优先级
     apply_custom_priority
+    
     echo "_______________________________________________"
     echo "Optimization complete"
     echo "_______________________________________________"
 }
+
 # main
 main() {
     echo "$(date)"
@@ -136,11 +159,11 @@ main() {
     # 模式选择
     if [ "$AUTO_ADJUST" = "true" ]; then
         echo "Starting Auto-Adjust (real-time) mode..."
-        _a1_read_priority_lists "true"
+        # _a1_read_priority_lists "true"
         auto_adjust
     elif [ "$SCHEDULED_GUARD" = "true" ]; then
         echo "Starting Scheduled Guard mode..."
-        _a1_read_priority_lists "true"
+        # _a1_read_priority_lists "true"
         scheduled_guard
     elif [ "$LOOP_MODE" = "true" ]; then
         echo "Starting Loop mode..."

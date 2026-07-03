@@ -45,6 +45,7 @@ ln -sf $jb/usr/local/bin/a1hub $jb/usr/local/bin/alhub
 chmod 644 "$jb/Library/LaunchDaemons/a1.launch.plist"
 
 chmod u+s $jb/usr/local/bin/a1hub
+chmod u+s $jb/opt/a1/bin/raise_power"
 
 mkdir -p $jb/bin
 ln -sf /bin/ps $jb/bin/

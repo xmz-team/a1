@@ -51,8 +51,9 @@ export mv="$jbusrbin/mv"
 export cp="$jbusrbin/cp"
 export date="$jbusrbin/date"
 
-# flock
+# Tools
 export flock="$jb/opt/a1/bin/flock"
+export raise_power="$jb/opt/a1/bin/raise_power"
 
 EOF
 }
