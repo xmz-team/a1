@@ -2,14 +2,6 @@
 
 # set -x # debug 使用
 
-if [ -f '/etc/profile' ]; then
-    source /etc/profile
-elif [ -f '/var/jb/etc/profile' ]; then
-    source /var/jb/etc/profile
-else
-    echo 'Where the fuck "profile"?' 1>&2
-fi
-
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
 else
@@ -28,6 +20,7 @@ if [ -n "$jb_a1" ]; then
 fi
 
 # 导入配置
+source "$jb_a1/lib/core.sh"
 source "$jb_a1/config.conf"
 source "$jb_a1/inside.ini"
 
@@ -1689,64 +1682,6 @@ main() {
             ;;
     esac
 }
-
-# {
-### 舊 lock 機制請勿刪除, 直到確定 flock 是穩定的後才刪除掉, 再此之前請註解他而不是刪除這段程式碼 ###
-: <<'eofs'
-if [ -d "$jb_a1/lock-a1ctl" ]; then
-    if [ -f "$jb_a1/lock-a1ctl/pid" ]; then
-        old_lock_pid="$(cat $jb_a1/lock-a1ctl/pid 2>/dev/null)"
-        if [ -z "$old_lock_pid" ]; then
-            rm -rf "$jb_a1/lock-a1ctl"
-        elif [ -n "$old_lock_pid" ] && ! kill -0 "$old_lock_pid" 2>/dev/null; then
-            rm -rf "$jb_a1/lock-a1ctl"
-        fi
-    else
-        rm -rf "$jb_a1/lock-a1ctl"
-    fi
-    
-    if [ "$a1hub_use_confirm" = "1" ]; then
-        main "$@"
-    else
-        if [ -f "$jb_a1/lock-a1ctl/pid" ]; then
-            cerr "${RED}[Error]${NC}: lock 正在被進程 $(cat $jb_a1/lock-a1ctl/pid) 持有中,無法繼續操作..."
-            exit 1
-        else
-            main "$@"
-        fi
-    fi
-else
-    if mkdir "$jb_a1/lock-a1ctl"; then
-        echo "$$" > "$jb_a1/lock-a1ctl/pid"
-    else
-        cerr "${RED}[Error]${NC}: 無法取得 lock"
-        exit 1
-    fi
-
-    if [ "$(id -u)" = "0" ]; then
-        main "$@"
-    else
-        if [ "$use_root_a1ctl" = "false" ]; then
-            a1hub="$(which a1hub || echo "$jb/usr/local/bin/a1hub")"
-            export a1hub_use_confirm="1"
-            exec "$a1hub" "$@"
-        else
-            if [ -x $(which a1hub) ]; then
-                export a1hub_use_confirm="1"
-                exec $(which a1hub)
-            else
-                export a1hub_use_confirm="1"
-                exec "$jb/usr/local/bin/a1hub"
-            fi
-
-            [ $? != 0 ] && cerr "${RED}[Error]${NC}: a1hub 在哪裡?" && exit 1
-        fi
-    fi
-
-    [ -d "$jb_a1/lock-a1ctl" ] && rm -rf "$jb_a1/lock-a1ctl"
-fi
-eofs
-# }
 
 if [ "$lock_use" = "false" ]; then
     # 不使用锁, 直接执行
