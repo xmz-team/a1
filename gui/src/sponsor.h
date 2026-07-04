@@ -1,5 +1,15 @@
+/*
+ * sponsor.h
+ * Created by XMZ <ad-ios334@outlook.com> on 10/3/26
+ * Copyright (c) 2025-2026 XMZ <ad-ios334@outlook.com> All rights reserved.
+ */
+
+#ifndef A1_GUI_SPONSOR_HPP
+#define A1_GUI_SPONSOR_HPP
+
 #import <UIKit/UIKit.h>
-#import <AD/AD.h>
+#include <libxmz/apple-ios-ui.hpp>
+#include <libxmz/log.hpp>
 
 @implementation UIView (SponsorCardStyle)
 - (void)applyCardStyle {
@@ -54,10 +64,7 @@
 }
 @end
 
-// ============================================================
 #pragma mark - SponsorViewController (赞助页面)
-// ============================================================
-
 @interface SponsorViewController : UIViewController
 @end
 
@@ -77,7 +84,7 @@
     _scrollView.translatesAutoresizingMaskIntoConstraints = NO;
     _scrollView.alwaysBounceVertical = YES;
     [self.view addSubview:_scrollView];
-    AD::ui::layout::fill(_scrollView, self.view);
+    xmz::ui::layout::fill(_scrollView, self.view);
     
     UIStackView *mainStack = [[UIStackView alloc] init];
     mainStack.axis = UILayoutConstraintAxisVertical;
@@ -242,11 +249,13 @@
         [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
             if (!success) {
                 [self showAlert:@"无法打开链接，请手动复制链接到浏览器"];
+								xmz::log::warn("open url failed");
             }
         }];
     } else {
         [self copyLink:nil];
         [self showAlert:@"已复制链接到剪贴板，请手动粘贴到浏览器打开"];
+				xmz::log::info("url copied to clipboard successfully");
     }
 }
 
@@ -254,6 +263,7 @@
     NSString *link = @"https://ifdian.net/a/xmz-team";
     [[UIPasteboard generalPasteboard] setString:link];
     [self showAlert:@"链接已复制"];
+		xmz::log::info("url copied");
 }
 
 - (void)showAlert:(NSString *)msg {
@@ -263,3 +273,5 @@
 }
 
 @end
+
+#endif // A1_GUI_SPONSOR_HPP

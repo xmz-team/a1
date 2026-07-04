@@ -16,3 +16,5 @@ secrets/
 credentials.json
 *.secret
 .terraform/
+
+gui/tmp/*
