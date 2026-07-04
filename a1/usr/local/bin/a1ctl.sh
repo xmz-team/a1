@@ -29,11 +29,13 @@ source "$jb_a1/inside.ini"
 # ps=/bin/ps
 # jb_a1=$jb/a1
 
-RED='\033[0;31m'
-NC='\033[0m'
-YELLOW='\033[1;33m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
+_a1_colors
+
+RED="${A1_RED}"
+NC="${A1_NC}"
+YELLOW="${A1_YELLOW}"
+GREEN="${A1_GREEN}"
+BLUE="${A1_BLUE}"
 
 A1_SCRIPT="$jb/usr/local/bin/a1"
 A1_RETURN_SCRIPT="$jb/usr/local/bin/a1-return"
@@ -49,7 +51,7 @@ echo() {
 }
 
 cerr() {
-    builtin printf "%s\n" "$@" >&2
+    builtin printf "%b\n" "$*" >&2
 }
 
 _a1_conf() {

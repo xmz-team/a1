@@ -23,7 +23,7 @@ source "$jb_a1/inside.ini"
 # 日志重定向
 exec 3>>$jb_a1/a1.log
 out_3() { builtin echo "$@" >&3; }
-cerr() { builtin printf "%s\n" "$@" >&2; }
+cerr() { builtin printf "%b\n" "$@" >&2; }
 # 模块加载
 load_modules() {
     if [ -f "$jb_a1/load_mod.sh" ]; then
