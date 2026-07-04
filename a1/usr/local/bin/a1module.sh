@@ -92,7 +92,7 @@ init_system() {
              "$CACHE_DIR"
     
     # 創建官方作者目錄
-    for author in AD LF; do
+    for author in AD LF XMZ; do
         $MKDIR -p "$OFFICIAL_DIR/$author"
     done
     
