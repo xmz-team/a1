@@ -1,0 +1,228 @@
+#!/bin/bash
+
+set -exuo
+
+init()
+{
+    date_dir="$(date "+%Y%m%d-%H%M%S")"
+    cd packages
+    mkdir -p packdeb.d/a1/$date_dir/
+    mkdir -p packdeb.d/gui/$date_dir/
+    cd a1
+    if [ -f *.deb ]; then
+        mv *.deb ../packdeb.d/a1/$date_dir/
+    fi
+
+    cd ../gui
+
+    if [ -f *.deb ]; then
+        mv *.deb ../packdeb.d/gui/$date_dir/
+    fi
+
+    cd ..
+    rm -rf a1 gui
+    cp -a a1.template.d a1
+    cp -a gui.template.d gui
+}
+
+orig_pwd="$(pwd)"
+
+build()
+{
+		flock()
+		{
+				cd src/bin/flock-ios
+				c++ -o flock flock.cc
+				ldid -S../../../a1.bin.ens.xml -Hsha1 -Hsha256 -M flock
+				cd $orig_pwd
+		}
+		a1hub()
+		{
+				cd src/bin/a1hub
+				c++ a1hub.cc -o a1hub
+				ldid -S../../../a1.bin.ens.xml -Hsha1 -Hsha256 -M a1hub
+				sudo chown 0:0 a1hub && sudo chmod u+s a1hub
+				cd $orig_pwd
+		}
+		bundle_pid()
+		{
+				cd src/bin/bundle_pid
+				clang -fobjc-arc -framework Foundation -framework Security -I. bundle_pid.m -o bundle_pid
+				ldid -S../../../a1.bin.ens.xml -Hsha1 -Hsha256 -M bundle_pid
+				cd $orig_pwd
+		}
+		raise_power()
+		{
+				cd src/bin/raise_power
+				c++ raise_power.cc -o raise_power
+				ldid -S../../../a1.bin.ens.xml -Hsha1 -Hsha256 -M raise_power
+				sudo chown 0:0 raise_power && sudo chmod u+s raise_power
+				cd $orig_pwd
+		}
+		gui()
+		{
+				cd src/gui
+				sudo bash ./build.sh
+				cd $orig_pwd
+		}
+		case $1 in
+			flock) flock; ;;
+			a1hub) a1hub; ;;
+			bundle_pid) bundle_pid; ;;
+			raise_power) raise_power; ;;
+			gui) gui; ;;
+		esac
+}
+
+package()
+{
+		local src_a1="src/a1"
+		local src_bin="src/bin"
+		local src_gui="src/gui"
+		local rl_pack_a1="packages/a1/rootless"
+		local rh_pack_a1="packages/a1/roothide"
+		local rf_pack_a1="packages/a1/rootful"
+		local rl_pack_gui="packages/gui/rootless"
+		local rh_pack_gui="packages/gui/roothide"
+		local a1_version='1.9.9-beta3-1'
+		local gui_version='0.0.3-beta3-2'
+		cd $orig_pwd
+		build flock
+		build a1hub
+		build bundle_pid
+		build raise_power
+		build gui
+		cp_a1()
+		{
+				cp -a $src_a1/a1 $rl_pack_a1/var/jb/
+				cp -a $src_a1/a1 $rh_pack_a1/
+				cp -a $src_a1/a1 $rf_pack_a1/var/
+
+            cp -a $src_a1/usr/local/bin $rl_pack_a1/var/jb/usr/local/
+            cp -a $src_a1/usr/local/bin $rh_pack_a1/usr/local/
+            cp -a $src_a1/usr/local/bin $rf_pack_a1/usr/local/
+
+            for f in $rl_pack_a1/var/jb/usr/local/bin/*.sh; do mv "$f" "${f%.sh}"; done
+            for f in $rh_pack_a1/usr/local/bin/*.sh; do mv "$f" "${f%.sh}"; done
+            for f in $rf_pack_a1/usr/local/bin/*.sh; do mv "$f" "${f%.sh}"; done
+		}
+		cp_bin()
+		{
+			# flock-ios raise_power
+				cp -a $src_bin/flock-ios/flock $src_bin/raise_power/raise_power $rl_pack_a1/var/jb/a1/bin/
+				cp -a $src_bin/flock-ios/flock $src_bin/raise_power/raise_power $rh_pack_a1/a1/bin/
+				cp -a $src_bin/flock-ios/flock $src_bin/raise_power/raise_power $rf_pack_a1/var/a1/bin/
+			# a1hub
+				cp -a $src_bin/a1hub/a1hub $rl_pack_a1/var/jb/usr/local/bin/
+				cp -a $src_bin/a1hub/a1hub $rh_pack_a1/usr/local/bin/
+				cp -a $src_bin/a1hub/a1hub $rf_pack_a1/usr/local/bin/
+			# bundle_pid
+				cp -a $src_bin/bundle_pid/bundle_pid $rl_pack_a1/var/jb/usr/bin/
+				cp -a $src_bin/bundle_pid/bundle_pid $rh_pack_a1/usr/bin/
+				cp -a $src_bin/bundle_pid/bundle_pid $rf_pack_a1/usr/bin/
+			# rm
+				rm -f $src_bin/flock-ios/flock $src_bin/a1hub/a1hub $src_bin/bundle_pid/bundle_pid $src_bin/raise_power/raise_power
+		}
+		cp_gui()
+		{
+				export version="$gui_version"
+				cd $orig_pwd
+				cp -a $src_gui/a1-rl $rl_pack_gui/var/jb/Applications/a1.app
+				cd $rl_pack_gui/var/jb/Applications/a1.app
+				# cat $orig_pwd/$src_gui/Info.plist.template > Info.plist
+				envsubst < $orig_pwd/$src_gui/Info.plist.template > Info.plist
+				cd $orig_pwd
+
+				cp -a $src_gui/a1-rh $rh_pack_gui/Applications/a1.app
+				cd $rh_pack_gui/Applications/a1.app
+				# cat $orig_pwd/$src_gui/Info.plist.template > Info.plist
+				envsubst < $orig_pwd/$src_gui/Info.plist.template > Info.plist
+				cd $orig_pwd
+				unset version
+		}
+		cp_a1
+		cp_bin
+		cp_gui
+		local a1_deb_d="src/DEBIANS/DEBIAN.a1"
+		local gui_deb_d="src/DEBIANS/DEBIAN.gui"
+
+		mv_a1_rl_deb_d()
+		{
+				cp -a $a1_deb_d $rl_pack_a1/
+				cd $rl_pack_a1 && mv DEBIAN.a1 DEBIAN
+				cd DEBIAN
+				export arch='iphoneos-arm64'
+				export version="$a1_version"
+				envsubst < control.a1 > control
+				rm control.a1
+				unset arch version
+				cd $orig_pwd
+		}
+		mv_a1_rh_deb_d()
+		{
+				cp -a $a1_deb_d $rh_pack_a1/
+				cd $rh_pack_a1 && mv DEBIAN.a1 DEBIAN
+				cd DEBIAN
+				export arch='iphoneos-arm64e'
+				export version="$a1_version"
+				envsubst < control.a1 > control
+				rm control.a1
+				unset arch version
+				cd $orig_pwd
+		}
+		mv_a1_rf_deb_d()
+		{
+				cp -a $a1_deb_d $rf_pack_a1/
+				cd $rf_pack_a1 && mv DEBIAN.a1 DEBIAN
+				cd DEBIAN
+				export arch='iphoneos-arm'
+				export version="$a1_version"
+				envsubst < control.a1 > control
+				rm control.a1
+				unset arch version
+				cd $orig_pwd
+		}
+		mv_gui_rl_deb_d()
+		{
+				cp -a $gui_deb_d $rl_pack_gui/
+				cd $rl_pack_gui && mv DEBIAN.gui DEBIAN && cd DEBIAN
+				export version="$gui_version"
+				export arch='iphoneos-arm64'
+				envsubst < control.gui > control
+				rm control.gui
+				unset version arch
+				cd $orig_pwd
+		}
+
+		mv_gui_rh_deb_d()
+		{
+				cp -a $gui_deb_d $rh_pack_gui/
+				cd $rh_pack_gui && mv DEBIAN.gui DEBIAN && cd DEBIAN
+				export version="$gui_version"
+				export arch='iphoneos-arm64e'
+				envsubst < control.gui > control
+				rm control.gui
+				unset version arch
+				cd $orig_pwd
+		}
+		mv_a1_rl_deb_d
+		mv_a1_rh_deb_d
+		mv_a1_rf_deb_d
+		mv_gui_rl_deb_d
+      mv_gui_rh_deb_d
+
+		cd packages/a1
+		dpkg-deb -b rootless a1_rl.deb && dpkg-name a1_rl.deb
+		dpkg-deb -b roothide a1_rh.deb && dpkg-name a1_rh.deb
+		dpkg-deb -b rootful a1_rf.deb && dpkg-name a1_rf.deb
+		cd ../gui
+		dpkg-deb -b rootless gui_rl.deb && dpkg-name gui_rl.deb
+		dpkg-deb -b roothide gui_rh.deb && dpkg-name gui_rh.deb
+
+      cd $orig_pwd
+      # cd packages
+}
+
+main() { init; package; }
+main
+

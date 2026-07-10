@@ -1,0 +1,38 @@
+#!/bin/bash
+
+if [ -f '/etc/profile' ]; then
+    . /etc/profile
+elif [ -f '/var/jb/etc/profile' ]; then
+     . /var/jb/etc/profile
+else
+    echo 'Where the fuck "profile"?' 1>&2
+fi
+
+if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
+    jb="/var/jb"
+else
+    jb=""
+fi
+
+orig_path="$(pwd)"
+
+chmod 6755 "$jb/Applications/a1.app/a1-rl"
+chmod 6755 "$jb/Applications/a1.app/a1-rh"
+chown -R 0:0 "$jb/Applications/a1.app/"
+
+if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
+    cd "$jb/Applications/a1.app/"
+    ln -sf "$(jbroot)" ./
+    cd $orig_path
+fi
+
+cd "$jb/Applications/a1.app/"
+if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
+    ln -sf a1-rh a1
+elif [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
+    ln -sf a1-rl a1
+else
+    echo "Unsupported environment, are you rootful? A1gui does not support rootful for the time being"
+fi
+
+cd $orig_path

@@ -1,9 +1,7 @@
-bak.d/*
-gui/oldDeb/*
 .idea
-gui/old/*
-gui/src/old/*
-
+packages/a1/*
+packages/gui/*
+packages/packdeb.d/*
 
 .env
 .env.*
@@ -16,5 +14,5 @@ secrets/
 credentials.json
 *.secret
 .terraform/
+tmp/*
 
-gui/tmp/*

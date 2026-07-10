@@ -1,4 +1,0 @@
-#!/bin/sh -
-
-chmod 6755 "/var/jb/Applications/a1.app/a1"
-chown -R 0:0 "/var/jb/Applications/a1.app/"
