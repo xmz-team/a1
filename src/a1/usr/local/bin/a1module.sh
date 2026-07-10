@@ -44,6 +44,8 @@ CACHE_DIR="$MODULE_BASE/cache"
 # 仓库列表文件
 REPO_LIST="$MODULE_BASE/repos.json"
 AUTHER="$(cat "$MODULE_BASE/auther")"
+LOCK_FILE="$MODULE_BASE/lock"
+LOCK_FD=300
 
 JQ="${jq:-jq}"
 ZIP="${zip:-zip}"
@@ -1075,6 +1077,10 @@ add_repo() {
     
     init_repo_list
 
+    # 备份当前 repos.json
+    local repos_backup="${REPO_LIST}.backup"
+    $CP "$REPO_LIST" "$repos_backup"
+
     # 检查是否已存在
     if $JQ -e ".repositories[\"$name\"]" "$REPO_LIST" >/dev/null 2>&1; then
         cerr "${YELLOW}[Warn]${NC}: 仓库 '$name' 已存在，将更新 URL"
@@ -1104,9 +1110,25 @@ add_repo() {
         echo -e "${GREEN}✓${NC} 仓库已添加: $name"
         echo "  URL: $url"
         # 尝试同步仓库元数据
-        sync_repo_metadata "$name"
+        if ! sync_repo_metadata "$name"; then
+            # 同步失败，回滚添加操作
+            echo -e "${YELLOW}[Warn]${NC}: 仓库同步失败，正在回滚添加操作..."
+            if [ -f "$repos_backup" ]; then
+                $MV "$repos_backup" "$REPO_LIST"
+                echo -e "${GREEN}✓${NC} 已回滚仓库添加操作"
+            fi
+            $RM -f "$CACHE_DIR/repos/${name}.repo.json"
+            $RM -f "$CACHE_DIR/repos/${name}_Packages.json"
+            return 1
+        fi
+        $RM -f "$repos_backup"
     else
         cerr "${RED}[Error]${NC}: 添加仓库失败"
+        # 回滚
+        if [ -f "$repos_backup" ]; then
+            $MV "$repos_backup" "$REPO_LIST"
+            echo "已回滚"
+        fi
         return 1
     fi
 }
@@ -1177,6 +1199,20 @@ sync_repo_metadata() {
         return
     fi
 
+    # 保存当前状态用于回滚
+    local repo_backup="$CACHE_DIR/repos/${repo_name}.repo.backup"
+    local pkg_backup="$CACHE_DIR/repos/${repo_name}_Packages.backup"
+    local repo_meta_file="$CACHE_DIR/repos/${repo_name}.repo.json"
+    local pkg_index_file="$CACHE_DIR/repos/${repo_name}_Packages.json"
+    
+    # 备份当前文件
+    [ -f "$repo_meta_file" ] && $CP "$repo_meta_file" "$repo_backup"
+    [ -f "$pkg_index_file" ] && $CP "$pkg_index_file" "$pkg_backup"
+    
+    # 备份 repos.json
+    local repos_backup="${REPO_LIST}.backup"
+    $CP "$REPO_LIST" "$repos_backup"
+
     local repo_url=$($JQ -r ".repositories[\"$repo_name\"].url" "$REPO_LIST" 2>/dev/null)
     if [ -z "$repo_url" ] || [ "$repo_url" = "null" ]; then
         cerr "${RED}[Error]${NC}: 仓库不存在: $repo_name"
@@ -1190,14 +1226,28 @@ sync_repo_metadata() {
     
     # 尝试下载 .repo.json
     local repo_meta_url="${repo_url}/.repo.json"
-    local repo_meta_file="$CACHE_DIR/repos/${repo_name}.repo.json"
     
     echo "  下载仓库元数据: $repo_meta_url"
     if curl -sL --connect-timeout 10 --max-time 30 "$repo_meta_url" -o "$repo_meta_file" 2>/dev/null; then
         if $JQ empty "$repo_meta_file" 2>/dev/null; then
-            local pkg_url=$($JQ -r '.modules // "Packages.json"' "$repo_meta_file")
+            # 检查 modules 字段类型
+            local modules_type=$(jq -r '.modules | type' "$repo_meta_file" 2>/dev/null)
+            local pkg_url=""
+            
+            if [ "$modules_type" = "string" ]; then
+                # 字符串类型：直接使用字符串值
+                pkg_url=$($JQ -r '.modules' "$repo_meta_file")
+                echo "  检测到字符串格式的 modules 字段: $pkg_url"
+            elif [ "$modules_type" = "object" ]; then
+                # 对象类型：尝试获取 packages 字段
+                pkg_url=$($JQ -r '.modules.packages // "Packages.json"' "$repo_meta_file")
+            else
+                # 其他情况使用默认值
+                pkg_url="Packages.json"
+            fi
+            
+            # 构建包索引 URL
             local pkg_index_url="${repo_url}/${pkg_url}"
-            local pkg_index_file="$CACHE_DIR/repos/${repo_name}_Packages.json"
             
             echo "  下载包索引: $pkg_index_url"
             if curl -sL --connect-timeout 10 --max-time 60 "$pkg_index_url" -o "$pkg_index_file" 2>/dev/null; then
@@ -1211,38 +1261,112 @@ sync_repo_metadata() {
                     
                     local pkg_count=$($JQ 'length' "$pkg_index_file" 2>/dev/null || echo 0)
                     echo -e "${GREEN}✓${NC} 仓库同步完成: $pkg_count 个包"
+                    
+                    # 清理备份
+                    $RM -f "$repo_backup" "$pkg_backup" "$repos_backup"
+                    return 0
                 else
                     cerr "${RED}[Error]${NC}: 包索引格式无效"
+                    # 回滚
+                    rollback_sync "$repo_name" "$repo_backup" "$pkg_backup" "$repos_backup"
                     return 1
                 fi
             else
-                cerr "${YELLOW}[Warn]${NC}: 无法下载包索引，尝试直接获取"
-                # 尝试直接使用 Packages.json
-                pkg_index_url="${repo_url}/Packages.json"
-                if curl -sL --connect-timeout 10 --max-time 60 "$pkg_index_url" -o "$pkg_index_file" 2>/dev/null; then
-                    echo -e "${GREEN}✓${NC} 使用默认包索引"
+                cerr "${YELLOW}[Warn]${NC}: 无法下载包索引: $pkg_index_url"
+                # 尝试使用默认 Packages.json
+                local default_pkg_url="${repo_url}/Packages.json"
+                echo "  尝试使用默认包索引: $default_pkg_url"
+                if curl -sL --connect-timeout 10 --max-time 60 "$default_pkg_url" -o "$pkg_index_file" 2>/dev/null; then
+                    if $JQ empty "$pkg_index_file" 2>/dev/null; then
+                        local current_date=$($DATE '+%Y-%m-%d %H:%M:%S')
+                        $JQ --arg name "$repo_name" --arg date "$current_date" \
+                            ".repositories[\"$name\"].last_sync = \$date" \
+                            "$REPO_LIST" > "${REPO_LIST}.tmp"
+                        $MV "${REPO_LIST}.tmp" "$REPO_LIST"
+                        local pkg_count=$($JQ 'length' "$pkg_index_file" 2>/dev/null || echo 0)
+                        echo -e "${GREEN}✓${NC} 使用默认包索引完成: $pkg_count 个包"
+                        $RM -f "$repo_backup" "$pkg_backup" "$repos_backup"
+                        return 0
+                    else
+                        cerr "${RED}[Error]${NC}: 默认包索引格式无效"
+                        rollback_sync "$repo_name" "$repo_backup" "$pkg_backup" "$repos_backup"
+                        return 1
+                    fi
                 else
                     cerr "${RED}[Error]${NC}: 无法获取包索引"
+                    rollback_sync "$repo_name" "$repo_backup" "$pkg_backup" "$repos_backup"
                     return 1
                 fi
             fi
         else
             cerr "${RED}[Error]${NC}: 仓库元数据格式无效"
+            rollback_sync "$repo_name" "$repo_backup" "$pkg_backup" "$repos_backup"
             return 1
         fi
     else
         # 如果没有 .repo.json，尝试直接下载 Packages.json
         local pkg_index_url="${repo_url}/Packages.json"
-        local pkg_index_file="$CACHE_DIR/repos/${repo_name}_Packages.json"
         
         echo "  尝试直接下载包索引: $pkg_index_url"
         if curl -sL --connect-timeout 10 --max-time 60 "$pkg_index_url" -o "$pkg_index_file" 2>/dev/null; then
-            echo -e "${YELLOW}[Warn]${NC} 仓库可能没有索引文件或者不存在这个仓库"
+            if $JQ empty "$pkg_index_file" 2>/dev/null; then
+                local current_date=$($DATE '+%Y-%m-%d %H:%M:%S')
+                $JQ --arg name "$repo_name" --arg date "$current_date" \
+                    ".repositories[\"$name\"].last_sync = \$date" \
+                    "$REPO_LIST" > "${REPO_LIST}.tmp"
+                $MV "${REPO_LIST}.tmp" "$REPO_LIST"
+                local pkg_count=$($JQ 'length' "$pkg_index_file" 2>/dev/null || echo 0)
+                echo -e "${GREEN}✓${NC} 直接下载包索引完成: $pkg_count 个包"
+                $RM -f "$repo_backup" "$pkg_backup" "$repos_backup"
+                return 0
+            else
+                cerr "${RED}[Error]${NC}: 包索引格式无效"
+                rollback_sync "$repo_name" "$repo_backup" "$pkg_backup" "$repos_backup"
+                return 1
+            fi
         else
             cerr "${RED}[Error]${NC}: 无法连接到仓库: $repo_name"
+            rollback_sync "$repo_name" "$repo_backup" "$pkg_backup" "$repos_backup"
             return 1
         fi
     fi
+}
+
+# rollback
+rollback_sync() {
+    local repo_name="$1"
+    local repo_backup="$2"
+    local pkg_backup="$3"
+    local repos_backup="$4"
+    
+    echo -e "${YELLOW}[Warn]${NC}: 同步失败，正在回滚..."
+    
+    # 恢复 repos.json
+    if [ -f "$repos_backup" ]; then
+        $MV "$repos_backup" "$REPO_LIST"
+        echo "  ✓ 已恢复仓库列表"
+    fi
+    
+    # 恢复仓库元数据
+    if [ -f "$repo_backup" ]; then
+        $MV "$repo_backup" "$CACHE_DIR/repos/${repo_name}.repo.json"
+        echo "  ✓ 已恢复仓库元数据"
+    else
+        $RM -f "$CACHE_DIR/repos/${repo_name}.repo.json"
+    fi
+    
+    # 恢复包索引
+    if [ -f "$pkg_backup" ]; then
+        $MV "$pkg_backup" "$CACHE_DIR/repos/${repo_name}_Packages.json"
+        echo "  ✓ 已恢复包索引"
+    else
+        $RM -f "$CACHE_DIR/repos/${repo_name}_Packages.json"
+    fi
+    
+    # 清理临时文件
+    $RM -f "${REPO_LIST}.tmp"
+    
+    echo -e "${RED}✗${NC} 已回滚到同步前的状态"
 }
 
 # 搜索远端包
@@ -1724,12 +1848,60 @@ show_help() {
 EOF
 }
 
+# lock {
+cleanup_stale_lock() {
+    if [ -f "$LOCK_FILE" ]; then
+        local old_pid
+        old_pid="$(cat "$LOCK_FILE" 2>/dev/null)"
+        if [ -z "$old_pid" ] || ! kill -0 "$old_pid" 2>/dev/null; then
+            rm -f "$LOCK_FILE"
+        fi
+    fi
+}
+
+acquire_lock() {
+    cleanup_stale_lock
+    eval "exec $LOCK_FD>\"$LOCK_FILE\""
+    if ! $flock -n $LOCK_FD; then
+        local lock_pid
+        lock_pid="$(cat "$LOCK_FILE" 2>/dev/null)"
+        if [ -n "$lock_pid" ]; then
+            cerr "${RED}[Error]${NC}: 进程 $lock_pid 正在持有 lock , 无法继续操作"
+            cerr "${YELLOW}[Warn]${NC}: 你可以选择删除 lock 文件来让操作继续执行"
+            cerr "${YELLOW}[Warn]${NC}: 但是!我们并不推荐使用此方法, 除非持有进程是僵尸进程等的情况"
+        else
+             cerr "${RED}[Error]${NC}: 无法获取到 lock"
+        fi
+        return 1
+    fi
+    echo "$$" > "$LOCK_FILE"
+    return 0
+}
+
+release_lock() {
+    if [ -f "$LOCK_FILE" ]; then
+        local lock_pid
+        lock_pid="$(cat "$LOCK_FILE" 2>/dev/null)"
+        if [ "$lock_pid" = "$$" ]; then
+            rm -f "$LOCK_FILE"
+        fi
+    fi
+    eval "exec $LOCK_FD>&-"
+}
+# } end
+
 load_modules() {
     source "$jb_a1/load_mod.sh"
     load_modules_common "a1module"
 }
 
 main() {
+    # get lock
+    if ! acquire_lock; then
+        exit 1
+    fi
+    trap release_lock EXIT INT TERM
+
     check_commands
     load_modules >/dev/null
     # echo "a1module module loaded/open"
