@@ -18,7 +18,6 @@ show_help() {
     local official_modules=$(ls "$a1_expand/official/modules" 2>/dev/null || echo "无")
     cat << EOF
 Usage: $script_name [command] [option]
-
   init                    初始化模块系统
   list                    列出所有已安装模块
   package <目录>          打包模块
@@ -50,13 +49,11 @@ main() {
         exit 1
     fi
     trap release_lock EXIT INT TERM
-
     check_commands
     load_modules >/dev/null
     # echo "a1module module loaded/open"
     local command="${1:-help}"
     shift || true
-    
     case "$command" in
         init) init_system ;;
         list) list_modules ;;
@@ -81,9 +78,7 @@ main() {
             fi
             disable_module "$1"
             ;;
-        load)
-            load_modules
-            ;;
+        load) load_modules ;;
         remove)
             if [ -z "$1" ]; then
                 elog "請指定要刪除的模塊ID"
@@ -91,9 +86,7 @@ main() {
             fi
             remove_module "$1"
             ;;
-        help|--help|-h)
-            show_help
-            ;;
+        help|--help|-h) show_help ;;
         *)
             elog "未知命令: $command"
             show_help
@@ -105,3 +98,4 @@ main() {
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     main "$@"
 fi
+

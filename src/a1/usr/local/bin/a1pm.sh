@@ -39,7 +39,6 @@ show_help() {
 EOF
 }
 
-
 load_modules() {
     source "$jb_a1/load_mod.sh"
     load_modules_common "a1module"
@@ -61,19 +60,13 @@ main() {
             [ -z "$1" ] && { elog "用法: repo-remove <name>"; exit 1; }
             remove_repo "$1"
             ;;
-        repo-list)
-            list_repos
-            ;;
-        sync)
-            sync_repo_metadata "$1"
-            ;;
+        repo-list) list_repos ;;
+        sync) sync_repo_metadata "$1" ;;
         search)
             [ -z "$1" ] && { elog "用法: search <关键词>"; exit 1; }
             search_remote "$1"
             ;;
-        list-remote)
-            list_remote "$1"
-            ;;
+        list-remote) list_remote "$1" ;;
         info)
             [ -z "$1" ] && { elog "用法: info <包名>"; exit 1; }
             show_remote_info "$1"
@@ -82,15 +75,9 @@ main() {
             [ -z "$1" ] && { elog "用法: install-remote <包名>"; exit 1; }
             install_remote "$1"
             ;;
-        upgrade)
-            upgrade_modules "$1"
-            ;;
-        check-updates)
-            check_updates
-            ;;
-        help|--help|-h)
-            show_help
-            ;;
+        upgrade) upgrade_modules "$1" ;;
+        check-updates) check_updates ;;
+        help|--help|-h) show_help ;;
         *)
             elog "未知命令: $command"
             show_help
@@ -102,3 +89,4 @@ main() {
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     main "$@"
 fi
+

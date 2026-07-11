@@ -1,28 +1,15 @@
 #!/bin/bash
-
 # set -x # debug 使用
-
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
 else
     jb=""
 fi
-
 jb_a1="$jb/a1"
-
-if [ -n "$jb_a1" ]; then
-    if [ -f "$jb_a1/autofonf.ini" ]; then
-        source "$jb_a1/autofonf.ini"
-    elif [ -f "$jb_a1/a1_ADautoconf.sh" ]; then
-        source "$jb_a1/a1_ADautoconf.sh"
-        [ -f "$jb_a1/autofonf.ini" ] && source "$jb_a1/autofonf.ini"
-    fi
-fi
-
-# 导入配置
-source "$jb_a1/lib/core.sh"
-source "$jb_a1/config.conf"
-source "$jb_a1/inside.ini"
+source "$jb_a1/lib/core_a1ctl.sh"
+source "$jb_a1/lib/lock.sh"
+echo() { a1ctl_echo "$@"; }
+_a1_init_env
 
 show_help() {
     local a1_help="\
@@ -120,143 +107,105 @@ load_modules() {
 
 main() {
     init_config
-    load_modules >/dev/null 2>&1 # 0099
+    load_modules >/dev/null 2>&1
     # echo "a1ctl module loaded/open"
     case "$1" in
-        "1"|"start")
-            start_a1
-            ;;
-        "0"|"stop")
-            a1_kill_pid
-            echo "${GREEN}✓ A1 已停止${NC}"
-            ;;
-        "restart")
-            a1_kill_pid
-            sleep 2
-            start_a1
-            ;;
-        "status")
-            check_status
-            ;;
-        "return")
-            return_priority
-            ;;
-            
+        "1"|"start") start_a1 ;;
+        "0"|"stop") a1_kill_pid; ilog "A1 已停止" ;;
+        "restart") a1_kill_pid; sleep 2; start_a1 ;;
+        "status") check_status ;;
+        "return") return_priority ;;
         # 模式控制命令
         "loop")
-            Error_uid_Check_a1
+            check_uid
             if [ "$2" = "on" ]; then
                 # 开启循环模式前关闭其他模式
                 update_config "loop" "true"
                 update_config "Auto_Adjust" "false"
                 update_config "SCHEDULED_GUARD" "false"
-                echo "${GREEN}✓${NC} 循环模式已开启（已自动关闭其他模式）"
+                ilog "循环模式已开启（已自动关闭其他模式）"
             elif [ "$2" = "off" ]; then
                 update_config "loop" "false"
-                echo "${GREEN}✓${NC} 循环模式已关闭"
+                ilog "循环模式已关闭"
             else
-                cerr "${RED}[错误]${NC}: ${YELLOW}使用: loop <on|off>${NC}"
+                elog "使用: loop <on|off>"
             fi
             ;;
-            
         "auto-adjust")
-            Error_uid_Check_a1
+            check_uid
             if [ "$2" = "on" ]; then
                 # 开启实时自动调整前关闭其他模式
                 update_config "Auto_Adjust" "true"
                 update_config "loop" "false"
                 update_config "SCHEDULED_GUARD" "false"
-                echo "${GREEN}✓${NC} 实时自动调整模式已开启（已自动关闭其他模式）"
+                ilog "实时自动调整模式已开启（已自动关闭其他模式）"
             elif [ "$2" = "off" ]; then
                 update_config "Auto_Adjust" "false"
-                echo "${GREEN}✓${NC} 实时自动调整模式已关闭"
+                ilog "实时自动调整模式已关闭"
             else
-                cerr "${RED}[错误]${NC}: ${YELLOW}使用: auto-adjust <on|off>${NC}"
+                elog "使用: auto-adjust <on|off>"
             fi
             ;;
-            
         "scheduled-guard"|"guard")
-            Error_uid_Check_a1
+            check_uid
             if [ "$2" = "on" ]; then
                 # 开启定时守护前关闭其他模式
                 update_config "SCHEDULED_GUARD" "true"
                 update_config "loop" "false"
                 update_config "Auto_Adjust" "false"
-                echo "${GREEN}✓${NC} 定时守护模式已开启（已自动关闭其他模式）"
+                ilog "定时守护模式已开启（已自动关闭其他模式）"
             elif [ "$2" = "off" ]; then
                 update_config "SCHEDULED_GUARD" "false"
-                echo "${GREEN}✓${NC} 定时守护模式已关闭"
+								ilog "定时守护模式已关闭"
             else
-                cerr "${RED}[错误]${NC}: ${YELLOW}使用: scheduled-guard <on|off> 或 guard <on|off>${NC}"
+                elog "使用: scheduled-guard <on|off> 或 guard <on|off>"
             fi
             ;;
-            
         "exp"|"experimental")
-            Error_uid_Check_a1
+            check_uid
             if [ "$2" = "on" ]; then
                 update_config "Experimental" "true"
-                echo "${GREEN}✓${NC} 实验性功能已开启"
+                ilog "实验性功能已开启"
             elif [ "$2" = "off" ]; then
                 update_config "Experimental" "false"
-                echo "${GREEN}✓${NC} 实验性功能已关闭"
+                ilog "实验性功能已关闭"
             else
-                cerr "${RED}[错误]${NC}: ${YELLOW}使用: exp <on|off>${NC}"
+                elog "使用: exp <on|off>"
             fi
             ;;
-            
         "olr")
-            Error_uid_Check_a1
+            check_uid
             if [ "$2" = "on" ]; then
                 update_config "Log_Reincarnation" "true"
                 echo -e "\nmobile ALL=(ALL) NOPASSWD: $jb_a1/a1_tee_log.sh" | sudo tee -a $jb/etc/sudoers.d/procursus
-                echo "${GREEN}✓${NC} 日志轮迴已开启"
+                ilog "日志轮迴已开启"
             elif [ "$2" = "off" ]; then
                 update_config "Log_Reincarnation" "false"
                 sed -i '\|^mobile ALL=(ALL) NOPASSWD: $jb_a1/a1_tee_log.sh$|d' $jb/etc/sudoers.d/procursus
-                echo "${GREEN}✓${NC} 日志轮迴已关闭"
+                ilog "日志轮迴已关闭"
             else
-                cerr "${RED}[错误]${NC}: ${YELLOW}使用: olr <on|off>${NC}"
+                elog "使用: olr <on|off>"
             fi
             ;;
-            
         "custom")
-            Error_uid_Check_a1
+            check_uid
             if [ "$2" = "on" ]; then
                 update_config "Custom_Priority_Enabled" "true"
-                echo "${GREEN}✓${NC} 自定义优先级已开启"
+                ilog "自定义优先级已开启"
             elif [ "$2" = "off" ]; then
                 update_config "Custom_Priority_Enabled" "false"
-                echo "${GREEN}✓${NC} 自定义优先级已关闭"
+                ilog "自定义优先级已关闭"
             else
-                cerr "${RED}[错误]${NC}: ${YELLOW}使用: custom <on|off>${NC}"
+                elog "使用: custom <on|off>"
             fi
             ;;
-            
         # 优先级管理命令
-        "add")
-            add_priority "$@"
-            ;;
-            
-        "remove")
-            remove_priority "$@"
-            ;;
-            
-        "list")
-            list_priority "$@"
-            ;;
-            
-        "clear")
-            clear_priority "$@"
-            ;;
-            
-        "set")
-            set_priority_value "$@"
-            ;;
-            
-        "help"|""|"--help"|"-h"|"h")
-            show_help
-            ;;
-            
+        "add") add_priority "$@" ;;
+        "remove") remove_priority "$@" ;;
+        "list") list_priority "$@" ;;
+        "clear") clear_priority "$@" ;;
+        "set") set_priority_value "$@" ;;
+        "help"|""|"--help"|"-h"|"h") show_help ;;
         "-f")
             if [ "$2" = "start" ]; then
                 start_a1_foreground
@@ -264,80 +213,50 @@ main() {
                 echo "命令错误 $2"
             fi
             ;;
-            
         # 清理命令
-        "clean")
-            clean_system "$@"
-            ;;
-            
+        "clean") clean_system "$@" ;;
         # 配置管理命令
-        "config"|"show-config")
-            show_config
-            ;;
-            
+        "config"|"show-config") show_config ;;
         "set-interval")
-            Error_uid_Check_a1
+            check_uid
             if [ -n "$2" ] && [[ "$2" =~ ^[0-9]+$ ]]; then
                 update_config "Optimize_Interval" "$2"
             else
-                cerr "${RED}[错误]${NC}: ${YELLOW}请提供有效的秒数${NC}"
+                elog "请提供有效的秒数"
             fi
             ;;
-            
         "loop-sleep")
-            Error_uid_Check_a1
+            check_uid
             if [[ ! "$2" =~ ^[0-9]+$ ]] || [ "$2" -lt 1 ]; then
-                cerr "${RED}[错误]${NC}: ${YELLOW}循环休眠时间必须是大于0的整数${NC}"
+                elog "循环休眠时间必须是大于0的整数"
                 return 1
             fi
             update_config "Loop_Sleep_Interval" "$2"
             ;;
-            
-        "auto-apply")
-            set_auto_apply "$2"
-            ;;
-            
+        "auto-apply") set_auto_apply "$2" ;;
         "sudo")
-            _err_uid_check
-            configure_sudo_permissions "$2" "$3"
-            ;;
-            
-        "root")
-            _err_uid_check
-            conf_use_root "$1" "$2"
-            ;;
-            
-        "save"|"save-config")
-            save_config
-            ;;
-            
-        "restore"|"restore-config")
-            restore_config
-            ;;
-            
-        "compat"|"compat-mode")
-            a1_compat_mode "$@"
-            ;;
-
-        # lock - 3333
+            check_uid; configure_sudo_permissions "$2" "$3" ;;
+        "root") check_uid; conf_use_root "$1" "$2" ;;
+        "save"|"save-config") save_config ;;
+        "restore"|"restore-config") restore_config ;;
+        "compat"|"compat-mode") a1_compat_mode "$@" ;;
         "lock")
             if [ -n "$2" ]; then
                 if [ "$2" = "on" ]; then
                     update_config "lock_use" "true"
-                    echo "${BLUE}info${NC}: lock 已開啟"
-                    echo "lock 是一種機制, 它能保證程式在運行時不受到其他進程的影響, \n避免意外情況發生(如檔案損壞等)\n但它本身也有缺陷: 只能單進程執行, 無法並發"
+                    ilog "lock 已開啟"
+                    ilog "lock 是一種機制, 它能保證程式在運行時不受到其他進程的影響, \n避免意外情況發生(如檔案損壞等)\n但它本身也有缺陷: 只能單進程執行, 無法並發"
                 elif [ "$2" = "off" ]; then
                     update_config "lock_use" "false"
-                    echo "${BLUE}info${NC}: lock 已關閉"
-                    echo "lock 已經被關閉了, a1 現在可以進行多線程模式, \n但這樣可能導致配置檔案等資料損壞"
+                    ilog "lock 已關閉"
+                    wlog "lock 已經被關閉了, a1 現在可以進行多線程模式, \n但這樣可能導致配置檔案等資料損壞"
                 else
-                    cerr "${RED}[Error]${NC}: 請輸入 on/off, 如 $0 $1 on/off, 而不是 $0 $1"
+                    elog "請輸入 on/off, 如 $0 $1 on/off, 而不是 $0 $1"
                 fi
             else
-                cerr "${RED}[Error]${NC}: 請輸入 on/off, 如 $0 $1 on/off, 而不是 $0 $1"
+                elog "請輸入 on/off, 如 $0 $1 on/off, 而不是 $0 $1"
             fi
             ;;
-
         # 模块系统命令
         "module"|"mod"|"expand")
             if [ $# -eq 1 ] || [ "$2" = "help" ] || [ "$2" = "h" ]; then
@@ -345,39 +264,28 @@ main() {
                 "$jb/usr/local/bin/a1module" help
                 return 0
             fi
-
-            _err_uid_check
-    
+            check_uid
             case "$2" in
-                "on")
-                    update_config "a1_module_switch" "true"
-                    echo "✓ 模块功能已开启"
-                    ;;
-              "off")
-                    update_config "a1_module_switch" "false"
-                    echo "✗ 模块功能已关闭"
-                    ;;
+                "on") update_config "a1_module_switch" "true"; echo "✓ 模块功能已开启" ;;
+              "off") update_config "a1_module_switch" "false"; echo "✗ 模块功能已关闭" ;;
                 *)
                     if [ ! -x "$jb/usr/local/bin/a1module" ]; then
-                        cerr "a1module 不存在, 你可能在使用旧版本的A1"
+                        elog "a1module 不存在, 你可能在使用旧版本的A1"
                         return 1
                     fi
-
                     if [ "$a1_module_switch" != "true" ]; then
-                        cerr "模块开关是关闭的\n请使用 '$(basename $0) mod on' 开启"
+                        elog "模块开关是关闭的\n请使用 '$(basename $0) mod on' 开启"
                         return 1
                     fi
-
                     shift
                     export a1ctl_call_mod="true"
                     "$jb/usr/local/bin/a1module" "$@"
                     ;;
             esac
             ;;
-            
         *)
-            cerr "${RED}[命令未找到]${NC} ${YELLOW}未知命令: $1${NC}"
-            cerr "${BLUE}使用 'a1ctl help' 查看帮助${NC}"
+            elog "未知命令: $1"
+            ilog "使用 'a1ctl help' 查看帮助"
             ;;
     esac
 }
@@ -399,52 +307,13 @@ if [ "$lock_use" = "false" ]; then
                 export a1hub_use_confirm="1"
                 exec "$jb/usr/local/bin/a1hub"
             fi
-            [ $? != 0 ] && cerr "${RED}[Error]${NC}: a1hub 在哪裡?" && exit 1
+            [ $? != 0 ] && elog "a1hub 在哪裡?" && exit 1
         fi
     fi
 else
     # 使用鎖
     LOCK_FILE="$jb_a1/lock"
     LOCK_FD=200
-
-    cleanup_stale_lock() {
-        if [ -f "$LOCK_FILE" ]; then
-            local old_pid
-            old_pid="$(cat "$LOCK_FILE" 2>/dev/null)"
-            if [ -z "$old_pid" ] || ! kill -0 "$old_pid" 2>/dev/null; then
-                rm -f "$LOCK_FILE"
-            fi
-        fi
-    }
-
-    acquire_lock() {
-        cleanup_stale_lock
-        eval "exec $LOCK_FD>\"$LOCK_FILE\""
-        if ! $flock -n $LOCK_FD; then
-            local lock_pid
-            lock_pid="$(cat "$LOCK_FILE" 2>/dev/null)"
-            if [ -n "$lock_pid" ]; then
-                cerr "${RED}[Error]${NC}: lock 正在被進程 $lock_pid 持有中,無法繼續操作..."
-            else
-                cerr "${RED}[Error]${NC}: 無法取得 lock"
-            fi
-            return 1
-        fi
-        echo "$$" > "$LOCK_FILE"
-        return 0
-    }
-
-    release_lock() {
-        if [ -f "$LOCK_FILE" ]; then
-            local lock_pid
-            lock_pid="$(cat "$LOCK_FILE" 2>/dev/null)"
-            if [ "$lock_pid" = "$$" ]; then
-                rm -f "$LOCK_FILE"
-            fi
-        fi
-        eval "exec $LOCK_FD>&-"
-    }
-
     if [ "$a1hub_use_confirm" = "1" ]; then
         main "$@"
     else
@@ -452,7 +321,6 @@ else
             exit 1
         fi
         trap 'release_lock' EXIT INT TERM
-
         if [ "$(id -u)" = "0" ]; then
             main "$@"
         else
@@ -468,7 +336,7 @@ else
                     export a1hub_use_confirm="1"
                     exec "$jb/usr/local/bin/a1hub" "$@"
                 fi
-                [ $? != 0 ] && cerr "${RED}[Error]${NC}: a1hub 在哪裡?" && exit 1
+                [ $? != 0 ] && elog "a1hub 在哪裡?" && exit 1
             fi
         fi
     fi

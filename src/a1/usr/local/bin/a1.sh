@@ -1,13 +1,12 @@
 #!/bin/bash
-
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
 else
     jb=""
 fi
 jb_a1="$jb/a1"
-
-source "$jb_a1/lib/core.sh"
+source "$jb_a1/lib/core_a1.sh"
+_a1_init_env
 
 # 日志重定向
 exec 3>>$jb_a1/a1.log
@@ -59,9 +58,7 @@ apply_custom_priority() {
 optimize_system() {
     echo "Optimizing system priorities..."
     echo ""
-    
     wait_for_springboard
-    
     # 1. 应用高优先级列表
     if [ ${#HIGH_PRIORITY_LIST[@]} -gt 0 ]; then
         echo "Boosting critical processes (jetsam priority: $HIGH_PRIORITY):"
@@ -84,7 +81,6 @@ optimize_system() {
         echo "${A1_YELLOW}Warning: No high priority processes defined${A1_NC}"
         echo ""
     fi
-    
     # 2. 应用低优先级列表
     if [ ${#LOW_PRIORITY_LIST[@]} -gt 0 ]; then
         echo "Lowering non-essential processes (jetsam priority: $LOW_PRIORITY):"
@@ -106,15 +102,12 @@ optimize_system() {
         echo "${A1_YELLOW}Warning: No low priority processes defined${A1_NC}"
         echo ""
     fi
-    
     # 3. 应用自定义优先级
     apply_custom_priority
-    
     echo "_______________________________________________"
     echo "Optimization complete"
     echo "_______________________________________________"
 }
-
 # main
 main() {
     echo "$(date)"
@@ -122,7 +115,6 @@ main() {
     echo "|A1 are working..|"
     echo "------------------"
     # 初始化环境
-    _a1_init_env
     _a1_colors
     _a1_set_defaults
     # 读取优先级列表
@@ -148,11 +140,9 @@ main() {
     # 模式选择
     if [ "$AUTO_ADJUST" = "true" ]; then
         echo "Starting Auto-Adjust (real-time) mode..."
-        # _a1_read_priority_lists "true"
         auto_adjust
     elif [ "$SCHEDULED_GUARD" = "true" ]; then
         echo "Starting Scheduled Guard mode..."
-        # _a1_read_priority_lists "true"
         scheduled_guard
     elif [ "$LOOP_MODE" = "true" ]; then
         echo "Starting Loop mode..."
@@ -178,6 +168,6 @@ main() {
 if [ "$use_sudo_a1" = "false" ]; then
     main 2> >(sudo tee "$jb_a1/a1error.log" >&2) | sudo tee "$jb_a1/a1.log"
 else
-    main 2> >(tee "$jb_a1/a1error.log" >&2) | tee "$jb_a1/a1.log"
+    main 2> >(tee "$jb_a1/a1error.log" >&2) | $raise_power tee "$jb_a1/a1.log"
 fi
 

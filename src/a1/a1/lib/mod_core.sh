@@ -182,12 +182,12 @@ _a1mod_parse_metadata() {
 		fi
 		echo "$metadata"
 		return 0
-	fi
+		fi
     # INI 格式
     if echo "$metadata_file" | $GREP -q "\.ini$"; then
         # 讀取 INI 文件
         local ini_content=$(cat "$metadata_file")
-		local json='{'
+				local json='{'
         local current_key=""
         local current_value=""
         local in_multiline=false
@@ -262,15 +262,6 @@ _a1mod_parse_metadata() {
     cerr "${RED}[Error]${NC}: 不支持的文件格式"
     return 1
 }
-
-
-
-
-
-
-
-
-
 # 格式化描述/更新日誌顯示
 _a1mod_format_display_text() {
     local json="$1"
@@ -656,16 +647,16 @@ _a1mod_install_module() {
     echo "  名稱: $name ($package)"
     echo "  作者: $author"
     echo "  版本: $version"
-	# 檢查依賴
-	ilog "檢查模塊依賴..."
-	check_depends "$metadata" "$package" || {
-		$RM -rf "$temp_dir"
-		return 1
-	}
-	check_apt_depends "$metadata" "$package" || {
-		$RM -rf "$temp_dir"
-		return 1
-	}
+		# 檢查依賴
+		ilog "檢查模塊依賴..."
+		check_depends "$metadata" "$package" || {
+			$RM -rf "$temp_dir"
+			return 1
+		}
+		check_apt_depends "$metadata" "$package" || {
+			$RM -rf "$temp_dir"
+			return 1
+		}
     # 檢查衝突
     local conflict_result=$(check_conflict "$package" "$author")
     if [ $? -ne 0 ]; then
@@ -745,8 +736,8 @@ _a1mod_install_module() {
     if [ -z "$main_script" ] && [ ${#sh_files[@]} -gt 0 ]; then
         main_script="${sh_files[0]}"
     fi
-	_a1mod_add_to_db "$package" "$name" "$author" "$maintainer" \
-			  "$version" "$description" "$main_script" "$is_official" "$metadata"
+		_a1mod_add_to_db "$package" "$name" "$author" "$maintainer" \
+		"$version" "$description" "$main_script" "$is_official" "$metadata"
     ilog "清理臨時文件..."
     $RM -rf "$temp_dir"
     $RM -rf $(basename "$source_dir")
@@ -806,3 +797,4 @@ export -f _a1mod_check_required
 export -f _a1mod_check_depends
 export -f _a1mod_check_apt_depends
 export -f _a1mod_check_conflict
+
