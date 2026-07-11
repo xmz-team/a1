@@ -172,6 +172,19 @@ scan_packages() {
     local count=0
     local first=true
     
+    # 计算 OUTPUT_FILE 的目录，用于计算相对路径
+    local output_dir=""
+    if command -v realpath &>/dev/null; then
+        output_dir=$(dirname "$(realpath "$OUTPUT_FILE")")
+    else
+        output_dir=$(dirname "$OUTPUT_FILE")
+        # 如果不是绝对路径，转换为绝对路径
+        if [[ "$output_dir" != /* ]]; then
+            output_dir="$(pwd)/$output_dir"
+        fi
+    fi
+    
+    # 支持 .a1mod 和 .a1module.zip - 递归扫描所有子目录
     while IFS= read -r -d '' module_file; do
         local filename=$(basename "$module_file")
         echo -e "${BLUE}[info]${NC} 处理: $filename"
@@ -202,6 +215,22 @@ scan_packages() {
         local file_size=$(stat -f%z "$module_file" 2>/dev/null || stat -c%s "$module_file" 2>/dev/null || echo 0)
         local sha256=$(compute_sha256 "$module_file")
         
+        # 计算相对于 OUTPUT_FILE 所在目录的路径
+        local file_path=""
+        if command -v realpath &>/dev/null; then
+            file_path=$(realpath --relative-to="$output_dir" "$module_file" 2>/dev/null)
+        else
+            # 如果没有 realpath，手动计算相对路径
+            local module_abs=$(cd "$(dirname "$module_file")" && pwd)/$(basename "$module_file")
+            file_path="${module_abs#$output_dir/}"
+            if [ "$file_path" = "$module_abs" ]; then
+                file_path="$filename"
+            fi
+        fi
+        if [ -z "$file_path" ] || [ "$file_path" = "." ]; then
+            file_path="$filename"
+        fi
+        
         [ "$first" = true ] && first=false || packages_json+=","
         
         packages_json+=$($JQ -n \
@@ -213,6 +242,7 @@ scan_packages() {
             --arg author "$author" \
             --arg target "$target" \
             --arg filename "$filename" \
+            --arg filepath "$file_path" \
             --arg size "$file_size" \
             --arg sha256 "$sha256" \
             --arg section "$section" \
@@ -234,6 +264,7 @@ scan_packages() {
                 depends: $depends,
                 depends_apt: $depends_apt,
                 filename: $filename,
+                FilePath: $filepath,
                 size: ($size | tonumber),
                 sha256: $sha256,
                 section: $section,
@@ -245,7 +276,7 @@ scan_packages() {
         count=$((count + 1))
         echo -e "${GREEN}  ✓${NC} $package ($version)"
         
-    done < <(find "$REPO_DIR" -maxdepth 1 -name "*.a1module.zip" -print0 | sort -z)
+    done < <(find "$REPO_DIR" \( -name "*.a1mod" -o -name "*.a1module.zip" \) -print0 | sort -z)
     
     packages_json+="]"
     
@@ -289,7 +320,7 @@ show_help() {
     cat << EOF
 用法: $0 [选项] [目录]
 
-扫描目录中的 .a1module.zip 文件并生成 Packages.json 索引。
+递归扫描目录中的 .a1module.zip 和 .a1mod 文件并生成 Packages.json 索引。
 
 选项:
   -o, --output FILE     指定输出文件 (默认: Packages.json)
@@ -300,9 +331,15 @@ show_help() {
   --repo-desc DESC      仓库描述 (用于 .repo.json)
   -h, --help            显示帮助
 
+FilePath 说明:
+  FilePath 是相对于 Packages.json 文件所在目录的路径。
+  例如: Packages.json 在 /repo/，模块在 /repo/a1mod/test.a1mod
+  则 FilePath = "a1mod/test.a1mod"
+
 示例:
-  $0 /path/to/repo
-  $0 /path/to/repo -o /tmp/Packages.json
+  $0 .                              # 扫描当前目录及子目录
+  $0 . -o ./Packages.json           # 指定输出文件
+  $0 ./a1mod -o ./Packages.json     # 扫描 a1mod 目录，FilePath 包含 a1mod/
   $0 . --generate-repo --repo-name "My Repo" --repo-url "https://example.com"
 
 EOF
@@ -359,3 +396,4 @@ main() {
 }
 
 main "$@"
+

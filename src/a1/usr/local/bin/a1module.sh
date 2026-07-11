@@ -43,9 +43,9 @@ STORE_USER="$STORE_DIR/user"
 CACHE_DIR="$MODULE_BASE/cache"
 # 仓库列表文件
 REPO_LIST="$MODULE_BASE/repos.json"
-AUTHER="$(cat "$MODULE_BASE/auther")"
+# AUTHER="$(cat "$MODULE_BASE/auther")"
 LOCK_FILE="$MODULE_BASE/lock"
-LOCK_FD=300
+LOCK_FD=100
 
 JQ="${jq:-jq}"
 ZIP="${zip:-zip}"
@@ -97,7 +97,7 @@ init_system() {
              "$CACHE_DIR"
     
     # 創建官方作者目錄
-    for author in $AUTHOR; do
+    for author in "$(cat $MODULE_BASE/auther)"; do
         $MKDIR -p "$OFFICIAL_DIR/$author"
     done
     
@@ -512,7 +512,8 @@ package_module() {
     local author=$(echo "$metadata" | $JQ -r '.author // .mainstream')
     local target=$(echo "$metadata" | $JQ -r '.target // "all"')
     
-    local filename="${package}_${author}_${target}.a1module.zip"
+    # local filename="${package}_${author}_${target}.a1module.zip"
+    local filename="${package}_${author}_${target}.a1mod"
     local output_file="$output_dir/$filename"
     
     # 創建臨時目錄
@@ -528,7 +529,8 @@ package_module() {
     
     # 打包
     cd "$temp_dir" || return 1
-    $ZIP -r "$filename" "${package}.a1module" > /dev/null 2>&1
+    # $ZIP -r "$filename" "${package}.a1module" > /dev/null 2>&1
+    $ZIP -r "$filename" "${package}.a1mod" > /dev/null 2>&1
     
     if [ ! -f "$filename" ]; then
         cerr "${RED}[Error]${NC}: 打包失敗"
@@ -572,8 +574,8 @@ install_module() {
         return 1
     fi
     
-    if ! echo "$module_file" | $GREP -q "\.a1module\.zip$"; then
-        cerr "${RED}[Error]${NC}: 必須是 .a1module.zip 文件"
+    if ! echo "$module_file" | $GREP -q "\.a1mod$" && ! echo "$module_file" | $GREP -q "\.a1module\.zip$"; then
+        cerr "${RED}[Error]${NC}: 必須是 .a1module.zip 或 .a1mod 文件"
         return 1
     fi
     
@@ -583,8 +585,13 @@ install_module() {
     local temp_dir=$($MKDIR -p "$CACHE_DIR/install" && mktemp -d "$CACHE_DIR/install/XXXXXX")
     
     local module_filename=$(basename "$module_file")
+    # 支持 .a1mod 和 .a1module.zip
     local expected_package="${module_filename%_*}"
-    expected_package="${expected_package%.a1module.zip}"
+    if [[ "$module_filename" == *.a1mod ]]; then
+        expected_package="${expected_package%.a1mod}"
+    else
+        expected_package="${expected_package%.a1module.zip}"
+    fi
     
     echo -e "${BLUE}[info]${NC} 解壓模塊文件..."
     if ! $UNZIP -q "$module_file" -d "$temp_dir" 2>/dev/null; then
@@ -1186,6 +1193,7 @@ list_repos() {
 }
 
 # 同步仓库元数据
+# 同步仓库元数据
 sync_repo_metadata() {
     local repo_name="$1"
     
@@ -1241,9 +1249,14 @@ sync_repo_metadata() {
             elif [ "$modules_type" = "object" ]; then
                 # 对象类型：尝试获取 packages 字段
                 pkg_url=$($JQ -r '.modules.packages // "Packages.json"' "$repo_meta_file")
-            else
-                # 其他情况使用默认值
+            elif [ "$modules_type" = "null" ] || [ -z "$modules_type" ]; then
+                # modules 字段不存在或为 null，使用默认值
                 pkg_url="Packages.json"
+                echo "  未找到 modules 字段，使用默认值: $pkg_url"
+            else
+                # 其他情况（数组或其他类型）使用默认值
+                pkg_url="Packages.json"
+                echo "  未知的 modules 字段类型: $modules_type，使用默认值: $pkg_url"
             fi
             
             # 构建包索引 URL
@@ -1273,6 +1286,8 @@ sync_repo_metadata() {
                 fi
             else
                 cerr "${YELLOW}[Warn]${NC}: 无法下载包索引: $pkg_index_url"
+#eofs
+: <<'eofs'
                 # 尝试使用默认 Packages.json
                 local default_pkg_url="${repo_url}/Packages.json"
                 echo "  尝试使用默认包索引: $default_pkg_url"
@@ -1297,6 +1312,7 @@ sync_repo_metadata() {
                     rollback_sync "$repo_name" "$repo_backup" "$pkg_backup" "$repos_backup"
                     return 1
                 fi
+eofs
             fi
         else
             cerr "${RED}[Error]${NC}: 仓库元数据格式无效"
@@ -1304,10 +1320,10 @@ sync_repo_metadata() {
             return 1
         fi
     else
-        # 如果没有 .repo.json，尝试直接下载 Packages.json
+        # 如果没有 .repo.json，尝试下载 Packages.json
         local pkg_index_url="${repo_url}/Packages.json"
         
-        echo "  尝试直接下载包索引: $pkg_index_url"
+        echo "  尝试下载包索引: $pkg_index_url"
         if curl -sL --connect-timeout 10 --max-time 60 "$pkg_index_url" -o "$pkg_index_file" 2>/dev/null; then
             if $JQ empty "$pkg_index_file" 2>/dev/null; then
                 local current_date=$($DATE '+%Y-%m-%d %H:%M:%S')
@@ -1316,7 +1332,7 @@ sync_repo_metadata() {
                     "$REPO_LIST" > "${REPO_LIST}.tmp"
                 $MV "${REPO_LIST}.tmp" "$REPO_LIST"
                 local pkg_count=$($JQ 'length' "$pkg_index_file" 2>/dev/null || echo 0)
-                echo -e "${GREEN}✓${NC} 直接下载包索引完成: $pkg_count 个包"
+                echo -e "${GREEN}✓${NC} 下载包索引完成: $pkg_count 个包"
                 $RM -f "$repo_backup" "$pkg_backup" "$repos_backup"
                 return 0
             else
@@ -1580,6 +1596,7 @@ show_remote_info() {
 }
 
 # 从远端安装
+# 从远端安装
 install_remote() {
     local package="$1"
     
@@ -1618,33 +1635,54 @@ install_remote() {
     fi
     
     local repo_url=$($JQ -r ".repositories[\"$found_repo\"].url" "$REPO_LIST")
+    
+    # 修改: 优先使用 FilePath，如果不存在则使用 filename
+    local file_path=$(echo "$pkg_info" | $JQ -r '.FilePath // ""')
     local filename=$(echo "$pkg_info" | $JQ -r '.filename')
-    local download_url="${repo_url}/${filename}"
-    local download_path="$CACHE_DIR/downloads/$filename"
+    
+    # 构建下载路径
+    local download_path=""
+    if [ -n "$file_path" ] && [ "$file_path" != "null" ] && [ "$file_path" != "" ]; then
+        # 使用 FilePath（相对于仓库根目录的路径）
+        download_path="$file_path"
+    else
+        # 回退到 filename
+        download_path="$filename"
+    fi
+    
+    # 构建完整的下载 URL
+    local download_url="${repo_url}/${download_path}"
+    # 确保 URL 中不包含重复的斜杠
+    download_url=$(echo "$download_url" | sed 's#//+#/#g' | sed "s#${repo_url}/#${repo_url}/#")
+    
+    # 本地缓存路径（使用文件名，因为 FilePath 可能包含目录结构）
+    local cache_filename=$(basename "$download_path")
+    local download_cache="$CACHE_DIR/downloads/$cache_filename"
     local sha256_expected=$(echo "$pkg_info" | $JQ -r '.sha256 // ""')
     
     $MKDIR -p "$CACHE_DIR/downloads"
     
     echo -e "${BLUE}[info]${NC} 从仓库 '$found_repo' 下载: $package"
     echo "  URL: $download_url"
+    echo "  路径: $download_path"
     
     # 下载包
     if curl -L --progress-bar --connect-timeout 10 --max-time 300 \
-        "$download_url" -o "$download_path" 2>/dev/null; then
+        "$download_url" -o "$download_cache" 2>/dev/null; then
         
-        local file_size=$(stat -f%z "$download_path" 2>/dev/null || stat -c%s "$download_path" 2>/dev/null)
+        local file_size=$(stat -f%z "$download_cache" 2>/dev/null || stat -c%s "$download_cache" 2>/dev/null)
         echo -e "${GREEN}✓${NC} 下载完成 (${file_size} 字节)"
         
         # 验证 SHA256（如果提供）
-        if [ -n "$sha256_expected" ]; then
+        if [ -n "$sha256_expected" ] && [ "$sha256_expected" != "null" ]; then
             echo -e "${BLUE}[info]${NC} 验证文件完整性..."
             if command -v shasum &>/dev/null; then
-                local sha256_actual=$(shasum -a 256 "$download_path" | cut -d' ' -f1)
+                local sha256_actual=$(shasum -a 256 "$download_cache" | cut -d' ' -f1)
                 if [ "$sha256_actual" != "$sha256_expected" ]; then
                     cerr "${RED}[Error]${NC}: SHA256 验证失败！"
                     echo "  期望: $sha256_expected"
                     echo "  实际: $sha256_actual"
-                    $RM -f "$download_path"
+                    $RM -f "$download_cache"
                     return 1
                 fi
                 echo -e "${GREEN}✓${NC} 文件完整性验证通过"
@@ -1654,16 +1692,17 @@ install_remote() {
         fi
         
         # 安装下载的包
-        install_module "$download_path"
+        install_module "$download_cache"
         local install_result=$?
         
         # 清理下载文件
-        $RM -f "$download_path"
+        $RM -f "$download_cache"
         
         return $install_result
     else
         cerr "${RED}[Error]${NC}: 下载失败"
-        $RM -f "$download_path"
+        echo "  尝试的 URL: $download_url"
+        $RM -f "$download_cache"
         return 1
     fi
 }

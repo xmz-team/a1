@@ -8,16 +8,16 @@ init()
     cd packages
     mkdir -p packdeb.d/a1/$date_dir/
     mkdir -p packdeb.d/gui/$date_dir/
+    
     cd a1
-    if [ -f *.deb ]; then
-        mv *.deb ../packdeb.d/a1/$date_dir/
-    fi
+    for f in *.deb; do
+        [ -f "$f" ] && mv "$f" ../packdeb.d/a1/$date_dir/
+    done
 
     cd ../gui
-
-    if [ -f *.deb ]; then
-        mv *.deb ../packdeb.d/gui/$date_dir/
-    fi
+    for f in *.deb; do
+        [ -f "$f" ] && mv "$f" ../packdeb.d/gui/$date_dir/
+    done
 
     cd ..
     rm -rf a1 gui
@@ -84,7 +84,7 @@ package()
 		local rf_pack_a1="packages/a1/rootful"
 		local rl_pack_gui="packages/gui/rootless"
 		local rh_pack_gui="packages/gui/roothide"
-		local a1_version='1.9.9-beta3-1'
+		local a1_version='1.9.9-beta3-2+debug4'
 		local gui_version='0.0.3-beta3-2'
 		cd $orig_pwd
 		build flock
