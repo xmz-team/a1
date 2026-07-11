@@ -1,63 +1,8 @@
-#!/bin/bash
+# a1_core.sh
 # Provides all the core features of A1
-# Version: 0.0.1
 
-_a1_init_env() {
-    # load profile
-    if [ -f '/etc/profile' ]; then
-        source /etc/profile
-    elif [ -f '/var/jb/etc/profile' ]; then
-        source /var/jb/etc/profile
-    else
-        echo 'Where the fuck "profile"?' 1>&2
-    fi
-    # check jb path
-    if [ "$(dpkg --print-architecture 2>/dev/null)" = "iphoneos-arm64" ]; then
-        jb="/var/jb"
-    else
-        jb=""
-    fi
-    export jb
-    # check ps command
-    if command -v ps >/dev/null 2>&1; then
-        ps="ps"
-    elif [ -x "$jb/bin/ps" ]; then
-        ps="$jb/bin/ps"
-    elif [ -x "/bin/ps" ]; then
-        ps="/bin/ps"
-    else
-        ps="ps"
-    fi
-    export ps
-    # check flock
-    if command -v flock >/dev/null 2>&1; then
-        flock="flock"
-    elif [ -x "$jb/usr/bin/flock" ]; then
-        flock="$jb/usr/bin/flock"
-    else
-        flock="flock"
-    fi
-    export flock
-    # A1 dir
-    jb_a1="$jb/a1"
-    export jb_a1
-    # load auth conf
-    if [ -n "$jb_a1" ]; then
-        if [ -f "$jb_a1/autofonf.ini" ]; then
-            source "$jb_a1/autofonf.ini"
-        elif [ -f "$jb_a1/a1_ADautoconf.sh" ]; then
-            source "$jb_a1/a1_ADautoconf.sh"
-            [ -f "$jb_a1/autofonf.ini" ] && source "$jb_a1/autofonf.ini"
-        fi
-    fi
-    # load main conf
-    if [ -f "$jb_a1/config.conf" ]; then
-        source "$jb_a1/config.conf"
-    fi
-    if [ -f "$jb_a1/inside.ini" ]; then
-        source "$jb_a1/inside.ini"
-    fi
-}
+_A1CoreFilePath=$( cd $(dirname ${BASH_SOURCE[0]} ) && pwd )
+
 # set colors
 _a1_colors() {
     export A1_RED='\033[0;31m'
@@ -688,7 +633,6 @@ custom_auto_adjust() { _a1_start_monitor "${1:-1}" "Auto-Adjust"; }
 custom_scheduled_guard() { _a1_start_monitor "${1:-15}" "Scheduled-Guard"; }
 # export function
 # Most of the public functions
-export -f _a1_init_env
 export -f _a1_colors
 export -f _a1_echo
 export -f _a1_cerr

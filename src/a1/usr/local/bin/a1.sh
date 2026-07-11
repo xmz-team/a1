@@ -5,21 +5,10 @@ if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
 else
     jb=""
 fi
-
 jb_a1="$jb/a1"
-# 加载配置
-if [ -n "$jb_a1" ]; then
-    if [ -f "$jb_a1/autofonf.ini" ]; then
-        source "$jb_a1/autofonf.ini"
-    elif [ -f "$jb_a1/a1_ADautoconf.sh" ]; then
-        source "$jb_a1/a1_ADautoconf.sh"
-        [ -f "$jb_a1/autofonf.ini" ] && source "$jb_a1/autofonf.ini"
-    fi
-fi
-# 导入配置和核心
+
 source "$jb_a1/lib/core.sh"
-source "$jb_a1/config.conf"
-source "$jb_a1/inside.ini"
+
 # 日志重定向
 exec 3>>$jb_a1/a1.log
 out_3() { builtin echo "$@" >&3; }
