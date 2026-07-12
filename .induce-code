@@ -1,0 +1,19 @@
+#!/bin/sh -
+
+filename="a1.AllCode.all.md"
+{
+    find . -type f \
+        ! -path '*/.*' \
+        ! -path '*/tmp/*' \
+        ! -path '*/packages/*' \
+        ! -path '*/terminal/*' \
+        ! -path '*/Terminal/*' \
+        ! -name "$filename" | while IFS= read -r file; do
+        if file "$file" | grep -q "Mach-O"; then
+            continue
+        fi
+        echo "===== $file ====="
+        cat "$file"
+        printf "====== end =====\n"
+    done
+} > "$filename"

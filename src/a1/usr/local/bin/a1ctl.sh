@@ -7,10 +7,10 @@ else
 fi
 jb_a1="$jb/a1"
 source "$jb_a1/lib/core_a1ctl.sh"
-source "$jb_a1/lib/lock.sh"
-echo() { a1ctl_echo "$@"; }
 _a1_init_env
+source "$_A1CtlCoreFilePath/lock.sh"
 
+echo() { a1ctl_echo "$@"; }
 show_help() {
     local a1_help="\
   __    _       _     _     ___  

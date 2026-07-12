@@ -1,6 +1,10 @@
 # lock.sh
 # A1’s universal lock api
 # You need to first define LOCK_FILE (the location of the lock file) and LOCK_FB (the lock fb)
+_A1LockCoreFilePath=$( cd $(dirname ${BASH_SOURCE[0]} ) && pwd )
+source "$_A1LockCoreFilePath/loadenv.sh"
+_a1_init_env
+
 cleanup_stale_lock() {
     if [ -f "$LOCK_FILE" ]; then
         local old_pid
@@ -40,4 +44,7 @@ release_lock() {
     fi
     eval "exec $LOCK_FD>&-"
 }
-# } end
+
+export -f cleanup_stale_lock
+export -f acquire_lock
+export -f release_lock

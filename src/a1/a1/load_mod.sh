@@ -12,7 +12,7 @@ else
     jb=""
 fi
 jb_a1="$jb/a1"
-source "jb_a1/lib/apis/log.sh"
+source "$jb_a1/lib/apis/log.sh"
 
 get_a1_base_path() { echo "$jb_a1"; }
 load_a1_configs() {

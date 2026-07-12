@@ -84,8 +84,11 @@ package()
 		local rf_pack_a1="packages/a1/rootful"
 		local rl_pack_gui="packages/gui/rootless"
 		local rh_pack_gui="packages/gui/roothide"
-		local a1_version='1.9.9-beta3-2+debug4'
-		local gui_version='0.0.3-beta3-2'
+      SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+      source "${SCRIPT_DIR}/../version.ini"
+      local a1_version="$a1_version"
+      local gui_version="$gui_version"
+
 		cd $orig_pwd
 		build flock
 		build a1hub

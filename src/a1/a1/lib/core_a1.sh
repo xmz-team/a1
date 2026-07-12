@@ -2,6 +2,7 @@
 # Provides all the core features of A1
 
 _A1CoreFilePath=$( cd $(dirname ${BASH_SOURCE[0]} ) && pwd )
+source "$_A1CoreFilePath/loadenv.sh"
 
 # set colors
 _a1_colors() {
@@ -664,9 +665,11 @@ export -f custom_auto_adjust
 export -f custom_scheduled_guard
 # auth init env
 # if source this file, auth init env
+: '
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     _a1_init_env
     _a1_colors
     _a1_set_defaults
     echo "A1 Core Library loaded successfully"
 fi
+'

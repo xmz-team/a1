@@ -1290,7 +1290,7 @@ configure_sudo_permissions() { _a1ctl_configure_sudo_permissions "$@"; }
 conf_usr_root() { _a1ctl_conf_use_root "$@"; }
 restore_config() { _a1ctl_restore_config; }
 a1_compat_mode() { _a1ctl_a1_compat_mode "$@"; }
-clean_system() {_a1ctl_clean_system "$@"; }
+clean_system() { _a1ctl_clean_system "$@"; }
 set_priority_value() { _a1ctl_set_priority_value "$@"; }
 # }
 

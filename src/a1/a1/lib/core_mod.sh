@@ -776,7 +776,7 @@ remove_module() { _a1mod_remove_module "$@"; }
 install_module() { _a1mod_install_module "$@"; }
 check_required() { _a1mod_check_required "$@"; }
 check_depends() { _a1mod_check_depends "$@"; }
-check_apt_depends() {_a1mod_check_apt_depends "$@"; }
+check_apt_depends() { _a1mod_check_apt_depends "$@"; }
 check_conflict() { _a1mod_check_conflict "$@"; }
 # }
 
