@@ -13,6 +13,7 @@
 #include <string>
 #include <errno.h>
 #include <libxmz/log.hpp>
+#include <libxmz/exec.hpp>
 
 int main(int argc, char* argv[]) {
     if (setuid(0) != 0) {

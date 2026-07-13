@@ -48,7 +48,8 @@ chmod u+s $jb/usr/local/bin/a1hub
 chmod u+s $jb/opt/a1/bin/raise_power
 
 mkdir -p $jb/bin
-ln -sf /bin/ps $jb/bin/
+[ ! -f $jb/bin/ps ] && ln -s /bin/ps $jb/bin/
+
 (
     if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
         jb="/var/jb"
@@ -62,7 +63,12 @@ ln -sf /bin/ps $jb/bin/
     ln -sf autofonf.ini autoconf.ini
 )
 
-# the newly added compatibility mode should not need this
+if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
+    (
+        cd /rootfs/var
+        [ ! -f "jb" ] && ln -s / jb
+    )
+fi
 
 echo "A1 install done."
 echo "Enjoy！"

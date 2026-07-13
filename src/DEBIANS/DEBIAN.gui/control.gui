@@ -4,7 +4,7 @@ Maintainer: XMX-Team <ad-ios334@outlook.com>, LF
 Architecture: $arch
 Version: $version
 Pre-Depends: firmware (>= 14.0), a1
-Description: This is the GUI graphical interface version of A1 (new A1 App),for the time being, only rootless is supported.
+Description: This is the GUI graphical interface version of A1 (new A1 App)
 Name: A1 App(New)
 Author: LF
 Icon: file:///var/jb/Applications/a1.app/AppIcon.png

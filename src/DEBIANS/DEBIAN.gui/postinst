@@ -16,13 +16,13 @@ fi
 
 orig_path="$(pwd)"
 
-chmod 6755 "$jb/Applications/a1.app/a1-rl"
-chmod 6755 "$jb/Applications/a1.app/a1-rh"
-chown -R 0:0 "$jb/Applications/a1.app/"
+chmod 6755 "$jb/Applications/a1.app/a1-rl" 2>/dev/null || true
+chmod 6755 "$jb/Applications/a1.app/a1-rh" 2>/dev/null || true
+chown -R 0:0 "$jb/Applications/a1.app/" 2>/dev/null || true
 
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
     cd "$jb/Applications/a1.app/"
-    ln -sf "$(jbroot)" ./
+    ln -sf "$(jbroot)" ./.jbroot
     cd $orig_path
 fi
 

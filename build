@@ -2,6 +2,9 @@
 
 set -exuo
 
+source "$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/dependent.ini"
+sudo apt install -y $dependent
+
 init()
 {
     date_dir="$(date "+%Y%m%d-%H%M%S")"
@@ -84,7 +87,7 @@ package()
 		local rf_pack_a1="packages/a1/rootful"
 		local rl_pack_gui="packages/gui/rootless"
 		local rh_pack_gui="packages/gui/roothide"
-      SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+      SCRIPT_DIR="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
       source "${SCRIPT_DIR}/../version.ini"
       local a1_version="$a1_version"
       local gui_version="$gui_version"

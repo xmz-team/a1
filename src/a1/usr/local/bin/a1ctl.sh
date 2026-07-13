@@ -302,10 +302,10 @@ if [ "$lock_use" = "false" ]; then
         else
             if [ -x "$(which a1hub 2>/dev/null)" ]; then
                 export a1hub_use_confirm="1"
-                exec "$(which a1hub)"
+                exec "$(which a1hub)" "$@"
             else
                 export a1hub_use_confirm="1"
-                exec "$jb/usr/local/bin/a1hub"
+                exec "$jb/usr/local/bin/a1hub" "$@"
             fi
             [ $? != 0 ] && elog "a1hub 在哪裡?" && exit 1
         fi
