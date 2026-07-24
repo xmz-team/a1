@@ -1,0 +1,4 @@
+[submodule "libs/libxmz"]
+	path = libs/libxmz
+	url = git@github.com:xmz-team/libxmz.git
+	branch = main

@@ -3,7 +3,21 @@ Name: A1
 Version: $version
 Architecture: $arch
 Section: a1
-Depends: firmware (>= 14.0), mobilesubstrate, preferenceloader, bash, adv-cmds, gawk, shell-cmds, coreutils, zip, unzip, jq, sed, findutils, plutil, notifyutil
+Depends: firmware (>= 14.0),
+         mobilesubstrate,
+         preferenceloader,
+         bash,
+         adv-cmds,
+         gawk,
+         shell-cmds,
+         coreutils,
+         zip,
+         unzip,
+         jq,
+         sed,
+         findutils,
+         plutil,
+         notifyutil
 Conflicts: xyz.cypwn.jetsamctl
 Author: LF
 Maintainer: LF, AD, XMZ

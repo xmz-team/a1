@@ -1,7 +1,21 @@
 /*
  * flock.cc
  * Created by XMZ <ad-ios334@outlook.com> on 2026-04-16
- * Copyright (c) 2025-2026 XMZ <ad-ios334@outlook.com> All rights reserved.
+ * Copyright (c) 2026 XMZ <xmz-team@outlook.com>
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3.0 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, see
+ * <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
 /*
  * build: c++ -o flock flock.cc
@@ -9,6 +23,8 @@
 /*
  * this is the practice of flock in iphoneos, which is used to replace the problem that iphoneos does not have a flock terminal program
  */
+
+#include <libxmz/io.hpp>
 #include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
@@ -37,12 +53,11 @@ static void sig_ignore(int sig) {
 }
 
 static void usage(const char *prog) {
-    fprintf(stderr,
-        "Usage: %s [options] <file>|<directory> <command> [<argument>...]\n"
-        "       %s [options] <file>|<directory> -c <command>\n"
-        "       %s [options] <file descriptor number>\n"
+    xmz::perrln(
+        "Usage:", prog, "[options] <file>|<directory> <command> [<argument>...]\n"
+        "      ", prog, "[options] <file>|<directory> -c <command>\n"
+        "      ", prog, "[options] <file descriptor number>\n"
         "Manage file locks from shell scripts.\n"
-        "\n"
         "Options:\n"
         " -s, --shared     get a shared lock\n"
         " -x, --exclusive  get an exclusive lock (default)\n"
@@ -52,13 +67,12 @@ static void usage(const char *prog) {
         " -o, --close      close file descriptor before running command\n"
         " -c, --command <command>  run a single command string through the shell\n"
         " -h, --help       display this help and exit\n"
-        " -V, --version    output version information and exit\n",
-        prog, prog, prog);
+        " -V, --version    output version information and exit");
     exit(1);
 }
 
 static void version(void) {
-    printf("flock (darwin compatible) 1.1\n");
+    xmz::println("flock (darwin compatible) 1.1");
     exit(0);
 }
 
@@ -189,13 +203,13 @@ int main(int argc, char *argv[]) {
             }
 
             if (fd < 0) {
-                perror("open");
+                xmz::perr("open");
                 return 1;
             }
         }
 
         if (flock(fd, LOCK_UN) < 0) {
-            perror("flock");
+            xmz::perr("flock");
             return 1;
         }
 
@@ -216,9 +230,9 @@ int main(int argc, char *argv[]) {
             int was_timeout;
             if (flock_with_retry(fd, op, timeout, &was_timeout) < 0) {
                 if (was_timeout) {
-                    fprintf(stderr, "flock: timeout waiting for lock\n");
+                    xmz::perrln("flock: timeout waiting for lock");
                 } else {
-                    perror("flock");
+                    xmz::perr("flock");
                 }
 
                 return 1;
@@ -253,7 +267,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (fd < 0) {
-        perror("open");
+        xmz::perr("open");
         return 1;
     }
 
@@ -261,7 +275,7 @@ int main(int argc, char *argv[]) {
     if (use_shell && command) {
         // -c has specified the command
     } else if (optind >= argc) {
-        fprintf(stderr, "flock: missing command\n");
+        xmz::perrln("flock: missing command");
         usage(argv[0]);
     }
     // run flock
@@ -271,9 +285,9 @@ int main(int argc, char *argv[]) {
     int was_timeout = 0;
     if (flock_with_retry(fd, op, timeout, &was_timeout) < 0) {
         if (was_timeout) {
-            fprintf(stderr, "flock: timeout waiting for lock\n");
+            xmz::perrln("flock: timeout waiting for lock");
         } else {
-            perror("flock");
+            xmz::perr("flock");
         }
 
         close(fd);
@@ -286,7 +300,7 @@ int main(int argc, char *argv[]) {
     // run command
     pid_t pid = fork();
     if (pid < 0) {
-        perror("fork");
+        xmz::perr("fork");
         close(fd);
         return 1;
     }
@@ -315,14 +329,14 @@ int main(int argc, char *argv[]) {
             execvp(argv[optind], &argv[optind]);
         }
 
-        perror("exec");
+        xmz::perr("exec");
         _exit(1);
     }
     // the parent process waits for the child process
     int status;
     while (waitpid(pid, &status, 0) < 0) {
         if (errno != EINTR) {
-            perror("waitpid");
+            xmz::perr("waitpid");
             close(fd);
             return 1;
         }

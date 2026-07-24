@@ -1,9 +1,13 @@
 #!/bin/bash
-# set -x # debug 使用
+# set -eux # debug 使用
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
 else
-    jb=""
+    if [ "$dpkgarch" = "$ios_arm64e" ]; then
+        jb="$(jbroot)"
+    else
+        jb=""
+    fi
 fi
 jb_a1="$jb/a1"
 source "$jb_a1/lib/core_a1ctl.sh"

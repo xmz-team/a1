@@ -2,7 +2,11 @@
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
 else
-    jb=""
+    if [ "$dpkgarch" = "$ios_arm64e" ]; then
+        jb="$(jbroot)"
+    else
+        jb=""
+    fi
 fi
 jb_a1="$jb/a1"
 source "$jb_a1/lib/loadenv.sh"

@@ -50,26 +50,16 @@ elif [ $dpkgarch = $ios_arm64e ]; then
     ios_aarch="arm64e"
 fi
 
-if [ -d /var/jb ]; then
+if [ -d /var/jb ] && [ "$dpkgarch" = "$ios_arm64" ]; then
     jb="/var/jb"
     JB="$jb"
-elif [ -d /rootfs ]; then
-    if [ -d /var/jb ]; then
-        jb="/var/jb"
-        JB="$jb"
-    else
-        ln -s / /var/jb
-        jb="/var/jb"
-        JB="$jb"
-    fi
+elif [ -d /rootfs ] || [ "$dpkgarch" = "$ios_arm64e" ]; then
+    jb="$(jbroot)"
+    JB="$jb"
 else
-    if [ -d /var/jb ]; then
+    if [ "$dpkgarch" = "$ios_arm" ]; then
         jb=""
         JB="$jb"
-    else
-	     ln -s / /var/jb
-	     jb="/var/jb"
-	     JB="$jb"
     fi
 fi
 
@@ -133,7 +123,6 @@ EOF
 }
 
 if [ -x "$dpkgpath" ]; then
-    
     case "$dpkgarch" in
         "$ios_arm")
             _jb_conf
@@ -147,25 +136,27 @@ if [ -x "$dpkgpath" ]; then
             _jb_conf
             ios_aarch="arm64e"
             ;;
-            
         *)
-            if [ -d "/var/jb" ]; then
+            if [ -d "/var/jb" ] && [ "$dpkgarch" = "$ios_arm64" ]; then
                 ios_aarch="arm64"
                 jb="/var/jb"
                 JB="$jb"
-            elif [ -d "/rootfs" ]; then
+            elif [ -d "/rootfs" ] || [ "$dpkgarch" = "$ios_arm64e" ]; then
                 ios_aarch="arm64e"
+                jb="$(jbroot)"
+                JB="$jb"
             fi
             ;;
     esac
 else
-    if [ -d "/var/jb" ]; then
+    if [ -d "/var/jb" ] && [ "$dpkgarch" = "$ios_arm64" ]; then
         ios_aarch="arm64"
         jb="/var/jb"
         JB="$jb"
-    elif [ -d "/rootfs" ]; then
+    elif [ -d "/rootfs" ] || [ "$dpkgarch" = "$ios_arm64e" ]; then
         ios_aarch="arm64e"
         rootfs="/rootfs"
+        jb="$(jbroot)"
     else
         ios_aarch="arm"
         jb=""

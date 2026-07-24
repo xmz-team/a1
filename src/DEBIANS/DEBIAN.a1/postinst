@@ -64,10 +64,12 @@ mkdir -p $jb/bin
 )
 
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
-    (
-        cd /rootfs/var
-        [ ! -f "jb" ] && ln -s / jb
-    )
+    orig_path=$PWD
+    cd /rootfs/var
+    [ ! -d "jb" ] && ln -s / ./jb
+    ls /rootfs/var/jb
+    cd $orig_path
+    unset orig_path
 fi
 
 echo "A1 install done."
