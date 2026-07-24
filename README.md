@@ -3,8 +3,13 @@ this is the source code repository of a1 and its accessory suite
 
 # build
 ```bash
+git clone --recurse-submodules https://github.com/xmz-team/a1.git
+# If you use ssh
+# git clone --recurse-submodules git@github.com:xmz-team/a1.git
+cd a1
 bash ./build.sh
 ```
+It is recommended to compile on jailbroken iOS.
 
 # description
 Optimize Jetsam and kernel parameters to enhance background task performance.
