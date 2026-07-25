@@ -11,7 +11,7 @@ fi
 
 jub="$jb/usr/bin"
 rm="$jub/rm"
-CXX="$jub/c++"
+CXX="$jub/c++ $CPPFLAGS"
 ldid="$jub/ldid"
 chown="$jub/chown"
 chmod="$jub/chmod"

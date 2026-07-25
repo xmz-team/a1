@@ -14,13 +14,17 @@ else
     fi
 fi
 
+origpwd="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+
+export CPPFLAGS="-I$origpwd/libs/libxmz"
+
 jub="$jb/usr/bin"
 date="$jub/date"
 mkdir="$jub/mkdir"
 rm="$jub/rm"
 cp="$jub/cp"
-CXX="$jub/c++"
-CC="$jub/cc"
+CXX="$jub/c++ $CPPFLAGS"
+CC="$jub/cc $CPPFLAGS"
 ldid="$jub/ldid"
 chown="$jub/chown"
 chmod="$jub/chmod"
@@ -29,7 +33,7 @@ envsubst="$jub/envsubst"
 dpkg_deb="$jub/dpkg-deb"
 dpkg_name="$jub/dpkg-name"
 
-source "$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/dependent.ini"
+source "$origpwd/dependent.ini"
 # sudo apt-get update >/dev/null 2>&1
 sudo apt install -y $dependent
 
@@ -56,7 +60,7 @@ init()
     $cp -a gui.template.d gui
 }
 
-orig_pwd="$(pwd)"
+orig_pwd="$origpwd"
 
 build()
 {
