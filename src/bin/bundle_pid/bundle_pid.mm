@@ -26,6 +26,7 @@
 #include "libproc_internal.h"
 #include "libproc_private.h"
 #include <libxmz/io.hpp>
+#include "bundle_pid.hpp"
 
 /* Security API Declaration */
 typedef struct __SecCode const *SecStaticCodeRef;

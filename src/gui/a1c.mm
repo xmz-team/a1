@@ -29,14 +29,14 @@
 #include <libxmz/log.hpp>
 #include <libxmz/aux.hpp>
 
-#import "sponsor.h"
+#import "sponsor.hpp"
 #import <objc/runtime.h>
 
 #include <cstdlib>
 #include <string>
 #import <unistd.h>
 #if defined(__roothide__)
-		#include <roothide/roothide.h>
+#include <roothide/roothide.h>
 #endif
 
 #pragma mark - Aesthetic UI Extensions // in sponsor.h

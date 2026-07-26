@@ -17,7 +17,7 @@
  * License along with this library; if not, see
  * <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
-// build: c++ raise_power.cc -o raise_power && ldid -S../../a1.bin.ens.xml -Hsha1 -Hsha256 -M raise_power && chmod u+s raise_power
+// build: c++ raise_power.cc -o raise_power && ldid -S../../../a1.bin.ens.xml -Hsha1 -Hsha256 -M raise_power && chmod u+s raise_power
 /* a simple thing, perform privileged operations to use */
 
 #include <sys/types.h>
