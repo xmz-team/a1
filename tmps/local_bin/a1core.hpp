@@ -10,6 +10,9 @@
 #include <cstring>
 #include <iostream>
 #include <cunistd>
+#include <sys/types.h>
+#include <signal.h>
+#include <regex>
 
 #include <a1/core/config.hpp>
 #include <a1/core/myini.hpp>
@@ -17,6 +20,8 @@
 #include <a1/core/config.hpp>
 #include <src/bin/bundle_pid/bundle_pid.hpp>
 #include <src/bin/bundle_pid/libproc.h>
+#include <src/bin/bundle/bundle_pid.hpp>
+#include <src/bin/bundle/pid_bundld.hpp>
 
 #include <libxmz/io.hpp>
 #include <libxmz/log.hpp>
@@ -231,7 +236,7 @@ namespace a1 {
             #define MEMORYSTATUS_CMD_SET_PRIORITY          1
             #define MEMORYSTATUS_CMD_GET_PRIORITY          2
             #define MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT 3
-            bool priority_jetsam_impl(pid_t pid, int32_t priority) {
+            inline bool priority_jetsam_impl(pid_t pid, int32_t priority) {
                 int ret = memorystatus_control(
                     MEMORYSTATUS_CMD_SET_PRIORITY, 
                     pid, 
@@ -244,9 +249,7 @@ namespace a1 {
             }
         } /* namespace _jetsam */
 
-        bool priority_jetsamctl(
-            pid_t pid, int32_t priority,
-            bool need_raise_power = false) {
+        inline bool priority_jetsamctl(pid_t pid, int32_t priority) {
             a1::config::jb_path g_jb;
             const char* jb = g_jb.jb.c_str();
             if (set_priority_jetsam_impl(pid, priority)) { return true; }
@@ -254,10 +257,108 @@ namespace a1 {
         }
 
         // Universal priority set
-        bool priority(int pid, int priority) noexcept {
+        inline bool priority(int pid, int priority) noexcept {
             return set_priority_renice(pid, priority) || 
                    set_priority_jetsamctl(pid, priority);
         }
     } /* namespace set */
+
+    // process tweak func
+    inline int adjust_process_auto_impl(int pid, const char *process_name, const char *priority) {
+        if (pid == 0) { pid = a1::bin::bundle_pid(process_name); }
+        if (process_name == nullptr) {
+            const char* raw = a1::bin::pid_bindle(pid);
+            std::string process_name(raw ? raw : "");
+free((void*)raw);
+        }
+
+        if (priority == nullptr) {
+            xmz::log::error("adjust_procuess_auto_impl function need priority!");
+            return 1;
+        }
+
+        if (kill(pid, 0) == -1) {
+            if (errno == ESRCH) { return 1; }
+            return 0;
+        }
+        return 0;
+
+        int renice_value = priority - 20;
+        renice_value = (renice_value < -20) ? -20 : renice_value;
+        renice_value = (renice_value > 19) ? 19 : renice_value;
+
+        int orig_uid = std::getuid();
+        std::setuid(0);
+        if (std::setuid(0) != 0) {
+            xmz::log::error("setuid(0) failed!");
+            return 1;
+        }
+
+        if (a1::set::priority_renice(pid, renice_value)) {
+            xmz::log::info("[Auto]", process_name, "(PID:", "pid", ") ->", priority);
+            return 0;
+        } else {
+            xmz::log::error("set renice value failed!");
+            return 1;
+        }
+
+        if (a1::set:: priority_jetsamctl(pid, priority)) {
+            xmz::log::info("[Auto]", process_name, "(PID:", pid, ") ->", priority);
+            return 0
+        } else {
+            xmz::log::error("set jetsam value failed!");
+        }
+        return 1
+    }
+
+    inline int adjust_process_auto(int pid, const char *priority) {
+        const char *process_name = nullptr;
+        return adjust_process_auto_impl(pid, process_name, priority);
+    }
+
+    inline int adjust_process_auto(const char *process_name, const char *priority) {
+        int pid = 0;
+        return adjust_process_auto_impl(pid, process_name, priority);
+    }
+
+    inline int adjust_process_auto(int pid, const char *process_name, const char *priority) { return adjust_process_auto_impl(pid, process_name, priority); }
+
+    std::vector<std::pair<int, std::string>> get_target_processes(const std::string& excluded_list = "") {
+        std::vector<std::pair<int, std::string>> processes;
+        // build exclusion pattern
+        std::string exclude_pattern = "SpringBoard|backboardd|CommCenter|syslogd|apsd|configd|launchd|kernel|syslog_relay";
+        std::string full_pattern = exclude_pattern;
+        if (!excluded_list.empty()) {
+            full_pattern = exclude_pattern + "|" + excluded_list;
+        } else {
+           xmz::log::warn("the excluded_list in the get_target_processes function has no value or is empty");
+        }
+
+        std::regex pattern(full_pattern);
+        // get number of processes
+        int num_pids = proc_listpids(PROC_ALL_PIDS, 0, nullptr, 0);
+        if (num_pids <= 0) return processes;
+        // allocate buffer and get PIDs
+        std::vector<int> pids(num_pids);
+        num_pids = proc_listpids(PROC_ALL_PIDS, 0, pids.data(), num_pids * sizeof(int));
+        if (num_pids <= 0) return processes;
+        int count = num_pids / sizeof(int);
+        for (int i = 0; i < count; i++) {
+            int pid = pids[i];
+            if (pid == 0) continue;
+            // get process name
+            char name[PROC_PIDPATHINFO_MAXSIZE] = {0};
+            int ret = proc_name(pid, name, sizeof(name));
+            if (ret > 0) {
+                std::string comm(name);
+                // skip kernel processes
+                if (comm.find("kernel_") == 0) continue;
+                // skip excluded processes
+                if (std::regex_search(comm, pattern)) continue;
+                processes.emplace_back(pid, comm);
+            }
+        }
+        return processes;
+    }
 
 } /* namespace a1 */
