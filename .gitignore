@@ -19,3 +19,6 @@ tmp/*
 .induce-code
 induce-code
 a1.AllCode.all.md
+
+!src/bin/**/*.*
+src/gui/*.*

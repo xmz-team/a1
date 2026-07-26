@@ -1,34 +1,4 @@
 
-# by jetsamctl set priority
-_a1_set_priority_jetsamctl() {
-    local pid="$1"
-    local priority="$2"
-    if command -v jetsamctl >/dev/null 2>&1; then
-        "$raise_power" "jetsamctl set priority $pid $priority >/dev/null 2>&1"
-        return $?
-    fi
-    if [ -x "$jb/usr/bin/jetsamctl" ]; then
-        "$raise_power" "$jb/usr/bin/jetsamctl set priority $pid $priority >/dev/null 2>&1"
-        return $?
-    fi
-    if [ -x "$jb/usr/bin/jetsamctl_" ]; then
-        "$raise_power" "$jb/usr/bin/jetsamctl_ -p $priority $pid >/dev/null 2>&1"
-        return $?
-    fi
-    return 1
-}
-# Universal priority set
-_a1_set_priority() {
-    local pid="$1"
-    local priority="$2"
-    if _a1_set_priority_renice "$pid" "$priority"; then
-        return 0
-    fi
-    if _a1_set_priority_jetsamctl "$pid" "$priority"; then
-        return 0
-    fi
-    return 1
-}
 # process tweak func
 _a1_adjust_process_auto() {
     local pid=$1

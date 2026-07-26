@@ -144,61 +144,120 @@ namespace a1 {
         return pid == -1 ? 1 : 0;
     }
 
-    inline std::string get_process_name_by_pid(int pid) {
-        char name[1024] = {0};
-        int ret = proc_name(pid, name, sizeof(name));
-        if (ret > 0) { return std::string(name); }
-        return "";
-    }
+    namespace get {
+        inline std::string process_name_by_pid(int pid) {
+            char name[1024] = {0};
+            int ret = proc_name(pid, name, sizeof(name));
+            if (ret > 0) { return std::string(name); }
+            return "";
+        }
 
-    // get process nice value
-    inline void get_nice_by_pid() {
-        errno = 0;
-        int nice_val = getpriority(PRIO_PROCESS, pid);
-        if (nice_val == -1 && errno != 0) { return 0; }
-        return nice_val;
-    }
+        // get process nice value
+        inline void nice_by_pid() {
+            errno = 0;
+            int nice_val = getpriority(PRIO_PROCESS, pid);
+            if (nice_val == -1 && errno != 0) { return 0; }
+            return nice_val;
+        }
 
-    // get process CPU useage rate
-    inline int get_cpu_by_pid(int pid, double interval = 0.5) {
-        // the first sampling
-        proc_taskinfo info1;
-        if (proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &info1, sizeof(info1)) <= 0) { return -1; }
-        uint64_t time1 = info1.pti_total_user + info1.pti_total_system;
-        // wait for a short time
-        usleep(interval * 1000000);
-        // the second sampling
-        proc_taskinfo info2;
-        if (proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &info2, sizeof(info2)) <= 0) { return -1; }
-        uint64_t time2 = info2.pti_total_user + info2.pti_total_system;
-        // calculate the CPU utilization rate
-        uint64_t delta = time2 - time1;
-        // switch mach_absolute_time
-        mach_timebase_info_data_t timebase;
-        mach_timebase_info(&timebase);
-        double elapsed_ns = (double)delta * timebase.numer / timebase.denom;
-        double interval_ns = interval * 1e9;
-        int percent = (int)(elapsed_ns / interval_ns * 100.0 + 0.5);
-        return percent;
-    }
+        // get process CPU useage rate
+        inline int cpu_by_pid(int pid, double interval = 0.5) {
+            // the first sampling
+            proc_taskinfo info1;
+            if (proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &info1, sizeof(info1)) <= 0) { return -1; }
+            uint64_t time1 = info1.pti_total_user + info1.pti_total_system;
+            // wait for a short time
+            usleep(interval * 1000000);
+            // the second sampling
+            proc_taskinfo info2;
+            if (proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &info2, sizeof(info2)) <= 0) { return -1; }
+            uint64_t time2 = info2.pti_total_user + info2.pti_total_system;
+            // calculate the CPU utilization rate
+            uint64_t delta = time2 - time1;
+            // switch mach_absolute_time
+            mach_timebase_info_data_t timebase;
+            mach_timebase_info(&timebase);
+            double elapsed_ns = (double)delta * timebase.numer / timebase.denom;
+            double interval_ns = interval * 1e9;
+            int percent = (int)(elapsed_ns / interval_ns * 100.0 + 0.5);
+            return percent;
+        }
+    } /* namespace get */
 
-    // by renice set priority
-    inline bool set_priority_renice(pid_t pid, int priority) {
-        int orig_pid = std::getuid();
-        // convert priority to nice value
-        int renice_value = priority - 20;
-        // restricted range
-        if (renice_value < -20) renice_value = -20;
-        if (renice_value > 19) renice_value = 19;
-        // set the process priority
-        std::setuid(0);
-        if (setpriority(PRIO_PROCESS, pid, renice_value) == -1) {
-            xmz::println("Failed to set priority for PID", pid, ":", strerror(erron));
+    namespace set {
+        // by renice set priority
+        inline bool priority_renice(pid_t pid, int priority) {
+            int orig_pid = std::getuid();
+            // convert priority to nice value
+            int renice_value = priority - 20;
+            // restricted range
+            if (renice_value < -20) renice_value = -20;
+            if (renice_value > 19) renice_value = 19;
+            // set the process priority
+            std::setuid(0);
+            if (setpriority(PRIO_PROCESS, pid, renice_value) == -1) {
+                xmz::println("Failed to set priority for PID", pid, ":", strerror(erron));
+                std::setuid(orig_uid);
+                return false;
+            }
             std::setuid(orig_uid);
+            return true;
+        }
+
+        namespace _jetsan {
+            extern "C" {
+                int memorystatus_control(uint32_t command, pid_t pid, uint32_t flags, 
+                                void *buffer, size_t buffersize);
+            }
+            enum JetsamPriority : int32_t {
+                JETSAM_PRIORITY_IDLE                 = 0,
+                JETSAM_PRIORITY_IDLE_DEFERRED        = 1,
+                JETSAM_PRIORITY_AGING_BAND1          = 2,
+                JETSAM_PRIORITY_AGING_BAND2          = 3,
+                JETSAM_PRIORITY_AGING_BAND3          = 4,
+                JETSAM_PRIORITY_AGING_BAND4          = 5,
+                JETSAM_PRIORITY_AGING_BAND5          = 6,
+                JETSAM_PRIORITY_BACKGROUND           = 10,
+                JETSAM_PRIORITY_BACKGROUND_DEFERRED  = 11,
+                JETSAM_PRIORITY_MAIL                 = 15,
+                JETSAM_PRIORITY_PHONE                = 16,
+                JETSAM_PRIORITY_UI_SUPPORT           = 17,
+                JETSAM_PRIORITY_FOREGROUND           = 18,
+                JETSAM_PRIORITY_FOREGROUND_DEFERRED  = 19,
+                JETSAM_PRIORITY_FOREGROUND_SUPPORT   = 20,
+                JETSAM_PRIORITY_CRITICAL             = 21
+            };
+
+            #define MEMORYSTATUS_CMD_SET_PRIORITY          1
+            #define MEMORYSTATUS_CMD_GET_PRIORITY          2
+            #define MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT 3
+            bool priority_jetsam_impl(pid_t pid, int32_t priority) {
+                int ret = memorystatus_control(
+                    MEMORYSTATUS_CMD_SET_PRIORITY, 
+                    pid, 
+                    priority, 
+                    nullptr, 
+                    0
+                );
+                if (ret == 0) { return true; }
+                return false;
+            }
+        } /* namespace _jetsam */
+
+        bool priority_jetsamctl(
+            pid_t pid, int32_t priority,
+            bool need_raise_power = false) {
+            a1::config::jb_path g_jb;
+            const char* jb = g_jb.jb.c_str();
+            if (set_priority_jetsam_impl(pid, priority)) { return true; }
             return false;
         }
-        std::setuid(orig_uid);
-        return true;
-    }
+
+        // Universal priority set
+        bool priority(int pid, int priority) noexcept {
+            return set_priority_renice(pid, priority) || 
+                   set_priority_jetsamctl(pid, priority);
+        }
+    } /* namespace set */
 
 } /* namespace a1 */
