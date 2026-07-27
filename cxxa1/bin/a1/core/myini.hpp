@@ -90,3 +90,4 @@ private:
 };
 
 } /* namespace a1::ini */
+#endif /* A1_MYINI_HPP */

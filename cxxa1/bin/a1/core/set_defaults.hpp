@@ -1,12 +1,13 @@
+// set_defaults.hpp
+#pragma once
 #include <string>
 #include <cstdlib>
 #include <unordered_map>
 
 namespace a1::_coreapi {
 struct set_defaults_config {
-    // high default value
-    int high_priority = 0;
-    int low_priority = 39;
+    int high_priority = 30;
+    int low_priority = 10;
     int launchd_priority = 20;
     int jetsam_priority = 15;
     int max_cpu_percent = 15;
@@ -31,19 +32,25 @@ struct set_defaults_config {
     bool lock_use = true;
     bool dynamic_optimization = false;
 };
+
+inline set_defaults_config& get_config() {
+    static set_defaults_config config;
+    return config;
+}
+
 } /* namespace a1::_coreapi */
 
 namespace a1::coreapi {
-void set_defaults() {
-    _coreapi::set_defaults_config g_config;
-    auto get_env_int = [](const char* name, int default_val) -> int
-    {
+inline void set_defaults() {
+    auto& g_config = a1::_coreapi::get_config();
+    auto get_env_int = [](const char* name, int default_val) -> int {
         const char* env = std::getenv(name);
-        return env ? std::stoi(env) : default_val;
+        if (!env) return default_val;
+        try { return std::stoi(env); }
+        catch (...) { return default_val; }
     };
 
-    auto get_env_bool = [](const char* name, bool default_val) -> bool
-    {
+    auto get_env_bool = [](const char* name, bool default_val) -> bool {
         const char* env = std::getenv(name);
         if (!env) return default_val;
         std::string val(env);
@@ -51,8 +58,8 @@ void set_defaults() {
     };
 
     // high default value
-    g_config.high_priority = get_env_int("HIGH_PRIORITY", 0);
-    g_config.low_priority = get_env_int("LOW_PRIORITY", 39);
+    g_config.high_priority = get_env_int("HIGH_PRIORITY", 30);
+    g_config.low_priority = get_env_int("LOW_PRIORITY", 10);
     g_config.launchd_priority = get_env_int("LAUNCHD_PRIORITY", 20);
     g_config.jetsam_priority = get_env_int("JETSAM_PRIORITY", 15);
     g_config.max_cpu_percent = get_env_int("MAX_CPU_PERCENT", 15);
@@ -78,4 +85,7 @@ void set_defaults() {
     g_config.lock_use = get_env_bool("LOCK_USE", true);
     g_config.dynamic_optimization = get_env_bool("DYNAMIC_OPTIMIZATION", false);
 }
+
+inline const _coreapi::set_defaults_config& set_defaults_cfg() { return _coreapi::get_config(); }
+
 } /* namespace a1::coreapi */

@@ -1,5 +1,5 @@
 #!/bin/sh
-set -x
+set -x # debug
 if test "$(dpkg --print-architecture)" = "iphoneos-arm64"; then
     jb="/var/jb"
 else
@@ -14,4 +14,6 @@ fi
 export jb
 jb_a1="$jb/a1"
 export jb_a1
-# exec "$jb_a1/bin/a1"
+exec ./cxxa1 # test
+# exec "$jb_a1/bin/cxxa1"
+
