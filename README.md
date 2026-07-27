@@ -2,6 +2,7 @@
 this is the source code repository of a1 and its accessory suite.  
 
 # build
+<!--
 ```bash
 git clone --recurse-submodules https://github.com/xmz-team/a1.git
 # If you use ssh
@@ -12,6 +13,8 @@ bash ./build.sh
 It is recommended to compile on jailbroken iOS.  
 If you don't have a jailbroken iOS, it's recommended to use MacOS or Linux for cross-compiling.  
 It is not recommended to use Windows unless you have a complete environment for compilation.  
+-->
+during the reconstruction process, the construction script will be gradually written. Of course, you can write the construction script by yourself.
 
 # description
 Optimize Jetsam and kernel parameters to enhance background task performance.  
