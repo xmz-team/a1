@@ -4,7 +4,7 @@
 #include <libxmz/str.hpp>
 #include <libxmz/fs.hpp>
 #include <libxmz/aux.hpp>
-#include <a1core.hpp>
+#include <a1/core/a1core.hpp>
 #include <a1/core/myini.hpp>
 #include <a1/core/config.hpp>
 #include <a1/core/set_defaults.hpp>
@@ -13,6 +13,8 @@
 #include <ctime>
 #include <iostream>
 #include <fstream>
+
+#include <a1/core/version.hpp>
 
 // wait for SpringBoard
 void wait_for_springboard() {
@@ -42,7 +44,7 @@ int apply_custom_priority() {
     xmz::println("Applying custom priority settings...");
     a1::ini::ini_parser parser;
     if (!parser.parse_file(custom_file)) {
-        xmz::println("  Failed to parse custom priority file");
+        xmz::perrln("  Failed to parse custom priority file");
         return 0;
     }
 
@@ -164,15 +166,16 @@ load_modules() {
 int main() {
     if (std::getenv("jb") == nullptr) {
         xmz::log::warn("A1 need set jb env value!");
-        xmz::log::info("Use a1 staus, not cxxa1!");
+        xmz::log::info("Use a1 status, not cxxa1!");
         return 1;
     }
     a1::config::jb_path g_jb;
     time_t now = time(nullptr);
     xmz::println(std::ctime(&now));
-    xmz::println("__________________");
-    xmz::println("|A1 are working..|");
-    xmz::println("------------------");
+    xmz::println("___________________");
+    xmz::println("|A1 are working...|");
+    xmz::println("|Version:", a1::_coreapi::a1_version);
+    xmz::println("-------------------");
     // Initialize environment, read defaults from environment
     a1::coreapi::set_defaults();
     auto& config = a1::coreapi::set_defaults_cfg();

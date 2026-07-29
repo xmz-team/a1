@@ -1,5 +1,0 @@
-c++ -x objective-c++ \
-  -I. -I../.. -I../../src/bin/bundle \
-  -framework Foundation -framework Security \
-  cxxa1.cc -o cxxa1
-#This is a temporary compilation

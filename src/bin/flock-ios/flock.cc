@@ -36,23 +36,9 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <libxmz/aux.hpp>
+#include "flock.hpp"
 
-static volatile sig_atomic_t timeout_expired = 0;
-static volatile sig_atomic_t alarm_fired = 0;
-
-static void sigalarm_handler(int sig) {
-    (void)sig;
-    timeout_expired = 1;
-    alarm_fired = 1;
-}
-
-// fix: Add a general signal processor for EINTR retry
-static void sig_ignore(int sig) {
-    (void)sig;
-    // it is only used to interrupt flock, not for other processing
-}
-
-static void usage(const char *prog) {
+inline void usage(const char *prog) {
     xmz::perrln(
         "Usage:", prog, "[options] <file>|<directory> <command> [<argument>...]\n"
         "      ", prog, "[options] <file>|<directory> -c <command>\n"
@@ -71,48 +57,9 @@ static void usage(const char *prog) {
     exit(1);
 }
 
-static void version(void) {
+inline void version(void) {
     xmz::println("flock (darwin compatible) 1.1");
     exit(0);
-}
-
-// fix: Package flock system calls and automatically process EINTR retry (except for timeout)
-static int flock_with_retry(int fd, int operation, int timeout, int *was_timeout) {
-    struct sigaction sa, old_sigalrm, old_sigint, old_sigterm;
-    int ret;
-
-    *was_timeout = 0;
-    // set up a signal processor so that flock can be interrupted
-    sa.sa_handler = sig_ignore;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    sigaction(SIGINT, &sa, &old_sigint);
-    sigaction(SIGTERM, &sa, &old_sigterm);
-
-    if (timeout > 0) {
-        sa.sa_handler = sigalarm_handler;
-        sigaction(SIGALRM, &sa, &old_sigalrm);
-        alarm_fired = 0;
-        alarm((unsigned int)timeout);
-    }
-    // retry cycle: EINTR and retry if the interruption is not caused by timeout
-    do {
-        ret = flock(fd, operation);
-    } while (ret < 0 && errno == EINTR && !alarm_fired);
-
-    if (timeout > 0) {
-        alarm(0);
-        if (alarm_fired && ret < 0 && errno == EINTR) {
-            *was_timeout = 1;
-        }
-
-        sigaction(SIGALRM, &old_sigalrm, NULL);
-    }
-
-    sigaction(SIGINT, &old_sigint, NULL);
-    sigaction(SIGTERM, &old_sigterm, NULL);
-
-    return ret;
 }
 
 int main(int argc, char *argv[]) {

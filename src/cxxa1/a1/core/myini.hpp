@@ -33,8 +33,16 @@ public:
                 data_.try_emplace(currentSection);
                 continue;
             }
-            
-            auto pos = line.find('=');
+            auto pos_eq = line.find('=');
+            auto pos_col = line.find(':');
+            auto pos = std::string::npos;
+            if (pos_eq != std::string::npos && pos_col != std::string::npos)
+                pos = std::min(pos_eq, pos_col);
+            else if (pos_eq != std::string::npos)
+                pos = pos_eq;
+            else if (pos_col != std::string::npos)
+                pos = pos_col;
+
             if (pos != std::string::npos) {
                 auto key = xmz::str::trim(line.substr(0, pos));
                 auto val = xmz::str::trim(line.substr(pos + 1));
@@ -84,6 +92,33 @@ public:
     }
 
     void clear() { data_.clear(); }
+
+    bool save(const std::string& filepath) const {
+        std::string out;
+        for (const auto& [sec, kv] : data_) {
+            out += "[" + sec + "]\n";
+            for (const auto& [k, v] : kv) { out += k + "=" + v + "\n"; }
+        }
+        return xmz::fs::writefile(out, filepath);
+    }
+
+    void set(const std::string& sec, const std::string& key, 
+         const std::string& val) { data_[sec][key] = val; }
+
+    void set_int(const std::string& sec, const std::string& key, int val) { data_[sec][key] = std::to_string(val); }
+
+    void set_bool(const std::string& sec, const std::string& key, bool val) { data_[sec][key] = val ? "true" : "false"; }
+
+    bool remove_key(const std::string& sec, const std::string& key) {
+        auto si = data_.find(sec);
+        if (si != data_.end()) { return si->second.erase(key) > 0; }
+        return false;
+    }
+
+    bool remove_section(const std::string& sec) { return data_.erase(sec) > 0; }
+
+    bool rmkey(const std::string& sec, const std::string& key) { return remove_key(sec, key); }
+    bool rmsec(const std::string& sec) { return remove_section(sec); }
 
 private:
     std::map<std::string, std::map<std::string, std::string>> data_;

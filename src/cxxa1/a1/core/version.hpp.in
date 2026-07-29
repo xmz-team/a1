@@ -1,0 +1,7 @@
+#pragma once
+#include <string>
+namespace a1::_coreapi {
+    std::string a1_version = "@a1_version@";
+    std::string a1ctl_version = "@a1ctl_version@";
+}
+

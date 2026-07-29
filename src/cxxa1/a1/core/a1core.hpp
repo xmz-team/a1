@@ -279,7 +279,7 @@ namespace a1 {
     // process tweak func
     inline int adjust_process_auto_impl(int pid, const char* process_name, const char* priority_str) {
         std::string proc_name;
-        // 处理 process_name
+        // process_name
         if (process_name == nullptr && pid <= 0) {
             xmz::log::error("adjust_process_auto_impl: need either pid or process_name");
             return 1;

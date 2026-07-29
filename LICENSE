@@ -7,11 +7,11 @@ Files: *
 Copyright: 2026 XMZ <xmz-team@outlook.com>, LF <yitat1006@outlook.com>, AD-iOS <ad-ios334@outlook.com>
 License: MIT
 
-Files: src/bin/*/*.mm, src/bin/*/*.cc
+Files: src/bin/*/*.hpp src/bin/*/*.cc
 Copyright: 2026 XMZ <xmz-team@outlook.com>
 License: LGPL-3.0-only
 
-Files: src/gui/*.mm, src/gui/*.h
+Files: src/gui/*.h src/gui/*.mm
 Copyright: 2026 XMZ <xmz-team@outlook.com>
 License: LGPL-3.0-only
 

@@ -1,0 +1,56 @@
+#!/bin/bash
+
+a1_version=""
+a1ctl_version=""
+temp_file=$(mktemp)
+
+while IFS= read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" =~ ^\[new_version\]$ ]]; then
+        in_new_section=1
+        echo "$line" >> "$temp_file"
+        continue
+    fi
+    if [[ "$line" =~ ^\[.+\]$ ]] && [[ -n "$in_new_section" ]]; then
+        in_new_section=0
+    fi
+    if [[ -n "$in_new_section" ]] && [[ "$line" =~ ^(a1_version|a1ctl_version)\ *=\ *(.+)$ ]]; then
+        key="${BASH_REMATCH[1]}"
+        value="${BASH_REMATCH[2]}"
+        value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+        if [[ "$value" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)\.([0-9]+)(-([^+]+))?(\+(.+))?$ ]]; then
+            major="${BASH_REMATCH[1]}"
+            minor="${BASH_REMATCH[2]}"
+            patch="${BASH_REMATCH[3]}"
+            build=$((BASH_REMATCH[4] + 1))
+            prerelease="${BASH_REMATCH[6]}"
+            metadata="${BASH_REMATCH[8]}"
+            new_value="${major}.${minor}.${patch}.${build}"
+            [[ -n "$prerelease" ]] && new_value="${new_value}-${prerelease}"
+            [[ -n "$metadata" ]] && new_value="${new_value}+${metadata}"
+        else
+            new_value="$value"
+        fi
+        echo "${key} = ${new_value}" >> "$temp_file"
+        case "$key" in
+            a1_version)
+                a1_version="$new_value"
+                ;;
+            a1ctl_version)
+                a1ctl_version="$new_value"
+                ;;
+        esac
+    else
+        echo "$line" >> "$temp_file"
+    fi
+done < version.ini
+
+mv "$temp_file" version.ini
+
+sed -e "s/@a1_version@/$a1_version/g" \
+    -e "s/@a1ctl_version@/$a1ctl_version/g" \
+    a1/core/version.hpp.in > a1/core/version.hpp
+
+c++ -x objective-c++ \
+  -I. -I../.. -I../bin/bundle \
+  -framework Foundation -framework Security \
+  src/cxxa1.cc -o cxxa1
