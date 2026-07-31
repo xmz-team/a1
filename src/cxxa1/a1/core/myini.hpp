@@ -54,7 +54,8 @@ public:
         return true;
     }
 
-    std::string get(const std::string& sec, const std::string& key,
+    std::string get(const std::string& sec,
+                    const std::string& key,
                     const std::string& def = "") const {
         auto si = data_.find(sec);
         if (si == data_.end()) return def;
@@ -62,16 +63,18 @@ public:
         return ki != si->second.end() ? ki->second : def;
     }
 
-    int get_int(const std::string& sec, const std::string& key,
-               int def = 0) const {
+    int get_int(const std::string& sec,
+                const std::string& key,
+                int def = 0) const {
         auto s = get(sec, key);
         if (s.empty()) return def;
         try { return std::stoi(s); }
         catch (...) { return def; }
     }
 
-    bool get_bool(const std::string& sec, const std::string& key,
-                 bool def = false) const {
+    bool get_bool(const std::string& sec,
+                  const std::string& key,
+                  bool def = false) const {
         auto s = get(sec, key);
         if (s.empty()) return def;
         return s == "true" || s == "1" || s == "yes" || s == "on";

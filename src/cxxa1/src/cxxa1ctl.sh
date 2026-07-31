@@ -15,6 +15,6 @@ fi
 export jb
 jb_a1="$jb/a1"
 export jb_a1
-exec ./cxxa1 # test
-# exec "$jb_a1/bin/cxxa1"
+exec ./cxxa1ctl # test
+# exec "$jb_a1/bin/cxxa1ctl"
 

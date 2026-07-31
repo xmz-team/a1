@@ -1,0 +1,105 @@
+/*
+    inline int save_config() {
+        a1::config::jb_path g_jb;
+        a1::ini::ini_parser pini;
+
+        xmz::fs::mkdir(g_jb.bak_d);
+        if (xmz::aux::is_dir(g_jb.bak_d) == 1) {
+            xmz::log::error("unable to create a backup directory:", g_jb.bak_d);
+            return 1;
+        }
+
+        bool have_files = false;
+        std::string cfg_file = g_jb.a1config + "/config.ini";
+
+        if (xmz::aux::is_file(cfg_file) == 0) have_files = true;
+        if (xmz::aux::is_file(g_jb.high_f) == 0) have_files = true;
+        if (xmz::aux::is_file(g_jb.low_f) == 0) have_files = true;
+        if (xmz::aux::is_file(g_jb.custom_f) == 0) have_files = true;
+
+        if (have_files == false) {
+            xmz::log::error("no configuration files were found!");
+            return 1;
+        }
+
+        std::string temp_dir = "/tmp/a1_" + std::to_string(getpid()) + "_dir";
+
+        xmz::fs::mkdir(temp_dir);
+
+        if (!xmz::aux::is_file(temp_dir)) {
+            xmz::log::error("unable to create a temporary directory!");
+            return 1;
+        }
+    
+        int copied_count = 0;
+
+        if (xmz::aux::is_file(cfg_file) {
+            xmz::fs::cp(xmz::fs::cptype, cfg_file, temp_dir + cfg_file);
+            ((copied_count++))
+        }
+
+        if (xmz::aux::is_file(g_jb.high_f) {
+            xmz::fs::cp(xmz::fs::cptype::file, g_jb.high_f, temp_dir + "/high_priority.list");
+            ((copied_count++))
+        }
+    
+        if (xmz::aux::is_file(g_jb.low_f) {
+            xmz::fs::cp(xmz::fs::cptype::file, g_jb.low_f, temp_dir + "/low_priority.list");
+            ((copied_count++))
+        }
+
+        if (xmz::aux::is_file(g_jb.custom_f) {
+            xmz::fs::cp(xmz::fs::cptype::file, g_jb.custom_f, temp_dir + "/custom_priority_file");
+            ((copied_count++))
+        }
+
+        if (copied_count == 0) {
+            xmz::fs::recrmdir("temp_dir");
+            xmz::log::error("there are no files to back up.")
+            return 1;
+        }
+
+        std::string timestamp = xmz::get_time_str();
+        std::string backup_file = g_jb.bak_d+ "/config_backup_" + timestamp + ".tar.gz";
+        std::string orig_path = xmz::fs::pwd();
+        if (!xmz::fs::cd(temp_dir)) {
+            xmz::fs::recrmdir(temp_dir);
+            return 1;
+        }
+
+        pid_t pid = fork();
+        if (pid == 0) {
+            execl("tar", "-czf", backup_file, "--", "*", nullptr);
+            _exit(127);
+        } else if (pid > 0) {
+            int status;
+            waitpid(pid, &status, 0);
+            if (WIFEXITED(status)) {
+                int exit_code = WEXITSTATUS(status);
+                xmz::println("exit code:", exit_code);
+            } else if (WIFSIGNALED(status)) {
+                int signal = WTERMSIG(status);
+                int exit_code = signal;
+                xmz::println("be signaled", signal, "terminate");
+            }
+        }
+
+        int tar_status = exit_code;
+        xmz::fs::cd(orig_path);
+        xmz::fs::recrmdid(temp_dir);
+        if (tar_status != 0) {
+            xmz::log::error("failed to create a backup file");
+            xmz::fs::rmfile(backup_file);
+            return 1
+        }
+
+        std::filesystem::path file_path = backup_file;
+        try {
+            auto file_size = std::filesystem::file_size(file_path);
+            xmz::println("successful configuration backup", file_size, "B");
+            xmz::println("bakcup file:", backup_file);
+        } catch (const std::filesystem::filesystem_error& e) {
+            xmz::log::error(e.what());
+        }
+    }
+*/

@@ -22,6 +22,7 @@ struct set_defaults_config {
     bool log_reincarnation = false;
     bool custom_priority_enabled = false;
     bool debug_mode = true;
+    bool module_switch = false;
     // gap set
     int optimize_interval = 1800;
     int loop_sleep_interval = 5;
@@ -42,34 +43,39 @@ inline set_defaults_config& get_config() {
 }
 
 inline std::string config_text = []() -> std::string {
-    return R"(# config.ini
+    return R"(#config.ini
 
 #Priority configuration
-high_priority = 0;
-low_priority = 39;
-launchd_priority = 20;
-jetsam_priority = 15;
-max_cpu_percent = 15;
+high_priority = 0
+low_priority = 39
+launchd_priority = 20
+jetsam_priority = 15
+
 #mode on/off
-loop_mode = false;
-auto_adjust = false;
-scheduled_guard = false;
-experimental = false;
-log_reincarnation = false;
-custom_priority_enabled = false;
-debug_mode = true;
+loop_mode = false
+auto_adjust = false
+auto_apply = false
+scheduled_guard = false
+#experimental = false
+log_reincarnation = false
+custom_priority_enabled = false
+debug_mode = true
+module_switch = false
+
 #gap set
-optimize_interval = 1800;
-loop_sleep_interval = 5;
-#Permission set
-use_sudo_all = true;
-use_sudo_a1 = true;
-use_sudo_a1ctl = true;
-use_root_a1ctl = true;
+optimize_interval = 1800
+loop_sleep_interval = 5
+
+#permission set
+#use_sudo_all = false
+#use_sudo_a1 = false
+#use_sudo_a1ctl = false
+#use_root_a1ctl = false
+
 #other
-compat_mode = false;
-lock_use = true;
-dynamic_optimization = false;
+compat_mode = false
+lock_use = true
+dynamic_optimization = false
 
 )";
 }();
@@ -112,6 +118,7 @@ inline void set_defaults() {
     g_config.log_reincarnation        = get_config_bool("log_reincarnation", false);
     g_config.custom_priority_enabled  = get_config_bool("custom_priority_enabled", false);
     g_config.debug_mode               = get_config_bool("debug_mode", true);
+    g_config.module_switch            = get_config_bool("module_switch", false);
     g_config.use_sudo_all             = get_config_bool("use_sudo_all", true);
     g_config.use_sudo_a1              = get_config_bool("use_sudo_a1", true);
     g_config.use_sudo_a1ctl           = get_config_bool("use_sudo_a1ctl", true);

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -x
+
 a1_version=""
 a1ctl_version=""
 temp_file=$(mktemp)
@@ -54,3 +56,8 @@ c++ -x objective-c++ \
   -I. -I../.. -I../bin/bundle \
   -framework Foundation -framework Security \
   src/cxxa1.cc -o cxxa1
+
+c++ -x objective-c++ \
+  -I. -I../.. -I../bin/bundle -I../bin \
+  -framework Foundation -framework Security \
+  ./cxxa1ctl.cc -o cxxa1ctl
