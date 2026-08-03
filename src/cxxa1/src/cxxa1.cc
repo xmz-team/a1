@@ -172,10 +172,10 @@ int main() {
     a1::config::jb_path g_jb;
     time_t now = time(nullptr);
     xmz::println(std::ctime(&now));
-    xmz::println("___________________");
-    xmz::println("|A1 are working...|");
-    xmz::println("|Version:", a1::_coreapi::a1_version);
-    xmz::println("-------------------");
+    xmz::println("______________________");
+    xmz::println("|A1 are working......|");
+    xmz::println("|A1 Version:", a1::_coreapi::a1_version);
+    xmz::println("----------------------");
     // Initialize environment, read defaults from environment
     a1::coreapi::set_defaults();
     auto& config = a1::coreapi::set_defaults_cfg();

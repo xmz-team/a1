@@ -25,5 +25,8 @@ a1_return_script = jb + "/usr/local/bin/a1-return";
         std::string high_f = a1_dir + "/high_priority.list";
         std::string low_f = a1_dir + "/low_priority.list";
         std::string custom_f = a1_dir + "/custom_priority.list";
+        std::string mod_dir = a1_dir + "/modules";
+        std::string mod_cfg = mod_dir + "/config.ini";
+        std::string mod_list = mod_dir + "/module.list.ini";
     };
 } /* namespace a1::config */

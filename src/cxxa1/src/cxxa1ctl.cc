@@ -113,9 +113,9 @@ int main(int argc, char *argv[]) {
         signal(SIGINT, signal_handler);
         signal(SIGTERM, signal_handler);
         atexit([]() { g_lock_mgr.release(); });
-        xmz::log::debug("successfully obtained the file lock");
-    } else {
-        xmz::log::debug("the lock has been disabled. skip this stage");
+        //xmz::log::debug("successfully obtained the file lock");
+    } /* else {
+        //xmz::log::debug("the lock has been disabled. skip this stage"); */
     }
 
     std::string cmd = argv[1];

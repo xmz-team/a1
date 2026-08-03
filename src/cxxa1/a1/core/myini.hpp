@@ -86,6 +86,8 @@ public:
         return out;
     }
 
+    inline std::vector<std::string> get_sec() const { return getSections(); }
+
     std::vector<std::string> get_key(const std::string& sec) const {
         std::vector<std::string> out;
         auto it = data_.find(sec);

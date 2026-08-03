@@ -7,7 +7,6 @@
 #include <a1/core/config.hpp>
 
 namespace a1::_coreapi {
-
 struct set_defaults_config {
     int high_priority = 39;
     int low_priority = 0;
@@ -82,7 +81,6 @@ dynamic_optimization = false
 } /* namespace a1::_coreapi */
 
 namespace a1::coreapi {
-
 inline void set_defaults() {
     auto& g_config = a1::_coreapi::get_config();
 
