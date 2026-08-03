@@ -4,7 +4,7 @@
 	branch = main
 [submodule "libs/lua"]
 	path = libs/lua
-	url = https://github.com/lua/lua.git
+	url = git@github.com:lua/lua.git
 [submodule "libs/sol2"]
 	path = libs/sol2
-	url = https://github.com/ThePhD/sol2.git
+	url = git@github.com:ThePhD/sol2.git
