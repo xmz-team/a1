@@ -21,7 +21,7 @@ struct packinfo {
     std::string descr;
     std::vector<std::string> maintainer;
     /* optional */
-    std::vector<std::string> auther;
+    std::vector<std::string> author;
     std::vector<std::string> depends;
     std::vector<std::string> depends_apt;
     std::vector<std::string> section;
@@ -74,13 +74,13 @@ inline packinfo parse_packinfo(const a1::ini::ini_parser& parser) {
             if (!p.empty()) info.maintainer.push_back(p);
         }
     }
-    // parse auther
-    std::string auther_str = parser.get("", "auther", "");
-    if (!auther_str.empty()) {
-        auto parts = xmz::str::split(auther_str, ",");
+    // parse author
+    std::string author_str = parser.get("", "author", "");
+    if (!author_str.empty()) {
+        auto parts = xmz::str::split(author_str, ",");
         for (auto& p : parts) {
             p = xmz::str::trim(p);
-            if (!p.empty()) info.auther.push_back(p);
+            if (!p.empty()) info.author.push_back(p);
         }
     }
     // parse section
@@ -125,7 +125,7 @@ private:
 public:
     std::string mod_install_tmp = g_jb.mod_dir + "/cache/temp";
     std::string users = g_jb.mod_dir + "/users";
-    std::string authers = g_jb.mod_dir + "/official";
+    std::string authors = g_jb.mod_dir + "/official";
 };
 
 } // namespace a1mod

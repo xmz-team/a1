@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>items</key>
+	<array>
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>label</key>
+			<string>高优先级进程（一行一个）</string>
+			<key>key</key>
+			<string>highList</string>
+			<key>default</key>
+			<string></string>
+		</dict>
+	</array>
+	<key>title</key>
+	<string>高优先级进程</string>
+</dict>
+</plist>

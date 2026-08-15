@@ -17,6 +17,7 @@
 #include <a1/core/mod/a1mod_config.hpp>
 #include <a1/core/mod/a1mod_version.hpp>
 #include <a1/core/mod/a1mod_depends.hpp>
+#include <a1/core/mod/zip.hpp>
 
 namespace a1mod {
     // module database
@@ -30,16 +31,12 @@ namespace a1mod {
     };
     // global module database instance
     inline module_db g_module_db;
-
-    namespace cmd {
-        inline int unzip(const std::string& filename, const std::string& dest) { return xmz::cmd::run_shell("unzip -q " + filename + " -d " + dest); }
-    }
-    // parse authors from authers.ini
+    // parse authors from author.ini
     inline std::vector<std::string> parse_authors(const std::string& filepath) {
         std::vector<std::string> authors;
         a1::ini::ini_parser parser;
         if (!parser.parse_file(filepath)) return authors;
-        std::string authors_str = parser.get("", "authers", "");
+        std::string authors_str = parser.get("", "author", "");
         if (!authors_str.empty()) {
             auto parts = xmz::str::split(authors_str, ",");
             for (auto& p : parts) {
@@ -51,7 +48,7 @@ namespace a1mod {
     }
     // check if author is official
     inline bool is_official_author(const std::string& author, const config& cfg) {
-        auto authors = parse_authors(cfg.authers);
+        auto authors = parse_authors(cfg.authors);
         return std::find(authors.begin(), authors.end(), author) != authors.end();
     }
     // Initialize module system
@@ -65,8 +62,8 @@ namespace a1mod {
             xmz::fs::mkdir(cfg.mod_install_tmp);
         }
         if (xmz::aux::is_dir(cfg.users) == 1) { xmz::fs::mkdir(cfg.users); }
-        if (xmz::aux::is_dir(cfg.authers) == 1) { xmz::fs::mkdir(cfg.authers); }
-        if (xmz::aux::exist(cfg.authers + "/authers.ini") == 1) { xmz::fs::writefile("authers: XMZ, LF, AD-iOS", cfg.authers + "/authers.ini"); }
+        if (xmz::aux::is_dir(cfg.authors) == 1) { xmz::fs::mkdir(cfg.authors); }
+        if (xmz::aux::exist(cfg.authors + "/authors.ini") == 1) { xmz::fs::writefile("author: XMZ, LF, AD-iOS", cfg.authors + "/authors.ini"); }
         if (xmz::aux::is_dir(g_jb.mod_dir + "/store") == 1) {
             xmz::fs::mkdir(g_jb.mod_dir + "/store");
             xmz::fs::mkdir(g_jb.mod_dir + "/store/users");
@@ -171,7 +168,7 @@ namespace a1mod {
     }
     // list all modules
     inline void list_modules() {
-        xmz::println("=== Installed Modules ===");
+        xmz::println("Installed Modules");
         if (g_module_db.modules.empty()) {
             xmz::println("  No modules installed");
             return;
@@ -304,11 +301,11 @@ namespace a1mod {
         // determine if official
         bool is_official = false;
         std::string author = info.maintainer.empty() ? "unknown" : info.maintainer[0];
-        if (!info.auther.empty()) { author = info.auther[0]; }
+        if (!info.author.empty()) { author = info.author[0]; }
         is_official = is_official_author(author, cfg);
         // set install path
         std::string install_base;
-        if (is_official) { install_base = cfg.authers + "/" + author + "/" + info.package; } else { install_base = cfg.users + "/" + author + "/" + info.package; }
+        if (is_official) { install_base = cfg.authors + "/" + author + "/" + info.package; } else { install_base = cfg.users + "/" + author + "/" + info.package; }
         // clean and create install directory
         xmz::fs::recrmdir(install_base);
         xmz::fs::mkdir(install_base);
@@ -374,7 +371,6 @@ namespace a1mod {
         if (xmz::aux::is_dir(path) == 1) {
             xmz::log::error("path:", path, "not exist");
         }
-        std::string cmd = std::string("zip -r -9") + " " + name + ".a1mod" + " " + path;
-        return xmz::cmd::runsh(cmd);
+        return cmd::zip(name + ".a1mod", path);
     }
 } // namespace a1mod
