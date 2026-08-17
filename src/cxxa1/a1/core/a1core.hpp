@@ -155,7 +155,7 @@ namespace a1 {
     // by process find PID
     inline int find_pid_by_name(const char *target, pid_t& pid) {
         pid = a1::bin::bundle_pid(target);
-        xmz::println(pid);
+        //xmz::println(pid);
         return pid == -1 ? 1 : 0;
     }
 

@@ -1,10 +1,11 @@
 #!/bin/bash
 
-set -x
+#set -x
 
 a1_version=""
 a1ctl_version=""
 a1mod_version=""
+a1pm_version=""
 temp_file=$(mktemp)
 
 while IFS= read -r line || [[ -n "$line" ]]; do
@@ -17,12 +18,16 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         in_new_section=0
     fi
     if [[ -n "$in_new_section" ]] && \
-       [[ "$line" =~ ^(a1_version|a1ctl_version|a1mod_version)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
+       [[ "$line" =~ ^( \
+            a1_version| \
+            a1ctl_version| \
+            a1mod_version| \
+            a1pm_version \
+        )[[:space:]]*=[[:space:]]*(.+)$ ]]; then
         key="${BASH_REMATCH[1]}"
         value="${BASH_REMATCH[2]}"
         # Trim whitespace and quotes
         value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
-        
         # Match version with optional 4th component (build number)
         if [[ "$value" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(\.([0-9]+))?(-([^+]+))?(\+(.+))?$ ]]; then
             major="${BASH_REMATCH[1]}"
@@ -31,12 +36,10 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             build="${BASH_REMATCH[5]}"
             prerelease="${BASH_REMATCH[7]}"
             metadata="${BASH_REMATCH[9]}"
-            
             # Increment build number if it exists
             if [[ -n "$build" ]]; then
                 build=$((build + 1))
             fi
-            
             # Construct new version
             new_value="${major}.${minor}.${patch}"
             [[ -n "$build" ]] && new_value="${new_value}.${build}"
@@ -51,6 +54,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
             a1_version) a1_version="$new_value"; ;;
             a1ctl_version) a1ctl_version="$new_value"; ;;
             a1mod_version) a1mod_version="$new_value"; ;;
+            a1pm_version) a1pm_version="$new_value"; ;;
         esac
     else
         echo "$line" >> "$temp_file"
@@ -63,29 +67,11 @@ mv "$temp_file" version.ini
 echo "a1_version=$a1_version"
 echo "a1ctl_version=$a1ctl_version"
 echo "a1mod_version=$a1mod_version"
+echo "a1pm_version=$a1pm_version"
 
 # Use sed with double quotes to allow variable expansion
 sed -e "s/@a1_version@/$a1_version/g" \
     -e "s/@a1ctl_version@/$a1ctl_version/g" \
     -e "s/@a1mod_version@/$a1mod_version/g" \
+    -e "s/@a1pm_version@/$a1pm_version/g" \
     a1/core/version.hpp.in > a1/core/version.hpp
-
-build()
-{
-c++ -x objective-c++ \
-  -I. -I../.. -I../bin/bundle \
-  -framework Foundation -framework Security \
-  src/cxxa1.cc -o cxxa1
-
-c++ -x objective-c++ \
-  -I. -I../.. -I../bin/bundle -I../bin \
-  -framework Foundation -framework Security \
-  src/cxxa1ctl.cc -o cxxa1ctl
-
-c++ -x objective-c++ \
-  -I. -I../.. -I../bin/bundle -I../bin \
-  -framework Foundation -framework Security \
-  src/cxxa1mod.cc -o cxxa1mod
-}
-
-build

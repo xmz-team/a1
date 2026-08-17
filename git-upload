@@ -8,10 +8,10 @@ export text="$instructions"
 git add .
 git commit -m "updated by the update script; $text; $(date +'%Y-%m-%d %H:%M')"
 git pull --rebase
-git submodule update --remote libs/libxmz
-git submodule update --remote libs/lua
-git submodule update --remote libs/sol2
-git submodule update --remote libs/curl
-git submodule update --remote --depth 1 libs/openssl
-git submodule update --remote --depth 1 libs/libzip
+#git submodule update --remote libs/libxmz
+#git submodule update --remote libs/lua
+#git submodule update --remote libs/sol2
+#git submodule update --remote libs/curl
+#git submodule update --remote --depth 1 libs/openssl
+#git submodule update --remote --depth 1 libs/libzip
 git push origin main

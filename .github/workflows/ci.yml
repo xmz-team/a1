@@ -1,0 +1,240 @@
+name: Build cxxa1
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-cxxa1:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          mkdir -p libs && cd libs
+          git clone https://github.com/xmz-team/libxmz.git
+          git clone https://github.com/ThePhD/sol2.git
+          git clone https://github.com/lua/lua.git
+          git clone https://github.com/curl/curl.git
+          git clone https://github.com/openssl/openssl.git
+          git clone https://github.com/nih-at/libzip.git
+          git clone https://github.com/xybp888/iOS-SDKs.git
+          cd ..
+
+      - name: Set environment variables
+        run: |
+          echo "SDKROOT=${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk" >> $GITHUB_ENV
+          echo "CC=$(which cc)" >> $GITHUB_ENV
+          echo "CXX=$(which c++)" >> $GITHUB_ENV
+          echo "CFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0" >> $GITHUB_ENV
+          echo "CXXFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -std=c++17" >> $GITHUB_ENV
+          echo "LDFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk" >> $GITHUB_ENV
+
+      - name: Build libxmz
+        run: |
+          cd libs/libxmz
+          mkdir -p build && cd build
+          cmake .. \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_SYSROOT=$SDKROOT \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;arm64e" \
+            -DCMAKE_C_COMPILER=$CC \
+            -DCMAKE_CXX_COMPILER=$CXX \
+            -DCMAKE_C_FLAGS="$CFLAGS" \
+            -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(sysctl -n hw.ncpu)
+          cd ../../..
+
+      - name: Build lua
+        run: |
+          cd libs/lua
+          make macosx CC=$CC CFLAGS="$CFLAGS -DLUA_USE_MACOSX" AR="ar rcu" RANLIB="ranlib"
+          cd ../..
+
+      - name: Build openssl
+        run: |
+          cd libs/openssl
+          ./Configure iphoneos-cross --prefix=$PWD/install \
+            -isysroot $SDKROOT -arch arm64 -arch arm64e \
+            -miphoneos-version-min=14.0
+          make -j$(sysctl -n hw.ncpu) && make install_sw
+          cd ../..
+
+      - name: Build curl
+        run: |
+          cd libs/curl
+          ./configure \
+            --host=arm-apple-darwin \
+            --with-sysroot=$SDKROOT \
+            --with-ssl=${{ github.workspace }}/libs/openssl/install \
+            --disable-shared --enable-static \
+            --without-libssh2 --without-nghttp2 \
+            --disable-ftp --disable-file --disable-ldap \
+            --disable-rtsp --disable-telnet --disable-tftp \
+            --disable-pop3 --disable-imap --disable-smtp \
+            --disable-gopher --disable-smb --disable-mqtt \
+            --without-brotli --without-zstd --without-zlib \
+            CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
+          make -j$(sysctl -n hw.ncpu)
+          cd ../..
+
+      - name: Build libzip
+        run: |
+          cd libs/libzip
+          mkdir -p build && cd build
+          cmake .. \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_SYSROOT=$SDKROOT \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;arm64e" \
+            -DCMAKE_C_COMPILER=$CC \
+            -DCMAKE_CXX_COMPILER=$CXX \
+            -DCMAKE_C_FLAGS="$CFLAGS" \
+            -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DBUILD_REGRESS=OFF \
+            -DBUILD_TOOLS=OFF \
+            -DENABLE_LZMA=OFF \
+            -DENABLE_BZIP2=OFF \
+            -DENABLE_OPENSSL=OFF \
+            -DENABLE_WINDOWS_CRYPTO=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(sysctl -n hw.ncpu)
+          cd ../../..
+
+      - name: Build sol2
+        run: |
+          cd libs/sol2
+          mkdir -p build && cd build
+          cmake .. \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_SYSROOT=$SDKROOT \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;arm64e" \
+            -DCMAKE_CXX_COMPILER=$CXX \
+            -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+            -DSOL2_LUA_VERSION=510 \
+            -DBUILD_TESTING=OFF \
+            -DCMAKE_BUILD_TYPE=Release
+          make -j$(sysctl -n hw.ncpu)
+          cd ../../..
+
+      - name: Create output directory
+        run: mkdir -p output
+
+      - name: Build cxxa1
+        run: |
+          cd src/cxxa1
+          ./build
+          $CXX -x objective-c++ \
+            $CXXFLAGS \
+            -I. \
+            -I../bin/bundle \
+            -I../../libs/libxmz \
+            -I../../libs/sol2/include \
+            -I../../libs/lua/src \
+            -I../../libs/libzip/build \
+            -I../../libs/openssl/include \
+            -I../../libs/curl/include \
+            -framework Foundation -framework Security \
+            src/cxxa1.cc \
+            ../../libs/lua/src/*.c \
+            ../../libs/libzip/build/lib/*.a \
+            ../../libs/openssl/install/lib/*.a \
+            ../../libs/curl/lib/*.a \
+            ../../libs/libxmz/build/liblibxmz.a \
+            -o ../../output/cxxa1
+          cd ../..
+
+      - name: Build cxxa1ctl
+        run: |
+          cd src/cxxa1
+          $CXX -x objective-c++ \
+            $CXXFLAGS \
+            -I. \
+            -I../bin/bundle \
+            -I../../libs/libxmz \
+            -I../../libs/libzip/build \
+            -I../../libs/openssl/include \
+            -framework Foundation -framework Security \
+            src/cxxa1ctl.cc \
+            ../../libs/libzip/build/lib/*.a \
+            ../../libs/openssl/install/lib/*.a \
+            ../../libs/libxmz/build/liblibxmz.a \
+            -o ../../output/cxxa1ctl
+          cd ../..
+
+      - name: Build cxxa1mod
+        run: |
+          cd src/cxxa1
+          $CXX -x objective-c++ \
+            $CXXFLAGS \
+            -I. \
+            -I../bin/bundle \
+            -I../../libs/libxmz \
+            -I../../libs/sol2/include \
+            -I../../libs/lua/src \
+            -I../../libs/libzip/build \
+            -I../../libs/openssl/include \
+            -framework Foundation -framework Security \
+            src/cxxa1mod.cc \
+            ../../libs/lua/src/*.c \
+            ../../libs/libzip/build/lib/*.a \
+            ../../libs/openssl/install/lib/*.a \
+            ../../libs/libxmz/build/liblibxmz.a \
+            -o ../../output/cxxa1mod
+          cd ../..
+
+      - name: Build cxxa1pm
+        run: |
+          cd src/cxxa1
+          $CXX -x objective-c++ \
+            $CXXFLAGS \
+            -I. \
+            -I../bin/bundle \
+            -I../../libs/libxmz \
+            -I../../libs/sol2/include \
+            -I../../libs/lua/src \
+            -I../../libs/libzip/build \
+            -I../../libs/openssl/include \
+            -I../../libs/curl/include \
+            -framework Foundation -framework Security \
+            src/cxxa1pm.cc \
+            ../../libs/lua/src/*.c \
+            ../../libs/libzip/build/lib/*.a \
+            ../../libs/openssl/install/lib/*.a \
+            ../../libs/curl/lib/*.a \
+            ../../libs/libxmz/build/liblibxmz.a \
+            -o ../../output/cxxa1pm
+          cd ../..
+
+      - name: Build a1cil.sh
+        run: |
+          cd src/cxxa1
+          cp src/a1cil.sh ../../output/a1cil
+          chmod +x ../../output/a1cil
+          cd ../..
+      
+      #- name: Create deb
+      #  run: |
+      #    cd output
+      #    ln -sf cxxa1 a1
+      #    ln -sf cxxa1ctl a1ctl
+      #    ln -sf cxxa1mod a1mod
+      #    ln -sf cxxa1pm a1pm
+      #    cd ..
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cxxa1-binaries
+          path: output/
+          if-no-files-found: error

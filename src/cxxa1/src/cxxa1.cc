@@ -1,13 +1,17 @@
-// main.cc
+// cxxa1.cc
 #include <libxmz/io.hpp>
 #include <libxmz/log.hpp>
 #include <libxmz/str.hpp>
 #include <libxmz/fs.hpp>
 #include <libxmz/aux.hpp>
+#include <libxmz/time.hpp>
+
 #include <a1/core/a1core.hpp>
 #include <a1/core/myini.hpp>
 #include <a1/core/config.hpp>
 #include <a1/core/set_defaults.hpp>
+#include <a1/core/mod/a1mod_luarun.hpp>
+
 #include <string>
 #include <csignal>
 #include <ctime>
@@ -170,8 +174,7 @@ int main() {
         return 1;
     }
     a1::config::jb_path g_jb;
-    time_t now = time(nullptr);
-    xmz::println(std::ctime(&now));
+    xmz::println(xmz::get_time_str());
     xmz::println("______________________");
     xmz::println("|A1 are working......|");
     xmz::println("|A1 Version:", a1::_coreapi::a1_version);
