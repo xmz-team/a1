@@ -172,9 +172,9 @@ jobs:
             -DBUILD_MISC_DOCS=OFF \
             -DBUILD_LIBCURL_DOCS=OFF \
             -DENABLE_CURL_MANUAL=OFF \
+            -DCURL_USE_THREADS=OFF \
             -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }}
           cmake --build . --config ${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }} -j$(nproc)
-          
           cd ../..
 
       - name: Build libzip
