@@ -126,34 +126,55 @@ jobs:
       - name: Build curl
         run: |
           cd libs/curl
-          if [ ! -f configure ]; then
-            autoreconf -fi
-          fi
-          ./configure \
-            --build=x86_64-linux-gnu \
-            --host=arm-apple-darwin \
-            --target=arm-apple-darwin \
-            --with-sysroot=$SDKROOT \
-            --with-ssl=${{ github.workspace }}/libs/openssl/install \
-            --disable-shared --enable-static \
-            --without-libssh2 --without-nghttp2 \
-            --disable-ftp --disable-file --disable-ldap \
-            --disable-rtsp --disable-telnet --disable-tftp \
-            --disable-pop3 --disable-imap --disable-smtp \
-            --disable-gopher --disable-smb --disable-mqtt \
-            --without-brotli --without-zstd --without-zlib \
-            CC=$CC \
-            CXX=$CXX \
-            CFLAGS="$CFLAGS" \
-            CXXFLAGS="$CXXFLAGS" \
-            LDFLAGS="$LDFLAGS" \
-            --disable-dependency-tracking || {
-              echo "=== config.log (last 100 lines) ==="
-              tail -100 config.log
-              echo "=== End of config.log ==="
-              exit 1
-            }
-          make -j$(nproc)
+          cmake . \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_SYSROOT=$SDKROOT \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_OSX_DEPLOYMENT_TARGET=14.0 \
+            -DCMAKE_C_COMPILER=$CC \
+            -DCMAKE_CXX_COMPILER=$CXX \
+            -DCMAKE_C_FLAGS="$CFLAGS" \
+            -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+            -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
+            -DCMAKE_SHARED_LINKER_FLAGS="$LDFLAGS" \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DBUILD_STATIC_LIBS=ON \
+            -DBUILD_CURL_EXE=OFF \
+            -DBUILD_TESTING=OFF \
+            -DBUILD_EXAMPLES=OFF \
+            -DCURL_USE_OPENSSL=ON \
+            -DOPENSSL_ROOT_DIR=${{ github.workspace }}/libs/openssl/install \
+            -DOPENSSL_INCLUDE_DIR=${{ github.workspace }}/libs/openssl/install/include \
+            -DOPENSSL_SSL_LIBRARY=${{ github.workspace }}/libs/openssl/install/lib/libssl.a \
+            -DOPENSSL_CRYPTO_LIBRARY=${{ github.workspace }}/libs/openssl/install/lib/libcrypto.a \
+            -DCURL_USE_LIBSSH2=OFF \
+            -DUSE_NGHTTP2=OFF \
+            -DCURL_DISABLE_FTP=ON \
+            -DCURL_DISABLE_FILE=ON \
+            -DCURL_DISABLE_LDAP=ON \
+            -DCURL_DISABLE_LDAPS=ON \
+            -DCURL_DISABLE_RTSP=ON \
+            -DCURL_DISABLE_TELNET=ON \
+            -DCURL_DISABLE_TFTP=ON \
+            -DCURL_DISABLE_POP3=ON \
+            -DCURL_DISABLE_IMAP=ON \
+            -DCURL_DISABLE_SMTP=ON \
+            -DCURL_DISABLE_GOPHER=ON \
+            -DCURL_DISABLE_MQTT=ON \
+            -DCURL_DISABLE_DICT=ON \
+            -DCURL_DISABLE_DOH=ON \
+            -DCURL_DISABLE_IPFS=ON \
+            -DCURL_ZLIB=OFF \
+            -DCURL_BROTLI=OFF \
+            -DCURL_ZSTD=OFF \
+            -DCURL_USE_LIBPSL=OFF \
+            -DCURL_USE_LIBIDN2=OFF \
+            -DBUILD_MISC_DOCS=OFF \
+            -DBUILD_LIBCURL_DOCS=OFF \
+            -DENABLE_CURL_MANUAL=OFF \
+            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }}
+          cmake --build . --config ${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }} -j$(nproc)
+          
           cd ../..
 
       - name: Build libzip
