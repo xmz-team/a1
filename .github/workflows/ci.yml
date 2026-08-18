@@ -1,4 +1,4 @@
-name: Build cxxa1
+name: CI
 
 on:
   push:
@@ -172,7 +172,7 @@ jobs:
             -DBUILD_MISC_DOCS=OFF \
             -DBUILD_LIBCURL_DOCS=OFF \
             -DENABLE_CURL_MANUAL=OFF \
-            -DCURL_USE_THREADS=OFF \
+            -DENABLE_THREADED_RESOLVER=OFF \
             -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }}
           cmake --build . --config ${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }} -j$(nproc)
           cd ../..
