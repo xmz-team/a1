@@ -107,7 +107,7 @@ jobs:
                   return status;\
               }\
           }\
-          #define l_system(cmd) l_system_fork_exec(cmd)' Ioslib.c
+          #define l_system(cmd) l_system_fork_exec(cmd)' loslib.c
           
           # Build using clang with iOS target
           make a CC=$CC CFLAGS="$CFLAGS -DLUA_USE_MACOSX" AR="ar rcu" RANLIB="ranlib"
