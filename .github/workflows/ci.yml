@@ -143,7 +143,10 @@ jobs:
             -DBUILD_TESTING=OFF \
             -DBUILD_EXAMPLES=OFF \
             -DCURL_USE_OPENSSL=ON \
-            -DOPENSSL_ROOT_DIR=${{ github.workspace }}/libs/openssl/install \
+            -DOPENSSL_ROOT_DIR=/home/runner/work/a1/a1/libs/openssl/install \
+            -DOPENSSL_INCLUDE_DIR=/home/runner/work/a1/a1/libs/openssl/install/include \
+            -DOPENSSL_CRYPTO_LIBRARY=/home/runner/work/a1/a1/libs/openssl/install/lib/libcrypto.a \
+            -DOPENSSL_SSL_LIBRARY=/home/runner/work/a1/a1/libs/openssl/install/lib/libssl.a \
             -DOPENSSL_USE_STATIC_LIBS=TRUE \
             -DCURL_USE_LIBSSH2=OFF \
             -DUSE_NGHTTP2=OFF \
@@ -171,8 +174,8 @@ jobs:
             -DBUILD_LIBCURL_DOCS=OFF \
             -DENABLE_CURL_MANUAL=OFF \
             -DENABLE_THREADED_RESOLVER=OFF \
-            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }}
-          cmake --build . --config ${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }} -j$(nproc)
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release -j$(nproc)
           cd ../..
 
       - name: Build libzip
