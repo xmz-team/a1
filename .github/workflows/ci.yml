@@ -130,7 +130,9 @@ jobs:
             autoreconf -fi
           fi
           ./configure \
+            --build=x86_64-linux-gnu \
             --host=arm-apple-darwin \
+            --target=arm-apple-darwin \
             --with-sysroot=$SDKROOT \
             --with-ssl=${{ github.workspace }}/libs/openssl/install \
             --disable-shared --enable-static \
@@ -144,7 +146,8 @@ jobs:
             CXX=$CXX \
             CFLAGS="$CFLAGS" \
             CXXFLAGS="$CXXFLAGS" \
-            LDFLAGS="$LDFLAGS"
+            LDFLAGS="$LDFLAGS" \
+            --disable-dependency-tracking
           make -j$(nproc)
           cd ../..
 
