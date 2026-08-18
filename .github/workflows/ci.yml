@@ -126,9 +126,18 @@ jobs:
         run: |
           cd libs/curl
           autoreconf -fi
+          
+          # Set up cross-compilation environment
+          export CC="clang-16 -target arm64-apple-ios14.0"
+          export CXX="clang++-16 -target arm64-apple-ios14.0"
+          export CFLAGS="-isysroot $SDKROOT -miphoneos-version-min=14.0 -fPIC"
+          export CXXFLAGS="-isysroot $SDKROOT -miphoneos-version-min=14.0 -fPIC"
+          export LDFLAGS="-isysroot $SDKROOT -miphoneos-version-min=14.0"
+          
           ./configure \
             --host=arm64-apple-darwin \
             --target=arm64-apple-darwin \
+            --build=x86_64-linux-gnu \
             --with-sysroot=$SDKROOT \
             --with-ssl=${{ github.workspace }}/libs/openssl/install \
             --disable-shared \
@@ -153,7 +162,10 @@ jobs:
             --without-zstd \
             --without-libpsl \
             --without-libidn2 \
-            --disable-threaded-resolver
+            --disable-threaded-resolver \
+            --disable-verbose \
+            --disable-manual
+          
           make -j$(nproc)
           cd ../..
 
