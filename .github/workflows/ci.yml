@@ -28,7 +28,7 @@ on:
 
 jobs:
   build-cxxa1:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,6 +38,27 @@ jobs:
 
       - name: Install dependencies
         run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang-16 \
+            lld-16 \
+            cmake \
+            make \
+            git \
+            zip \
+            libc6-dev \
+            libstdc++-12-dev \
+            pkg-config \
+            libssl-dev \
+            zlib1g-dev \
+            libcurl4-openssl-dev
+          
+          # Set clang-16 as default
+          sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100
+          sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 100
+          sudo update-alternatives --install /usr/bin/llvm-ar llvm-ar /usr/bin/llvm-ar-16 100
+          sudo update-alternatives --install /usr/bin/llvm-ranlib llvm-ranlib /usr/bin/llvm-ranlib-16 100
+          
           mkdir -p libs && cd libs
           git clone https://github.com/xmz-team/libxmz.git
           git clone https://github.com/ThePhD/sol2.git
@@ -45,24 +66,25 @@ jobs:
           git clone https://github.com/curl/curl.git
           git clone https://github.com/openssl/openssl.git
           git clone https://github.com/nih-at/libzip.git
-          git clone https://github.com/xybp888/iOS-SDKs.git
           cd ..
 
       - name: Set environment variables
         run: |
-          echo "SDKROOT=${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk" >> $GITHUB_ENV
-          echo "CC=$(which cc)" >> $GITHUB_ENV
-          echo "CXX=$(which c++)" >> $GITHUB_ENV
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+          echo "AR=llvm-ar" >> $GITHUB_ENV
+          echo "RANLIB=llvm-ranlib" >> $GITHUB_ENV
           
           if [ "${{ github.event.inputs.build_type }}" == "debug" ]; then
-            echo "CFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -g -O0" >> $GITHUB_ENV
-            echo "CXXFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -std=c++17 -g -O0" >> $GITHUB_ENV
+            echo "CFLAGS=-g -O0 -fPIC -static-libgcc -static-libstdc++" >> $GITHUB_ENV
+            echo "CXXFLAGS=-g -O0 -fPIC -static-libgcc -static-libstdc++ -std=c++17" >> $GITHUB_ENV
           else
-            echo "CFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -O3" >> $GITHUB_ENV
-            echo "CXXFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -std=c++17 -O3" >> $GITHUB_ENV
+            echo "CFLAGS=-O3 -fPIC -static-libgcc -static-libstdc++ -flto=thin" >> $GITHUB_ENV
+            echo "CXXFLAGS=-O3 -fPIC -static-libgcc -static-libstdc++ -std=c++17 -flto=thin" >> $GITHUB_ENV
           fi
           
-          echo "LDFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk" >> $GITHUB_ENV
+          echo "LDFLAGS=-static-libgcc -static-libstdc++ -flto=thin -fuse-ld=lld" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig" >> $GITHUB_ENV
 
       - name: Clean build directory
         if: github.event.inputs.clean_build == 'true'
@@ -73,63 +95,47 @@ jobs:
       - name: Build lua
         run: |
           cd libs/lua
-          sed -i '' '138c\
-          static int l_system_fork_exec(const char *cmd) {\
-              pid_t pid = fork();\
-              if (pid == -1) {\
-                  return -1;\
-              } else if (pid == 0) {\
-                  execlp("sh", "sh", "-c", cmd, (char *)NULL);\
-                  _exit(127);\
-              } else {\
-                  int status;\
-                  waitpid(pid, &status, 0);\
-                  return status;\
-              }\
-          }\
-          #define l_system(cmd) l_system_fork_exec(cmd)' Ioslib.c
-          make a CC=$CC CFLAGS="$CFLAGS -DLUA_USE_MACOSX" AR="ar rcu" RANLIB="ranlib"
+          make a CC=$CC CFLAGS="$CFLAGS" AR="$AR rcu" RANLIB="$RANLIB"
           cd ../..
 
       - name: Build openssl
         run: |
           cd libs/openssl
-          ./Configure iphoneos-cross --prefix=$PWD/install \
-            -isysroot $SDKROOT -arch arm64 -arch arm64e \
-            -miphoneos-version-min=14.0
-          make -j$(sysctl -n hw.ncpu) && make install_sw
+          ./Configure linux-x86_64-clang --prefix=$PWD/install \
+            --openssldir=$PWD/install/ssl \
+            no-shared no-tests \
+            -fPIC
+          make -j$(nproc) && make install_sw
           cd ../..
 
-      - name: Build curl
+      - name: Build curl (static)
         run: |
           cd libs/curl
           ./configure \
-            --host=arm-apple-darwin \
-            --with-sysroot=$SDKROOT \
+            --host=x86_64-pc-linux-gnu \
             --with-ssl=${{ github.workspace }}/libs/openssl/install \
-            --disable-shared --enable-static \
+            --enable-static --disable-shared \
             --without-libssh2 --without-nghttp2 \
             --disable-ftp --disable-file --disable-ldap \
             --disable-rtsp --disable-telnet --disable-tftp \
             --disable-pop3 --disable-imap --disable-smtp \
             --disable-gopher --disable-smb --disable-mqtt \
-            --without-brotli --without-zstd --without-zlib \
-            CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS"
-          make -j$(sysctl -n hw.ncpu)
+            --without-brotli --without-zstd \
+            --with-zlib=/usr \
+            CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS"
+          make -j$(nproc)
           cd ../..
 
-      - name: Build libzip
+      - name: Build libzip (static)
         run: |
           cd libs/libzip
           mkdir -p build && cd build
           cmake .. \
-            -DCMAKE_SYSTEM_NAME=iOS \
-            -DCMAKE_OSX_SYSROOT=$SDKROOT \
-            -DCMAKE_OSX_ARCHITECTURES="arm64;arm64e" \
             -DCMAKE_C_COMPILER=$CC \
             -DCMAKE_CXX_COMPILER=$CXX \
             -DCMAKE_C_FLAGS="$CFLAGS" \
             -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+            -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
             -DBUILD_SHARED_LIBS=OFF \
             -DBUILD_EXAMPLES=OFF \
             -DBUILD_REGRESS=OFF \
@@ -139,7 +145,7 @@ jobs:
             -DENABLE_OPENSSL=OFF \
             -DENABLE_WINDOWS_CRYPTO=OFF \
             -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }}
-          make -j$(sysctl -n hw.ncpu)
+          make -j$(nproc)
           cd ../../..
 
       - name: Build sol2
@@ -147,25 +153,23 @@ jobs:
           cd libs/sol2
           mkdir -p build && cd build
           cmake .. \
-            -DCMAKE_SYSTEM_NAME=iOS \
-            -DCMAKE_OSX_SYSROOT=$SDKROOT \
-            -DCMAKE_OSX_ARCHITECTURES="arm64;arm64e" \
             -DCMAKE_CXX_COMPILER=$CXX \
             -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
+            -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" \
             -DSOL2_LUA_VERSION=510 \
             -DBUILD_TESTING=OFF \
             -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }}
-          make -j$(sysctl -n hw.ncpu)
+          make -j$(nproc)
           cd ../../..
 
       - name: Create output directory
         run: mkdir -p output
 
-      - name: Build cxxa1
+      - name: Build cxxa1 (static)
         run: |
           cd src/cxxa1
           ./build
-          $CXX -x objective-c++ \
+          $CXX \
             $CXXFLAGS \
             -I. \
             -I../bin/bundle \
@@ -173,38 +177,42 @@ jobs:
             -I../../libs/sol2/include \
             -I../../libs/lua \
             -I../../libs/libzip/build \
-            -I../../libs/openssl/include \
+            -I../../libs/openssl/install/include \
             -I../../libs/curl/include \
-            -framework Foundation -framework Security \
             src/cxxa1.cc \
             ../../libs/lua/liblua.a \
             ../../libs/libzip/build/lib/*.a \
             ../../libs/openssl/install/lib/*.a \
             ../../libs/curl/lib/*.a \
+            -lssl -lcrypto -lz -ldl -lpthread \
+            -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh \
+            -Wl,-Bdynamic \
             -o ../../output/cxxa1
           cd ../..
 
-      - name: Build cxxa1ctl
+      - name: Build cxxa1ctl (static)
         run: |
           cd src/cxxa1
-          $CXX -x objective-c++ \
+          $CXX \
             $CXXFLAGS \
             -I. \
             -I../bin/bundle \
             -I../../libs/libxmz \
             -I../../libs/libzip/build \
-            -I../../libs/openssl/include \
-            -framework Foundation -framework Security \
+            -I../../libs/openssl/install/include \
             src/cxxa1ctl.cc \
             ../../libs/libzip/build/lib/*.a \
             ../../libs/openssl/install/lib/*.a \
+            -lssl -lcrypto -lz -ldl -lpthread \
+            -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh \
+            -Wl,-Bdynamic \
             -o ../../output/cxxa1ctl
           cd ../..
 
-      - name: Build cxxa1mod
+      - name: Build cxxa1mod (static)
         run: |
           cd src/cxxa1
-          $CXX -x objective-c++ \
+          $CXX \
             $CXXFLAGS \
             -I. \
             -I../bin/bundle \
@@ -212,19 +220,21 @@ jobs:
             -I../../libs/sol2/include \
             -I../../libs/lua/src \
             -I../../libs/libzip/build \
-            -I../../libs/openssl/include \
-            -framework Foundation -framework Security \
+            -I../../libs/openssl/install/include \
             src/cxxa1mod.cc \
             ../../libs/lua/src/*.c \
             ../../libs/libzip/build/lib/*.a \
             ../../libs/openssl/install/lib/*.a \
+            -lssl -lcrypto -lz -ldl -lpthread \
+            -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh \
+            -Wl,-Bdynamic \
             -o ../../output/cxxa1mod
           cd ../..
 
-      - name: Build cxxa1pm
+      - name: Build cxxa1pm (static)
         run: |
           cd src/cxxa1
-          $CXX -x objective-c++ \
+          $CXX \
             $CXXFLAGS \
             -I. \
             -I../bin/bundle \
@@ -232,14 +242,16 @@ jobs:
             -I../../libs/sol2/include \
             -I../../libs/lua/src \
             -I../../libs/libzip/build \
-            -I../../libs/openssl/include \
+            -I../../libs/openssl/install/include \
             -I../../libs/curl/include \
-            -framework Foundation -framework Security \
             src/cxxa1pm.cc \
             ../../libs/lua/src/*.c \
             ../../libs/libzip/build/lib/*.a \
             ../../libs/openssl/install/lib/*.a \
             ../../libs/curl/lib/*.a \
+            -lssl -lcrypto -lz -ldl -lpthread \
+            -Wl,-Bstatic -lstdc++ -lgcc -lgcc_eh \
+            -Wl,-Bdynamic \
             -o ../../output/cxxa1pm
           cd ../..
 
@@ -259,6 +271,14 @@ jobs:
           ln -sf cxxa1pm a1pm
           cd ..
 
+      - name: Strip binaries (release only)
+        if: github.event.inputs.build_type != 'debug'
+        run: |
+          strip -s output/cxxa1
+          strip -s output/cxxa1ctl
+          strip -s output/cxxa1mod
+          strip -s output/cxxa1pm
+
       - name: Archive output
         if: github.event.inputs.upload_artifacts != 'false'
         run: |
@@ -268,7 +288,7 @@ jobs:
         if: github.event.inputs.upload_artifacts != 'false'
         uses: actions/upload-artifact@v4
         with:
-          name: cxxa1-binaries-${{ github.event.inputs.build_type }}-${{ github.sha }}
+          name: cxxa1-binaries-linux-${{ github.event.inputs.build_type }}-${{ github.sha }}
           path: output.zip
           if-no-files-found: error
           
@@ -277,5 +297,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: cxxa1-debug-symbols-${{ github.sha }}
-          path: output/*.dSYM
+          path: output/*.debug
           if-no-files-found: warn
