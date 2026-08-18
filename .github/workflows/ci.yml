@@ -147,7 +147,12 @@ jobs:
             CFLAGS="$CFLAGS" \
             CXXFLAGS="$CXXFLAGS" \
             LDFLAGS="$LDFLAGS" \
-            --disable-dependency-tracking
+            --disable-dependency-tracking || {
+              echo "=== config.log (last 100 lines) ==="
+              tail -100 config.log
+              echo "=== End of config.log ==="
+              exit 1
+            }
           make -j$(nproc)
           cd ../..
 
