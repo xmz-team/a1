@@ -126,6 +126,9 @@ jobs:
       - name: Build curl
         run: |
           cd libs/curl
+          if [ ! -f configure ]; then
+            autoreconf -fi
+          fi
           ./configure \
             --host=arm-apple-darwin \
             --with-sysroot=$SDKROOT \
