@@ -119,7 +119,6 @@ jobs:
           ./Configure iphoneos-cross --prefix=$PWD/install \
             --cross-compile-prefix= \
             -isysroot $SDKROOT \
-            -target arm64-apple-ios14.0 \
             -miphoneos-version-min=14.0
           make -j$(nproc) && make install_sw
           cd ../..
