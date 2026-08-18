@@ -144,9 +144,7 @@ jobs:
             -DBUILD_EXAMPLES=OFF \
             -DCURL_USE_OPENSSL=ON \
             -DOPENSSL_ROOT_DIR=${{ github.workspace }}/libs/openssl/install \
-            -DOPENSSL_INCLUDE_DIR=${{ github.workspace }}/libs/openssl/install/include \
-            -DOPENSSL_SSL_LIBRARY=${{ github.workspace }}/libs/openssl/install/lib/libssl.a \
-            -DOPENSSL_CRYPTO_LIBRARY=${{ github.workspace }}/libs/openssl/install/lib/libcrypto.a \
+            -DOPENSSL_USE_STATIC_LIBS=TRUE \
             -DCURL_USE_LIBSSH2=OFF \
             -DUSE_NGHTTP2=OFF \
             -DCURL_DISABLE_FTP=ON \
