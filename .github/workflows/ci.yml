@@ -41,7 +41,7 @@ jobs:
       - name: Build lua
         run: |
           cd libs/lua
-          make macosx CC=$CC CFLAGS="$CFLAGS -DLUA_USE_MACOSX" AR="ar rcu" RANLIB="ranlib"
+          make a CC=$CC CFLAGS="$CFLAGS -DLUA_USE_MACOSX" AR="ar rcu" RANLIB="ranlib"
           cd ../..
 
       - name: Build openssl
@@ -124,17 +124,16 @@ jobs:
             -I../bin/bundle \
             -I../../libs/libxmz \
             -I../../libs/sol2/include \
-            -I../../libs/lua/src \
+            -I../../libs/lua \
             -I../../libs/libzip/build \
             -I../../libs/openssl/include \
             -I../../libs/curl/include \
             -framework Foundation -framework Security \
             src/cxxa1.cc \
-            ../../libs/lua/src/*.c \
+            ../../libs/lua/liblua.a \
             ../../libs/libzip/build/lib/*.a \
             ../../libs/openssl/install/lib/*.a \
             ../../libs/curl/lib/*.a \
-            ../../libs/libxmz/build/liblibxmz.a \
             -o ../../output/cxxa1
           cd ../..
 
@@ -152,7 +151,6 @@ jobs:
             src/cxxa1ctl.cc \
             ../../libs/libzip/build/lib/*.a \
             ../../libs/openssl/install/lib/*.a \
-            ../../libs/libxmz/build/liblibxmz.a \
             -o ../../output/cxxa1ctl
           cd ../..
 
@@ -173,7 +171,6 @@ jobs:
             ../../libs/lua/src/*.c \
             ../../libs/libzip/build/lib/*.a \
             ../../libs/openssl/install/lib/*.a \
-            ../../libs/libxmz/build/liblibxmz.a \
             -o ../../output/cxxa1mod
           cd ../..
 
@@ -196,7 +193,6 @@ jobs:
             ../../libs/libzip/build/lib/*.a \
             ../../libs/openssl/install/lib/*.a \
             ../../libs/curl/lib/*.a \
-            ../../libs/libxmz/build/liblibxmz.a \
             -o ../../output/cxxa1pm
           cd ../..
 
@@ -215,10 +211,13 @@ jobs:
       #    ln -sf cxxa1mod a1mod
       #    ln -sf cxxa1pm a1pm
       #    cd ..
-      
+      - name: archive zip
+        run: |
+          zip -r -9 output.zip output
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: cxxa1-binaries
-          path: output/
+          path: output.zip
           if-no-files-found: error
