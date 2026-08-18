@@ -6,6 +6,25 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+      clean_build:
+        description: 'Clean build'
+        required: true
+        default: true
+        type: boolean
+      upload_artifacts:
+        description: 'Upload artifacts'
+        required: true
+        default: true
+        type: boolean
 
 jobs:
   build-cxxa1:
@@ -34,14 +53,27 @@ jobs:
           echo "SDKROOT=${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk" >> $GITHUB_ENV
           echo "CC=$(which cc)" >> $GITHUB_ENV
           echo "CXX=$(which c++)" >> $GITHUB_ENV
-          echo "CFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0" >> $GITHUB_ENV
-          echo "CXXFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -std=c++17" >> $GITHUB_ENV
+          
+          if [ "${{ github.event.inputs.build_type }}" == "debug" ]; then
+            echo "CFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -g -O0" >> $GITHUB_ENV
+            echo "CXXFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -std=c++17 -g -O0" >> $GITHUB_ENV
+          else
+            echo "CFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -O3" >> $GITHUB_ENV
+            echo "CXXFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk -miphoneos-version-min=14.0 -std=c++17 -O3" >> $GITHUB_ENV
+          fi
+          
           echo "LDFLAGS=-arch arm64 -arch arm64e -isysroot ${{ github.workspace }}/libs/iOS-SDKs/iPhoneOS16.5.sdk" >> $GITHUB_ENV
+
+      - name: Clean build directory
+        if: github.event.inputs.clean_build == 'true'
+        run: |
+          rm -rf output
+          mkdir -p output
 
       - name: Build lua
         run: |
           cd libs/lua
-          sed -i '138c\
+          sed -i '' '138c\
           static int l_system_fork_exec(const char *cmd) {\
               pid_t pid = fork();\
               if (pid == -1) {\
@@ -106,7 +138,7 @@ jobs:
             -DENABLE_BZIP2=OFF \
             -DENABLE_OPENSSL=OFF \
             -DENABLE_WINDOWS_CRYPTO=OFF \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }}
           make -j$(sysctl -n hw.ncpu)
           cd ../../..
 
@@ -122,7 +154,7 @@ jobs:
             -DCMAKE_CXX_FLAGS="$CXXFLAGS" \
             -DSOL2_LUA_VERSION=510 \
             -DBUILD_TESTING=OFF \
-            -DCMAKE_BUILD_TYPE=Release
+            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.build_type == 'debug' && 'Debug' || 'Release' }}
           make -j$(sysctl -n hw.ncpu)
           cd ../../..
 
@@ -218,21 +250,32 @@ jobs:
           chmod +x ../../output/a1cil
           cd ../..
       
-      #- name: Create deb
-      #  run: |
-      #    cd output
-      #    ln -sf cxxa1 a1
-      #    ln -sf cxxa1ctl a1ctl
-      #    ln -sf cxxa1mod a1mod
-      #    ln -sf cxxa1pm a1pm
-      #    cd ..
-      - name: archive zip
+      - name: Create symbolic links
+        run: |
+          cd output
+          ln -sf cxxa1 a1
+          ln -sf cxxa1ctl a1ctl
+          ln -sf cxxa1mod a1mod
+          ln -sf cxxa1pm a1pm
+          cd ..
+
+      - name: Archive output
+        if: github.event.inputs.upload_artifacts != 'false'
         run: |
           zip -r -9 output.zip output
 
       - name: Upload build artifacts
+        if: github.event.inputs.upload_artifacts != 'false'
         uses: actions/upload-artifact@v4
         with:
-          name: cxxa1-binaries
+          name: cxxa1-binaries-${{ github.event.inputs.build_type }}-${{ github.sha }}
           path: output.zip
           if-no-files-found: error
+          
+      - name: Upload debug symbols (debug build only)
+        if: github.event.inputs.build_type == 'debug' && github.event.inputs.upload_artifacts != 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cxxa1-debug-symbols-${{ github.sha }}
+          path: output/*.dSYM
+          if-no-files-found: warn
