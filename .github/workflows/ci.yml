@@ -109,7 +109,6 @@ jobs:
           }\
           #define l_system(cmd) l_system_fork_exec(cmd)' loslib.c
           
-          # Build using clang with iOS target
           make a CC=$CC CFLAGS="$CFLAGS -DLUA_USE_MACOSX" AR="ar rcu" RANLIB="ranlib"
           cd ../..
 
@@ -123,40 +122,40 @@ jobs:
           make -j$(nproc) && make install_sw
           cd ../..
 
-    - name: Build curl
-      run: |
-         cd libs/curl
-         autoreconf -fi
-        ./configure \
-          --host=arm64-apple-darwin \
-          --target=arm64-apple-darwin \
-          --with-sysroot=$SDKROOT \
-          --with-ssl=${{ github.workspace }}/libs/openssl/install \
-          --disable-shared \
-          --enable-static \
-          --disable-ftp \
-          --disable-file \
-          --disable-ldap \
-          --disable-ldaps \
-          --disable-rtsp \
-          --disable-telnet \
-          --disable-tftp \
-          --disable-pop3 \
-          --disable-imap \
-          --disable-smtp \
-          --disable-gopher \
-          --disable-mqtt \
-          --disable-dict \
-          --disable-doh \
-          --disable-ipfs \
-          --without-zlib \
-          --without-brotli \
-          --without-zstd \
-          --without-libpsl \
-          --without-libidn2 \
-          --disable-threaded-resolver
-        make -j$(nproc)
-        cd ../..
+      - name: Build curl
+        run: |
+           cd libs/curl
+           autoreconf -fi
+          ./configure \
+            --host=arm64-apple-darwin \
+            --target=arm64-apple-darwin \
+            --with-sysroot=$SDKROOT \
+            --with-ssl=${{ github.workspace }}/libs/openssl/install \
+            --disable-shared \
+            --enable-static \
+            --disable-ftp \
+            --disable-file \
+            --disable-ldap \
+            --disable-ldaps \
+            --disable-rtsp \
+            --disable-telnet \
+            --disable-tftp \
+            --disable-pop3 \
+            --disable-imap \
+            --disable-smtp \
+            --disable-gopher \
+            --disable-mqtt \
+            --disable-dict \
+            --disable-doh \
+            --disable-ipfs \
+            --without-zlib \
+            --without-brotli \
+            --without-zstd \
+            --without-libpsl \
+            --without-libidn2 \
+            --disable-threaded-resolver
+          make -j$(nproc)
+          cd ../..
 
       - name: Build libzip
         run: |
