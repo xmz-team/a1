@@ -124,8 +124,8 @@ jobs:
 
       - name: Build curl
         run: |
-           cd libs/curl
-           autoreconf -fi
+          cd libs/curl
+          autoreconf -fi
           ./configure \
             --host=arm64-apple-darwin \
             --target=arm64-apple-darwin \
