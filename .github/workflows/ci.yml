@@ -42,6 +42,7 @@ jobs:
           sudo apt-get install -y \
             clang-16 \
             lld-16 \
+            llvm-16 \
             cmake \
             make \
             zip \
@@ -50,7 +51,11 @@ jobs:
             wget \
             libssl-dev \
             libcurl4-openssl-dev
-            
+
+          sudo ln -sf /usr/bin/llvm-ar-16 /usr/bin/llvm-ar
+          sudo ln -sf /usr/bin/llvm-ranlib-16 /usr/bin/llvm-ranlib
+          sudo ln -sf /usr/bin/llvm-nm-16 /usr/bin/llvm-nm
+
           mkdir -p libs && cd libs
           git clone https://github.com/xmz-team/libxmz.git
           git clone https://github.com/ThePhD/sol2.git
@@ -126,18 +131,24 @@ jobs:
         run: |
           cd libs/curl
           autoreconf -fi
-          
-          # Set up cross-compilation environment
-          export CC="clang-16 -target arm64-apple-ios14.0"
-          export CXX="clang++-16 -target arm64-apple-ios14.0"
-          export CFLAGS="-isysroot $SDKROOT -miphoneos-version-min=14.0 -fPIC"
-          export CXXFLAGS="-isysroot $SDKROOT -miphoneos-version-min=14.0 -fPIC"
-          export LDFLAGS="-isysroot $SDKROOT -miphoneos-version-min=14.0"
-          
+          export CC="clang-16"
+          export CXX="clang++-16"
+          export AR="llvm-ar-16"
+          export RANLIB="llvm-ranlib-16"
+          export NM="llvm-nm-16"
+          export CFLAGS="-target arm64-apple-ios14.0 -isysroot $SDKROOT -miphoneos-version-min=14.0 -fPIC"
+          export CXXFLAGS="-target arm64-apple-ios14.0 -isysroot $SDKROOT -miphoneos-version-min=14.0 -fPIC"
+          export LDFLAGS="-target arm64-apple-ios14.0 -isysroot $SDKROOT -miphoneos-version-min=14.0"
+          export CPPFLAGS="-isysroot $SDKROOT -miphoneos-version-min=14.0"
+          export ac_cv_func_malloc_0_nonnull=yes
+          export ac_cv_func_realloc_0_nonnull=yes
+          export ac_cv_func_memcmp_working=yes
+          export ac_cv_func_strftime=yes
+
           ./configure \
             --host=arm64-apple-darwin \
             --target=arm64-apple-darwin \
-            --build=x86_64-linux-gnu \
+            --build=x86_64-pc-linux-gnu \
             --with-sysroot=$SDKROOT \
             --with-ssl=${{ github.workspace }}/libs/openssl/install \
             --disable-shared \
@@ -164,9 +175,20 @@ jobs:
             --without-libidn2 \
             --disable-threaded-resolver \
             --disable-verbose \
-            --disable-manual
-          
-          make -j$(nproc)
+            --disable-manual \
+            --disable-ldaps \
+            --disable-rtsp \
+            --disable-proxy \
+            --disable-dict \
+            --disable-telnet \
+            --disable-tftp \
+            --disable-pop3 \
+            --disable-imap \
+            --disable-smb \
+            --disable-smtp \
+            --disable-gopher \
+            --disable-mqtt
+          make AR="llvm-ar-16" RANLIB="llvm-ranlib-16" -j$(nproc)
           cd ../..
 
       - name: Build libzip
