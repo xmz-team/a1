@@ -1,0 +1,6 @@
+[submodule "libs/libxmz"]
+	path = libs/libxmz
+	url = git@github.com:xmz-team/libxmz.git
+[submodule "libs/lua"]
+	path = libs/lua
+	url = git@github.com:lua/lua.git
