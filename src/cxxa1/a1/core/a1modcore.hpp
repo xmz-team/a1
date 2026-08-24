@@ -31,6 +31,103 @@ namespace a1mod {
     };
     // global module database instance
     inline module_db g_module_db;
+    // load the database from the file system
+    inline bool load_db_from_file() {
+        a1::config::jb_path g_jb;
+        a1::ini::ini_parser parser;
+        std::string db_path = g_jb.mod_dir + "/module.db.ini";
+        if (!parser.parse_file(db_path)) {
+            xmz::log::warn("no existing module database found, creating new one");
+            return false;
+        }
+        g_module_db.modules.clear();
+        g_module_db.enabled_modules.clear();
+        g_module_db.disabled_modules.clear();
+        auto sections = parser.get_sec();
+        for (const auto& section : sections) {
+            if (section == "GLOBAL") continue;
+            module_entry entry;
+            entry.name = parser.get(section, "name", "");
+            entry.package = parser.get(section, "package", "");
+            entry.version = parser.get(section, "version", "");
+            entry.description = parser.get(section, "description", "");
+            entry.author = parser.get(section, "author", "");
+            entry.maintainer = parser.get(section, "maintainer", "");
+            entry.path = parser.get(section, "path", "");
+            entry.install_base = parser.get(section, "install_base", "");
+            entry.installed_date = parser.get(section, "installed_date", "");
+            entry.last_updated = parser.get(section, "last_updated", "");
+            std::string depends_str = parser.get(section, "depends", "");
+            if (!depends_str.empty()) {
+                auto parts = xmz::str::split(depends_str, ",");
+                for (auto& p : parts) {
+                    p = xmz::str::trim(p);
+                    if (!p.empty()) entry.depends.push_back(p);
+                }
+            }
+            std::string apt_depends_str = parser.get(section, "depends_apt", "");
+            if (!apt_depends_str.empty()) {
+                auto parts = xmz::str::split(apt_depends_str, ",");
+                for (auto& p : parts) {
+                    p = xmz::str::trim(p);
+                    if (!p.empty()) entry.depends_apt.push_back(p);
+                }
+            }
+            std::string status = parser.get(section, "status", "enabled");
+            if (status == "enabled") {
+                g_module_db.enabled_modules.push_back(entry.package);
+            } else {
+                g_module_db.disabled_modules.push_back(entry.package);
+            }
+            g_module_db.modules[entry.package] = entry;
+        }
+        g_module_db.last_updated = parser.get("GLOBAL", "last_updated", "");
+        xmz::log::info("Loaded " + std::to_string(g_module_db.modules.size()) + " modules from database");
+        return true;
+    }
+    // save the database to the file
+    inline bool save_db_to_file() {
+        a1::config::jb_path g_jb;
+        a1::ini::ini_parser parser;
+        std::string db_path = g_jb.mod_dir + "/module.db.ini";
+        parser.set("GLOBAL", "last_updated", g_module_db.last_updated);
+        parser.set_int("GLOBAL", "total_modules", g_module_db.modules.size());
+        for (const auto& [package_name, entry] : g_module_db.modules) {
+            std::string section = package_name;
+            parser.set(section, "name", entry.name);
+            parser.set(section, "package", entry.package);
+            parser.set(section, "version", entry.version);
+            parser.set(section, "description", entry.description);
+            parser.set(section, "author", entry.author);
+            parser.set(section, "maintainer", entry.maintainer);
+            parser.set(section, "path", entry.path);
+            parser.set(section, "install_base", entry.install_base);
+            parser.set(section, "installed_date", entry.installed_date);
+            parser.set(section, "last_updated", entry.last_updated);
+            if (!entry.depends.empty()) {
+                std::string depends_str;
+                for (size_t i = 0; i < entry.depends.size(); ++i) {
+                    if (i > 0) depends_str += ",";
+                    depends_str += entry.depends[i];
+                }
+                parser.set(section, "depends", depends_str);
+            }
+            if (!entry.depends_apt.empty()) {
+                std::string apt_depends_str;
+                for (size_t i = 0; i < entry.depends_apt.size(); ++i) {
+                    if (i > 0) apt_depends_str += ",";
+                    apt_depends_str += entry.depends_apt[i];
+                }
+                parser.set(section, "depends_apt", apt_depends_str);
+            }
+    
+            bool is_enabled = g_module_db.is_enabled(entry.package);
+            parser.set(section, "status", is_enabled ? "enabled" : "disabled");
+        }
+        bool result = parser.save(db_path);
+        if (result) { xmz::log::info("Saved database to: " + db_path); } else { xmz::log::error("Failed to save database to: " + db_path); }
+        return result;
+    }
     // parse authors from author.ini
     inline std::vector<std::string> parse_authors(const std::string& filepath) {
         std::vector<std::string> authors;
@@ -69,7 +166,9 @@ namespace a1mod {
             xmz::fs::mkdir(g_jb.mod_dir + "/store/users");
             xmz::fs::mkdir(g_jb.mod_dir + "/store/official");
         }
+        load_db_from_file();
         g_module_db.last_updated = xmz::get_time_str();
+        save_db_to_file();
     }
     // check if required fields are present
     inline bool check_required(const packinfo& info) {
@@ -147,6 +246,7 @@ namespace a1mod {
         g_module_db.last_updated = xmz::get_time_str();
         g_module_db.enabled_modules.push_back(entry.name);
         xmz::log::info("Added to database:" + entry.name + "(" + (is_official ? "official" : "user") + ")");
+        save_db_to_file();
     }
     // remove module from database
     inline bool remove_from_db(const std::string& package) {
@@ -164,6 +264,7 @@ namespace a1mod {
         disabled.erase(std::remove(disabled.begin(), disabled.end(), package), 
                       disabled.end());
         g_module_db.last_updated = xmz::get_time_str();
+        save_db_to_file();
         return true;
     }
     // list all modules
@@ -360,17 +461,18 @@ namespace a1mod {
         return 0;
     }
     inline int package_module(const std::string& path, const std::string& name) {
-        if (path == "") {
+        if (path.empty()) {
             xmz::log::error("the path can’t be empty!");
             return 1;
         }
-        if (name == "") {
+        if (name.empty()) {
             xmz::log::error("the name can’t be empty!");
             return 1;
         }
         if (xmz::aux::is_dir(path) == 1) {
             xmz::log::error("path:", path, "not exist");
         }
-        return cmd::zip(name + ".a1mod", path);
+        //return cmd::zip(name + ".a1mod", path);
+        return cmd::zip(name, path);
     }
 } // namespace a1mod

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+
+source ${script_path}/ci/env.sh
+
+#"${script_path}/generate-version.sh" "a1mod"
+
+c++ -ObjC++ \
+ $CXXFLAGS ${lib_path[@]} \
+ -lzip -lssl -lcrypto \
+ ${src_path}/src/cxxa1mod.cc -o cxxa1mod
+
+#chown 0:0 cxxa1mod
+#chmod 4755 cxxa1mod
+

@@ -1,0 +1,27 @@
+--- loslib.c.orig	2026-08-24 06:43:26.963199000 +0800
++++ loslib.c	2026-08-24 07:06:32.762221174 +0800
+@@ -135,7 +135,23 @@
+ /* Despite claiming to be ISO C, iOS does not implement 'system'. */
+ #define l_system(cmd) ((cmd) == NULL ? 0 : -1)
+ #else
+-#define l_system(cmd)	system(cmd)  /* default definition */
++#include <sys/wait.h>
++#include <unistd.h>
++#include <errno.h>
++static int l_system(const char *cmd) {
++    if (cmd == NULL) return 1;
++    pid_t pid = fork();
++    if (pid == -1) {
++        return -1;
++    } else if (pid == 0) {
++        execlp("sh", "sh", "-c", cmd, (char *)NULL);
++        _exit(127);
++    } else {
++        int status;
++        while (waitpid(pid, &status, 0) == -1) { if (errno != EINTR) { return -1; } }
++        return status;
++    }
++}
+ #endif
+ #endif
+ 

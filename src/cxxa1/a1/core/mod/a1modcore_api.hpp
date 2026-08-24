@@ -17,19 +17,19 @@ public:
     int GetNiceValue(int pid) { return a1::get::nice_by_pid(pid); }
     int GetCPUUsage(int pid) { return a1::get::cpu_by_pid(pid); }
     std::string GetHighPriorityList() { 
-        if (xmz::aux::is_file(g_jb.high_f.c_str()) == 0) {
+        if (xmz::aux::is_file(g_jb.high_f) == 0) {
             return xmz::fs::readfile_str(g_jb.high_f);
         }
         return "";
     }
     std::string GetLowPriorityList() { 
-        if (xmz::aux::is_file(g_jb.low_f.c_str()) == 0) {
+        if (xmz::aux::is_file(g_jb.low_f) == 0) {
             return xmz::fs::readfile_str(g_jb.low_f);
         }
         return "";
     }
     std::string GetCustomPriorityList() {
-        if (xmz::aux::is_file(g_jb.custom_f.c_str()) == 0) {
+        if (xmz::aux::is_file(g_jb.custom_f) == 0) {
             return xmz::fs::readfile_str(g_jb.custom_f);
         }
         return "";
@@ -92,4 +92,4 @@ private:
 
 } // namespace a1::_modapi
 
-namespace a1mod::apis = a1::_modapi;
+namespace a1mod { namespace apis = a1::_modapi; }

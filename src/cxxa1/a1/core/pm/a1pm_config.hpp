@@ -3,7 +3,7 @@
 
 #include <string>
 
-#inclhde <a1/core/config.hpp>
+#include <a1/core/config.hpp>
 
 namespace a1pm {
 class config {

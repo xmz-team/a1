@@ -3,10 +3,20 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
 
 #include <curl/curl.h>
 
+#include <a1/core/version.hpp>
+
 namespace a1pm::curl {
+static size_t write_callback(void* contents, size_t size, size_t nmemb, void* userp) {
+    std::ofstream* outFile = static_cast<std::ofstream*>(userp);
+    size_t totalSize = size * nmemb;
+    outFile->write(static_cast<char*>(contents), totalSize);
+    return totalSize;
+}
+
 static int progress_callback(
     void* clientp,
     double dltotal,
@@ -16,7 +26,8 @@ static int progress_callback(
     if (dltotal > 0) {
         int percent = static_cast<int>((dlnow / dltotal) * 100);
         xmz::print("\rDownload progress:", percent, "%");
-        std::flush();
+        xmz::println("");
+        //std::flush();
     }
     return 0;
 }
@@ -50,14 +61,14 @@ bool download_file(
     curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "a1pm/1.0");
-    
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, std::string("a1pm/" + a1::_coreapi::a1pm_version).c_str());
+
     CURLcode res = curl_easy_perform(curl);
     long httpCode = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
     curl_easy_cleanup(curl);
     outFile.close();
-    
+
     if (res != CURLE_OK) {
         errorMsg = "curl_easy_perform() failed: " + std::string(curl_easy_strerror(res));
         return false;

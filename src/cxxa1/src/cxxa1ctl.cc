@@ -52,17 +52,6 @@ Configuration Management:
   restore                  Restore configuration from backup
   compat <on|off>          Enable/disable compatibility mode
 
-Module System: # ModSystem to be supported
-  mod <on|off>             Module system switch
-  mod init                 Initialize module system
-  mod list                 List all modules
-  mod pack <directory>     Package module
-  mod install <file>       Install module
-  mod enable <moduleID>    Enable module
-  mod disable <moduleID>   Disable module
-  mod load                 Load enabled modules
-  mod remove <moduleID>    Remove module
-
 Other:
   help                     Show this help
   version                  Show Version
@@ -102,6 +91,7 @@ int main(int argc, char *argv[]) {
     }
 
     a1ctl::init_config();
+    auto& g_cfg = a1::coreapi::get_cfg();
 
     bool lock_use = pini.get_bool("", "lock_use", true);
 
@@ -119,6 +109,8 @@ int main(int argc, char *argv[]) {
     } */
 
     std::string cmd = argv[1];
+
+    auto check_opt = [](char *arg) -> bool { if (arg == nullptr) { return false; } return true; };
 
     if (cmd == "1" || cmd == "start") {
         a1ctl::start_a1();
@@ -213,17 +205,23 @@ int main(int argc, char *argv[]) {
             xmz::log::error("usage: custom <on|off>");
         }
     } else if (cmd == "add") {
-        if (argc < 4) {
+        if (argc < 3) {
             xmz::log::error("usage: add <high|low> <process> or add <process> <value>");
             return 1;
         }
-        std::string type = argv[2];
-        std::string process = argv[3];
-        int value = -255;
-        if (argc >= 5) {
-            value = std::atoi(argv[4]);
+        std::string opt = argv[2];
+        if (opt == "high" || opt == "h") {
+            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
+            a1ctl::add_priority("h", argv[3], g_cfg.high_priority);
+        } else if (opt == "low" || opt == "l") {
+            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
+            a1ctl::add_priority("l", argv[3], g_cfg.low_priority);
+        } else {
+            std::string type = "c";
+            std::string process = argv[2];
+            int value = std::stoi(argv[3]);
+            a1ctl::add_priority(type, process, value);
         }
-        a1ctl::add_priority(type, process, value);
     } else if (cmd == "remove") {
         if (argc < 3) {
             xmz::log::error("usage: remove <process>");
@@ -237,18 +235,22 @@ int main(int argc, char *argv[]) {
             xmz::log::error("usage: list <high|low|custom>");
             return 1;
         }
+        if (!check_opt(argv[2])) { xmz::log::error("the options cannot be empty."); return 1; }
         a1ctl::list_priority(argv[2]);
     } else if (cmd == "clear") {
         if (argc < 3) {
             xmz::log::error("usage: clear <high|low|custom>");
             return 1;
         }
+        if (!check_opt(argv[2])) { xmz::log::error("the options cannot be empty."); return 1; }
         a1ctl::clear_priority(argv[2]);
     } else if (cmd == "set") {
         if (argc < 4) {
             xmz::log::error("usage: set <high|low|launchd> <value>");
             return 1;
         }
+        if (!check_opt(argv[2])) { xmz::log::error("the options cannot be empty."); return 1; }
+        if (!check_opt(argv[3])) { xmz::log::error("the value cannot be empty."); return 1; }
         a1ctl::set_priority_value(argv[2], std::atoi(argv[3]));
     } else if (cmd == "config" || cmd == "show-config") {
         a1ctl::show_config();
@@ -257,12 +259,14 @@ int main(int argc, char *argv[]) {
             xmz::log::error("usage: set-interval <seconds>");
             return 1;
         }
+        if (!check_opt(argv[2])) { xmz::log::error("the seconds cannot be empty."); return 1; }
         a1ctl::update_config_int("optimize_interval", std::atoi(argv[2]));
     } else if (cmd == "loop-sleep") {
         if (argc < 3) {
             xmz::log::error("usage: loop-sleep <seconds>");
             return 1;
         }
+        if (!check_opt(argv[2])) { xmz::log::error("the seconds cannot be empty."); return 1; }
         int val = std::atoi(argv[2]);
         if (val < 1) {
             xmz::log::error("loop sleep time must be a positive integer");
@@ -274,8 +278,17 @@ int main(int argc, char *argv[]) {
             xmz::log::error("usage: auto-apply <on|off>");
             return 1;
         }
-        bool opt = (std::string(argv[2]) == "on");
-        a1ctl::set_auto_apply(&opt);
+        if (!check_opt(argv[2])) { xmz::log::error("the options cannot be empty."); return 1; }
+        std::string opt = argv[2];
+        if (opt == "on") {
+            a1ctl::set_auto_apply(true);
+        } else if (opt == "off") {
+            a1ctl::set_auto_apply(false);
+        } else {
+            xmz::log::error("unknown option:", opt);
+            xmz::log::error("usage: auto-apply <on|off>");
+            return 1;
+        }
     } else if (cmd == "restore" || cmd == "restore-config") {
         a1ctl::init_config();
         xmz::log::info("configuration restored from backup");
@@ -284,8 +297,16 @@ int main(int argc, char *argv[]) {
             xmz::log::error("usage: compat <on|off>");
             return 1;
         }
-        bool opt = (std::string(argv[2]) == "on");
-        a1ctl::compat_mode(&opt);
+        std::string opt = argv[2];
+        if (opt == "on") {
+            a1ctl::compat_mode(true);
+        } else if (opt == "off") {
+            a1ctl::compat_mode(false);
+        } else {
+            xmz::log::error("unknown option:", opt);
+            xmz::log::error("usage: compat <on|off>");
+            return 1;
+        }
     } else if (cmd == "help" || cmd == "--help" || cmd == "-h" || cmd == "h" || cmd == "") {
         xmz::println(help_text(std::string(argv[0])));
     } else if (cmd == "version") {

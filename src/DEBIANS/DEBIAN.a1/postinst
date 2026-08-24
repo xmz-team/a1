@@ -11,7 +11,13 @@ fi
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
 else
-    jb=""
+    if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
+        unset jb;
+        jb="$(jbroot)"
+    else
+        unset jb;
+        jb=""
+    fi
 fi
 
 jb_a1="$jb/a1"
@@ -27,47 +33,23 @@ _finish(){
 }
 
 echo "Tweak by LF"
-echo "正在为你干活！"
-echo "---------------------------------"
-echo "|Maintainer: LF, AD|Project: A1 |"
-echo "---------------------------------"
+echo "Sto lavorando per te!"
+echo "----------------------------"
+echo "|Author: LF                |"
+echo "| Maintainer: LF, AD, XMZ  |"
+echo "|Project: A1               |"
+echo "----------------------------"
 
 echo "setting..."
-chmod 755 $jb/usr/local/bin/a1*
-chown 0:0 $jb/usr/local/bin/a1*
-
-ln -sf $jb/usr/local/bin/a1 $jb/usr/local/bin/al
-ln -sf $jb/usr/local/bin/a1ctl $jb/usr/local/bin/alctl
-ln -sf $jb/usr/local/bin/a1mod $jb/usr/local/bin/almod
-ln -sf $jb/usr/local/bin/a1module $jb/usr/local/bin/almodule
-ln -sf $jb/usr/local/bin/a1hub $jb/usr/local/bin/alhub
-
-chmod 644 "$jb/Library/LaunchDaemons/a1.launch.plist"
-
-chmod u+s $jb/usr/local/bin/a1hub
-chmod u+s $jb/opt/a1/bin/raise_power
-
-mkdir -p $jb/bin
-[ ! -f $jb/bin/ps ] && ln -s /bin/ps $jb/bin/
-
-(
-    if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
-        jb="/var/jb"
-    else
-        jb=""
-    fi
-
-    jb_a1="$jb/a1"
-
-    cd "$jb_a1"
-    ln -sf autofonf.ini autoconf.ini
-)
+chown 0:0 $jb/usr/local/bin/a1cil
+chown 0:0 $jb_a1/bin/*
+chmod 4755 $jb_a1/bin/*
 
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
-    orig_path=$PWD
-    cd /rootfs/var
+    orig_path=$(pwd)
+    [ -d "/rootfs" ] && cd /rootfs/var
     [ ! -d "jb" ] && ln -s / ./jb
-    ls /rootfs/var/jb
+    ls -l /rootfs/var/jb
     cd $orig_path
     unset orig_path
 fi

@@ -1,4 +1,6 @@
 // a1core.hpp
+#pragma once
+
 #include <string>
 #include <vector>
 #include <map>
@@ -23,7 +25,6 @@
 #include <a1/core/myini.hpp>
 #include <a1/core/get_sys_list.hpp>
 #include <a1/core/config.hpp>
-#include <src/bin/bundle/bundle_pid.hpp>
 #include <src/bin/bundle/libproc.h>
 #include <src/bin/bundle/bundle_pid.hpp>
 #include <src/bin/bundle/pid_bundle.hpp>
@@ -95,7 +96,7 @@ namespace a1 {
                             std::vector<std::string>& target_list,
                             const std::vector<std::string>& system_list,
                             bool filter, bool is_high_priority) {
-            if (xmz::aux::is_file(filepath.c_str()) == 0) {  // file exist
+            if (xmz::aux::is_file(filepath) == 0) {
                 std::string content = xmz::fs::readfile_str(filepath);
                 auto lines = xmz::str::split(content, "\n");
                 for (const auto& line : lines) {
@@ -128,7 +129,7 @@ namespace a1 {
         }
 
         void read_custom_list(const std::string& filepath) {
-            if (xmz::aux::exist(filepath.c_str()) != 0) return;
+            if (xmz::aux::exist(filepath) != 0) return;
             std::string content = xmz::fs::readfile_str(filepath);
             auto lines = xmz::str::split(content, "\n");
             for (const auto& line : lines) {
@@ -422,7 +423,7 @@ namespace a1 {
         if (lockstate) {
             if (*lockstate == 1) { return true; }
         } else {
-            if (!xmz::aux::is_file("/tmp/.a1_notifyutil_warnd")) {
+            if (xmz::aux::is_file("/tmp/.a1_notifyutil_warnd") == 1) {
                 xmz::log::warn("notifyutil not found, cannot detect lock state.");
                 xmz::fs::touch("/tmp/.a1_notifyutil_warned");
             }
@@ -463,64 +464,82 @@ namespace a1 {
             return 1;
         }
 
-        auto set_kern_sysctl = [](int mib1, int new_value) -> bool {
-            int mib[2];
-            mib[0] = CTL_KERN;
-            mib[1] = mib1;
+        auto set_kern_sysctl_by_name = [](const std::string& name, int new_value) -> bool {
             size_t size = sizeof(new_value);
-            if (sysctl(mib, 2, nullptr, nullptr, &new_value, size) == -1) {
-                xmz::log::error("Failed to set kern.", mib1, ":", strerror(errno));
+            if (sysctlbyname(name.c_str(), nullptr, nullptr, &new_value, size) == -1) {
+                xmz::log::error("Failed to set", name, ":", strerror(errno));
                 return false;
             }
             return true;
         };
 
-        #ifndef KERN_WQ_MAX_THREADS
-        #define KERN_WQ_MAX_THREADS 0  // Adjust the value as needed
-        #endif
-        #ifndef KERN_MEMORYSTATUS_SYSPROCS_IDLE_DELAY_TIME
-        #define KERN_MEMORYSTATUS_SYSPROCS_IDLE_DELAY_TIME 0  // Adjust the value as needed
-        #endif
-        #ifndef KERN_MEMORYSTATUS_APPS_IDLE_DELAY_TIME
-        #define KERN_MEMORYSTATUS_APPS_IDLE_DELAY_TIME 0  // Adjust the value as needed
-        #endif
-        #ifndef VM_PAGE_FREE_MIN
-        #define VM_PAGE_FREE_MIN 0  // Adjust the value as needed
-        #endif
-        #ifndef VM_PAGE_FREE_RESERVED
-        #define VM_PAGE_FREE_RESERVED 0  // Adjust the value as needed
-        #endif
+        auto get_and_set_kern_sysctl = [&](const std::string& name, int new_value, const std::string& display_name) {
+            int current_value = 0;
+            size_t size = sizeof(current_value);
+            if (sysctlbyname(name.c_str(), &current_value, &size, nullptr, 0) == 0) {
+                xmz::log::info("Current", display_name, ":", current_value);
+            } else {
+                xmz::log::warn("Cannot read current", display_name);
+            }
 
-        if (set_kern_sysctl(KERN_WQ_MAX_THREADS, 4096)) { xmz::log::info("Successfully set kern.wq_max_threads to 4096"); }
-        if (set_kern_sysctl(KERN_MAXVNODES, 100000)) { xmz::log::info("Successfully set kern.maxvnodes to 100000"); }
-        if (set_kern_sysctl(KERN_MEMORYSTATUS_SYSPROCS_IDLE_DELAY_TIME, 0)) { xmz::log::info("Successfully set kern.memorystatus_sysprocs_idle_delay_time to 0"); }
-        if (set_kern_sysctl(KERN_MEMORYSTATUS_APPS_IDLE_DELAY_TIME, 0)) { xmz::log::info("Successfully set kern.memorystatus_apps_idle_delay_time to 0"); }
+            if (set_kern_sysctl_by_name(name, new_value)) {
+                xmz::log::info("Successfully set", display_name, "to", new_value);
+                return true;
+            }
+            return false;
+        };
 
-        auto set_vm_sysctl = [](int mib1, int new_value) -> bool {
-            int mib[2];
-            mib[0] = CTL_VM;
-            mib[1] = mib1;
+        std::vector<std::tuple<std::string, int, std::string>> kern_params = {
+            {"kern.wq_max_threads", 4096, "kern.wq_max_threads"},
+            {"kern.maxvnodes", 100000, "kern.maxvnodes"},
+            {"kern.memorystatus_sysprocs_idle_delay_time", 0, "kern.memorystatus_sysprocs_idle_delay_time"},
+            {"kern.memorystatus_apps_idle_delay_time", 0, "kern.memorystatus_apps_idle_delay_time"}
+        };
+
+        for (const auto& [name, value, display] : kern_params) { get_and_set_kern_sysctl(name, value, display); }
+
+        auto set_vm_sysctl_by_name = [](const std::string& name, int new_value) -> bool {
             size_t size = sizeof(new_value);
-            if (sysctl(mib, 2, nullptr, nullptr, &new_value, size) == -1) {
-                xmz::log::error("Failed to set vm.",mib1, ":", strerror(errno));
+            if (sysctlbyname(name.c_str(), nullptr, nullptr, &new_value, size) == -1) {
+                xmz::log::error("Failed to set", name, ":", strerror(errno));
                 return false;
             }
             return true;
         };
 
-        if (set_vm_sysctl(VM_PAGE_FREE_MIN, 10000)) { xmz::log::info("Successfully set kern.vm_page_free_min to 10000"); }
-        if (set_vm_sysctl(VM_PAGE_FREE_RESERVED, 256)) { xmz::log::info("Successfully set kern.vm_page_free_reserved to 256"); }
+        auto get_and_set_vm_sysctl = [&](const std::string& name, int new_value, const std::string& display_name) {
+            int current_value = 0;
+            size_t size = sizeof(current_value);
+            if (sysctlbyname(name.c_str(), &current_value, &size, nullptr, 0) == 0) {
+                xmz::log::info("Current", display_name, ":", current_value);
+            } else {
+                xmz::log::warn("Cannot read current", display_name);
+            }
+
+            if (set_vm_sysctl_by_name(name, new_value)) {
+                xmz::log::info("Successfully set", display_name, "to", new_value);
+                return true;
+            }
+            return false;
+        };
+
+        std::vector<std::tuple<std::string, int, std::string>> vm_params = {
+            {"vm.vm_page_free_min", 10000, "vm.vm_page_free_min"},
+            {"vm.vm_page_free_reserved", 256, "vm.vm_page_free_reserved"}
+        };
+        for (const auto& [name, value, display] : vm_params) { get_and_set_vm_sysctl(name, value, display); }
 
         auto get_vm_swapusage = []() {
-            int mib[2];
-            mib[0] = CTL_VM;
-            mib[1] = VM_SWAPUSAGE;
             struct xsw_usage swap_usage;
             size_t swap_len = sizeof(swap_usage);
-            if (sysctl(mib, 2, &swap_usage, &swap_len, nullptr, 0) == -1) {
+            if (sysctlbyname("vm.swapusage", &swap_usage, &swap_len, nullptr, 0) == -1) {
                 xmz::log::error("Failed to get vm.swapusage:", strerror(errno));
             } else {
-                xmz::log::info("vm.swapusage: used=", swap_usage.xsu_used, "avail=", swap_usage.xsu_avail);
+                xmz::log::info(
+                    "vm.swapusage: total=", swap_usage.xsu_total, 
+                    " used=", swap_usage.xsu_used, 
+                    " avail=", swap_usage.xsu_avail
+                );
             }
         };
         get_vm_swapusage();

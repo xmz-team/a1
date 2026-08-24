@@ -1,9 +1,0 @@
-Package: a1settings.io.github.xmz-team
-Name: A1 Settings
-Version: 0.0.1-alpha
-Architecture: iphoneos-arm
-Description: Settings of A1
-Maintainer: LF, XMZ-Team
-Author: LF
-Section: system
-Depends: firmware (>= 14.0), preferenceloader

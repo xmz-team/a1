@@ -11,14 +11,15 @@
 #include <a1/core/config.hpp>
 #include <a1/core/set_defaults.hpp>
 #include <a1/core/mod/a1mod_luarun.hpp>
+#include <a1/core/version.hpp>
 
 #include <string>
 #include <csignal>
 #include <ctime>
 #include <iostream>
 #include <fstream>
-
-#include <a1/core/version.hpp>
+#include <vector>
+#include <algorithm>
 
 // wait for SpringBoard
 void wait_for_springboard() {
@@ -156,16 +157,47 @@ void read_a1_config() {
     xmz::println("configuration reloaded from environment");
 }
 
-/* temporarily offline adjustment */
-/*
-# mod load
-load_modules() {
-    if [ -f "$jb_a1/load_mod.sh" ]; then
-        source "$jb_a1/load_mod.sh"
-        load_modules_common "a1" 2>/dev/null || true
-    fi
+void load_modules(a1mod::luatime& lt) {
+    a1::config::jb_path g_jb;
+    a1::ini::ini_parser pini;
+    struct modinfo {
+        std::string section;
+        std::string status;
+        std::string path;
+    };
+    auto getmod = [&]() -> std::vector<modinfo> {
+        std::string filepath = g_jb.mod_dir + "/module.db.ini";
+        std::vector<modinfo> result;
+        if (!pini.parse_file(filepath)) { return result; }
+        auto sections = pini.get_sec();
+        for (const auto& section : sections) {
+            if (section == "GLOBAL") { continue; }
+            modinfo info;
+            info.section = section;
+            info.status = pini.get(section, "status", "");
+            info.path = pini.get(section, "path", "");
+            if (!info.status.empty() && !info.path.empty()) { result.push_back(info); }
+        }
+        return result;
+    };
+    std::vector<modinfo> modules = getmod();
+    if (modules.empty()) {
+        xmz::log::info("No modules found to load");
+        return;
+    }
+    for (const auto& mod : modules) {
+        if (mod.status == "enable") {
+            if (xmz::aux::is_file(mod.path + "/main.lua") == 0) {
+                lt.run_file(mod.path + "/main.lua");
+                xmz::log::info("Module:", mod.section, "run successfully");
+            } else {
+                xmz::log::warn("Module:", mod.section, "main.lua not found at:", mod.path);
+            }
+        } else {
+            xmz::log::info("Module:", mod.section, "not activated (status:", mod.status, ")");
+        }
+    }
 }
-*/
 
 int main() {
     if (std::getenv("jb") == nullptr) {
@@ -176,19 +208,24 @@ int main() {
     a1::config::jb_path g_jb;
     xmz::println(xmz::get_time_str());
     xmz::println("______________________");
-    xmz::println("|A1 are working......|");
-    xmz::println("|A1 Version:", a1::_coreapi::a1_version);
+    xmz::println("A1 are working......");
+    xmz::println("A1 Version:", a1::_coreapi::a1_version);
     xmz::println("----------------------");
+    a1mod::luatime lt;
+    static bool modinit = false;
+    if (!modinit) {
+        lt.init();
+        modinit = true;
+    }
     // Initialize environment, read defaults from environment
     a1::coreapi::set_defaults();
     auto& config = a1::coreapi::set_defaults_cfg();
     // read priority lists
     a1::priority_manager pm;
     pm.read_priority_lists(false);
-    /*
-    Load modules
-    load_modules();
-    */
+    // Load modules
+    load_modules(lt);
+
     a1::apply_kernel_patches();
     a1::adjust_launchd(config.launchd_priority);
     optimize_system();
@@ -202,20 +239,6 @@ int main() {
         std::ofstream err_file(err_log, std::ios::trunc);
         err_file.close();
     }
-/* temporarily offline adjustment
- *
-    // experimental features
-    if (config.experimental) {
-        std::string exp_script = g_jb.a1_dir + "/a1_experimental.sh";
-        if (xmz::aux::is_file(exp_script)) {
-            xmz::println("Experimental function...");
-            xmz::println("_______________________________");
-            system(exp_script.c_str());
-            xmz::println("Done.");
-            xmz::println("_______________________________________________");
-        }
-    }
- */
     // mode selection
     if (config.auto_adjust) {
         xmz::println("starting Auto-Adjust (real-time) mode...");

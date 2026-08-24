@@ -18,6 +18,8 @@
  * <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
 
+/* --> abandoned <-- */
+
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import <QuartzCore/QuartzCore.h>

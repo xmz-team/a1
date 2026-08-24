@@ -39,7 +39,6 @@ logd_helper
 siriinferenced
 parsec-fbf
 parsecd
-cloudphotod
 photoanalysisd
 mediaanalysisd
 searchpartyd
@@ -56,6 +55,7 @@ familynotificationd
 donotdisturbd
 wirelessproxd
 nehelper
+networkserviceproxy
 mapsupportd
 navd
 destinationd
@@ -121,4 +121,4 @@ storebookkeeperd
 storedownloadd
 streaming_zip_conduit
 touchsetupd
-useractivityd 
+useractivityd

@@ -34,12 +34,12 @@ namespace a1pm {
 		if (xmz::aux::is_dir(pmcfg.pm_cache) == 1) { xmz::fs::mkdir(pmcfg.pm_cache); }
 	}
 
-	inline int add_repo(const std::string& url) {
+	inline void add_repo(const std::string& url) {
 		a1pm::config cfg;
 		a1::ini::ini_parser pini;
 		if (url == "") {
 			xmz::log::error("the url cannot be empty");
-			return 1;
+			return;
 		}
 
 		std::string name = url_to_repo_name(url);
@@ -51,25 +51,24 @@ namespace a1pm {
 			xmz::println("already exists, updated last_sync");
 		} else {
 			std::string time = xmz::get_time_str();
-			std::string repo_text = "[" + url + "]\n",
-"url: " + url + "\n",
-"last_sync: " + time + "\n";
-			xmz::writefile(repo_text, cfg.repo_f);
+			std::string repo_text = "[" + url + "]\n" + "url: " + url + "\n" + "last_sync: " + time + "\n";
+			xmz::fs::writefile(repo_text, cfg.repo_f);
 			xmz::println("added successfully");
 		}
 	}
 
-	inline int remove_repo(const std::string& url) {
+	inline void remove_repo(const std::string& url) {
 		a1pm::config cfg;
 		a1::ini::ini_parser pini;
 		if (url != "") {
 			pini.parse_file(cfg.repo_f);
-			pini.rmkey(url, last_sync);
+			pini.rmkey(url, "last_sync");
 			pini.rmkey(url, url);
 			pini.rmsec(url);
 			xmz::log::info("Repo:", url, "deleted");
 		} else {
 			xmz::log::error("the url cannot be empty");
+          return;
 		}
 	}
 
@@ -220,7 +219,7 @@ namespace a1pm {
 					xmz::log::error("SHA256 verification failed!");
 					xmz::println("	Expected:", pkg_sha256);
 					xmz::println("	Actual:  ", sha256_actual);
-					xmz::fs::rm(download_cache);
+					xmz::fs::recrmdir(download_cache);
 					visiting.erase(package);
 					return 1;
 				}
@@ -243,7 +242,7 @@ namespace a1pm {
 		return aux::install_package_with_deps(package, installed, visiting);
 	}
 
-	inline void remove_package(const std::string& package) { return a1mod::remove(package); }
+	inline int remove_package(const std::string& package) { return a1mod::remove(package); }
 
 	inline void list_repos() {
 		a1pm::config cfg;
@@ -453,7 +452,7 @@ namespace a1pm {
 		a1::ini::ini_parser parser;
 		if (!parser.parse_file(metadata_file)) {
 			xmz::log::error("Invalid metadata file:", metadata_file);
-			xmz::fs::rm(metadata_file);
+			xmz::fs::rmfile(metadata_file);
 			return 1;
 		}
 		a1::ini::ini_parser repo_parser;

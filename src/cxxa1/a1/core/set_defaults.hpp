@@ -130,4 +130,6 @@ inline const _coreapi::set_defaults_config& set_defaults_cfg() { return _coreapi
 
 inline std::string cfg_text = []() -> std::string { return _coreapi::config_text; }();
 
+inline const _coreapi::set_defaults_config& get_cfg() { return _coreapi::get_config(); }
+
 } /* namespace a1::coreapi */

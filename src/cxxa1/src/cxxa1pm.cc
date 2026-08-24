@@ -8,24 +8,24 @@
 #include <libxmz/aux.hpp>
 
 #include <a1/core/a1pmcore.hpp>
-#include <a1/core/a1ctlcore.hpp>
+#include <a1/core/lock.hpp>
 
 std::string help_text(const std::string& myself) {
-    return std::string(R"(Usage: )" + myself + " <command> [options]" + R"(
+    return std::string(R"(Usage: )" + myself + " <command> [options]") + R"(
 command:
-  add-repo <url>			添加远端仓库
-  remove-repo <url>			删除远端仓库
-  list					列出所有仓库
-  update					同步仓库索引
-  search <package id>		搜索远端包
-  info <package id>			显示远端包详细信息
-  install <package id>		从远端安装包
-  remove <package id>      移除模塊
-  upgrade [package id]		升级模块
-  upgrade-full				升级全部模块
-  check-update				检查可用更新
-  help						显示此帮助信息
-  version					显示版本号
+  add-repo <url>        Add a remote warehouse
+  remove-repo <url>     Delete the remote warehouse
+  list                  List all warehouses
+  update                Synchronized warehouse index
+  search <package id>   Search for remote packages
+  info <package id>     Display the details of the remote package
+  install <package id>  Install the package from the remote end
+  remove <package id>   Remove the module
+  upgrade [package id]  Upgrade module
+  upgrade-full          Upgrade all modules
+  check-update          Check for available updates
+  help                  Show this help message
+  version               Display the version number
 )";
 }
 
@@ -64,31 +64,40 @@ int main(int argc, char *argv[]) {
 
     std::string cmd = argv[1];
 
+    auto check_opt = [](char *arg) -> bool { if (arg == nullptr) { return false; } return true; };
+
     if (cmd == "help" || cmd == "--help" || cmd == "-h" || cmd == "h" || cmd == "") {
         xmz::println(help_text(std::string(argv[0])));
     } else if (cmd == "add-repo") {
+        if (!check_opt(argv[2])) { xmz::log::error("the url cannot be empty."); return 1; }
         a1pm::add_repo(argv[2]);
     } else if (cmd == "remove-repo") {
+        if (!check_opt(argv[2])) { xmz::log::error("the url cannot be empty."); return 1; }
         a1pm::remove_repo(argv[2]);
     } else if (cmd == "install") {
+        if (!check_opt(argv[2])) { xmz::log::error("the package id cannot be empty."); return 1; }
         a1pm::install_package(argv[2]);
     } else if (cmd == "remove") {
+        if (!check_opt(argv[2])) { xmz::log::error("the package id cannot be empty."); return 1; }
         a1pm::remove_package(argv[2]);
     } else if (cmd == "list") {
         a1pm::list_repos();
-    } else if (cmd == "") {
-        search_package(argv[2]);
+    } else if (cmd == "search") {
+        if (!check_opt(argv[2])) { xmz::log::error("the package id cannot be empty."); return 1; }
+        a1pm::search_package(argv[2]);
     } else if (cmd == "info") {
-        search_package_detail(argv[2]);
+        if (!check_opt(argv[2])) { xmz::log::error("the package id cannot be empty."); return 1; }
+        a1pm::search_package_detail(argv[2]);
     } else if (cmd == "update") {
-        update_all_repos();
+        a1pm::update_all_repos();
     } else if (cmd == "upgrade") {
-        update_package(argv[2]);
+        if (!check_opt(argv[2])) { xmz::log::error("the package id cannot be empty."); return 1; }
+        a1pm::update_package(argv[2]);
     } else if (cmd == "upgrade-full") {
-        update_all_packages();
+        a1pm::update_all_packages();
 
     } else if (cmd == "check-update") {
-        check_updates();
+        a1pm::check_updates();
     } else if (cmd == "version" || cmd == "V") {
         xmz::println("A1PM Version:", a1::_coreapi::a1mod_version);
     } else {
@@ -99,3 +108,4 @@ int main(int argc, char *argv[]) {
     g_lock_mgr.release();
     return 0;
 }
+

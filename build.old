@@ -261,6 +261,11 @@ package()
       # cd packages
 }
 
-main() { init; package; }
+main() {
+    #init
+    #package
+    echo "If it has been abandoned, please use the new construction stetlet." >&2
+}
+
 main
 

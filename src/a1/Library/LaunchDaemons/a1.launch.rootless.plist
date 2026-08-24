@@ -8,7 +8,7 @@
 	<string>a1.launch</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>/var/jb/bin/bash</string>
+		<string>/var/jb/usr/bin/bash</string>
 		<string>/var/jb/usr/local/bin/a1</string>
 	</array>
 	<key>RunAtLoad</key>

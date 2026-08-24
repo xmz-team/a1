@@ -64,21 +64,29 @@ int main(int argc, char *argv[]) {
 
     std::string cmd = argv[1];
 
-    if (cmd == "help" || cmd == "--help" || cmd == "-h" || cmd == "h" || cmd == "") {
+    auto check_opt = [](char *arg) -> bool { if (arg == nullptr) { return false; } return true; };
+
+    if (cmd == "help" || cmd == "--help" || cmd == "-h" || cmd == "h" || cmd.empty()) {
         xmz::println(help_text(std::string(argv[0])));
     } else if (cmd == "init") {
         a1mod::init_system(cfg, g_jb);
     } else if (cmd == "install" || cmd == "i") {
+        if (!check_opt(argv[2])) { xmz::log::error("the kit id cannot be empty."); return 1; }
         a1mod::install(argv[2]);
     } else if (cmd == "remove" || cmd == "r") {
+        if (!check_opt(argv[2])) { xmz::log::error("the kit id cannot be empty."); return 1; }
         a1mod::remove(argv[2]);
     } else if (cmd == "list" || cmd == "l") {
         a1mod::list_modules();
     } else if (cmd == "enable") {
+        if (!check_opt(argv[2])) { xmz::log::error("the kit id cannot be empty."); return 1; }
+        check_opt(argv[2]);
         a1mod::enable_module(argv[2]);
     } else if (cmd == "disable") {
         a1mod::disable_module(argv[2]);
     } else if (cmd == "package" || cmd == "pack") {
+        if (!check_opt(argv[2])) { xmz::log::error("the catalog cannot be empty."); return 1; }
+        if (!check_opt(argv[3])) { xmz::log::error("the name cannot be empty."); return 1; }
         a1mod::package_module(argv[2], argv[3]);
     } else if (cmd == "version" || cmd == "V") {
         xmz::println("A1Mod Version:", a1::_coreapi::a1mod_version);
