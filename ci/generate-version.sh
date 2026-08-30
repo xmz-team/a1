@@ -1,4 +1,6 @@
-script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+#generate-version.sh
+generate_version() {
+local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
 
 source "${script_path}/env.sh"
 
@@ -8,7 +10,8 @@ a1mod_version=""
 a1pm_version=""
 temp_file=$(mktemp)
 
-while IFS= read -r line || [[ -n "$line" ]]; do
+while IFS= read -r line || [[ -n "$line" ]]
+do
     if [[ "$line" =~ ^\[new_version\]$ ]]; then
         in_new_section=1
         echo "$line" >> "$temp_file"
@@ -85,3 +88,4 @@ sed -e "s/@a1_version@/$a1_version/g" \
     -e "s/@a1mod_version@/$a1mod_version/g" \
     -e "s/@a1pm_version@/$a1pm_version/g" \
     "${src_path}/a1/core/version.hpp.in" > "${src_path}/a1/core/version.hpp"
+}

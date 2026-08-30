@@ -304,8 +304,8 @@ namespace a1pm {
 				std::string version = pkg_parser.get(pkg_name, "version", "");
 				std::string name = pkg_parser.get(pkg_name, "name", pkg_name);
 				std::string description = pkg_parser.get(pkg_name, "description", "");
-				std::string descr_msg = pkg_parser.get(pkg_name, "descr", "");
-				if (description.empty()) { description = descr_msg; }
+				//std::string descr_msg = pkg_parser.get(pkg_name, "descr", "");
+				//if (description.empty()) { description = descr_msg; }
 				std::string pkg_lower = pkg_name;
 				std::string name_lower = name;
 				std::string desc_lower = description;
@@ -388,7 +388,7 @@ namespace a1pm {
 				found = true;
 				std::string name = pkg_parser.get(query, "name", query);
 				std::string description = pkg_parser.get(query, "description", "");
-				if (description.empty()) { description = pkg_parser.get(query, "descr", ""); }
+				//if (description.empty()) { description = pkg_parser.get(query, "descr", ""); }
 				std::string author = pkg_parser.get(query, "author", "");
 				std::string maintainer = pkg_parser.get(query, "maintainer", "");
 				std::string depends = pkg_parser.get(query, "depends", "");
@@ -459,7 +459,7 @@ namespace a1pm {
 		repo_parser.parse_file(cfg.repo_f);
 		std::string time = xmz::get_time_str();
 		repo_parser.set(repo_url, "last_sync", time);
-		repo_parser.save(cfg.repo_f);
+		repo_parser.save_cover(cfg.repo_f);
 		auto packages = parser.get_sec();
 		xmz::log::info("Repository updated successfully");
 		xmz::println("	Packages:", packages.size());

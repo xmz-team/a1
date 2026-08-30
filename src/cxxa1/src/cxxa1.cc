@@ -171,7 +171,6 @@ void load_modules(a1mod::luatime& lt) {
         if (!pini.parse_file(filepath)) { return result; }
         auto sections = pini.get_sec();
         for (const auto& section : sections) {
-            if (section == "GLOBAL") { continue; }
             modinfo info;
             info.section = section;
             info.status = pini.get(section, "status", "");
@@ -186,7 +185,7 @@ void load_modules(a1mod::luatime& lt) {
         return;
     }
     for (const auto& mod : modules) {
-        if (mod.status == "enable") {
+        if (mod.status == "enabled") {
             if (xmz::aux::is_file(mod.path + "/main.lua") == 0) {
                 lt.run_file(mod.path + "/main.lua");
                 xmz::log::info("Module:", mod.section, "run successfully");
@@ -206,17 +205,12 @@ int main() {
         return 1;
     }
     a1::config::jb_path g_jb;
+    a1mod::luatime lt;
     xmz::println(xmz::get_time_str());
     xmz::println("______________________");
     xmz::println("A1 are working......");
     xmz::println("A1 Version:", a1::_coreapi::a1_version);
     xmz::println("----------------------");
-    a1mod::luatime lt;
-    static bool modinit = false;
-    if (!modinit) {
-        lt.init();
-        modinit = true;
-    }
     // Initialize environment, read defaults from environment
     a1::coreapi::set_defaults();
     auto& config = a1::coreapi::set_defaults_cfg();
@@ -224,8 +218,12 @@ int main() {
     a1::priority_manager pm;
     pm.read_priority_lists(false);
     // Load modules
-    load_modules(lt);
-
+    if (config.module_switch == true) {
+        lt.init();
+        load_modules(lt);
+    } else {
+        xmz::log::info("the module system is shut down");
+    }
     a1::apply_kernel_patches();
     a1::adjust_launchd(config.launchd_priority);
     optimize_system();

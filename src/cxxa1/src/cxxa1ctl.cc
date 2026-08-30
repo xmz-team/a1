@@ -51,6 +51,7 @@ Configuration Management:
   auto-apply <on|off>      Enable/disable auto-apply
   restore                  Restore configuration from backup
   compat <on|off>          Enable/disable compatibility mode
+  mod-switch <on|off>      Enable/turn off the mod mode
 
 Other:
   help                     Show this help
@@ -305,6 +306,21 @@ int main(int argc, char *argv[]) {
         } else {
             xmz::log::error("unknown option:", opt);
             xmz::log::error("usage: compat <on|off>");
+            return 1;
+        }
+    } else if (cmd == "mod-switch") {
+        if (argc < 3) {
+            xmz::log::error("usage: mod-switch <on|off>");
+            return 1;
+        }
+        std::string opt = argv[2];
+        if (opt == "on") {
+            a1ctl::mod_switch_mode(true);
+        } else if (opt == "off") {
+            a1ctl::mod_switch_mode(false);
+        } else {
+            xmz::log::error("unknown option:", opt);
+            xmz::log::error("usage: mod-switch <on|off>");
             return 1;
         }
     } else if (cmd == "help" || cmd == "--help" || cmd == "-h" || cmd == "h" || cmd == "") {

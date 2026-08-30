@@ -1,5 +1,5 @@
 // myini.cc
-
+// c++ myini.cc -I../../cxxa1 -o myini
 #include <string>
 
 #include <a1/core/myini.hpp>
@@ -13,7 +13,7 @@
 a1::ini::ini_parser pini;
 
 std::string help_text(const std::string& myself) {
-    return std::string(R"(Usage: )" + myself + R"( <command> [options] <file> [section.key|.key]
+    return std::string(R"(Usage: )" + myself + " <command> [options] <file> [section.key|.key]") + R"(
 Commands:
   get <file> [section.]key        Get string value
   get-int <file> [section.]key    Get integer value
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
         }
         pini.parse_file(filepath);
         if (pini.rmkey(sec, key)) {
-            pini.save(filepath);
+            pini.save_cover(filepath);
             xmz::println("Removed key:", sec.empty() ? key : sec + "." + key);
         } else {
             xmz::log::error("Key not found:", sec.empty() ? key : sec + "." + key);
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
         }
         pini.parse_file(filepath);
         if (pini.rmsec(section)) {
-            pini.save(filepath);
+            pini.save_cover(filepath);
             xmz::println("removed section:", section);
         } else {
             xmz::log::error("section not found:", section);
@@ -168,7 +168,7 @@ int main(int argc, char *argv[]) {
             pini.set_bool(sec, key, bval);
             xmz::println("Set", sec.empty() ? key : sec + "." + key, "=", (bval ? "true" : "false"));
         }
-        pini.save(filepath);
+        pini.save_cover(filepath);
         return 0;
     }
 

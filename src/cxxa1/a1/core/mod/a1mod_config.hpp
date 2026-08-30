@@ -18,7 +18,8 @@ struct packinfo {
     std::string package;
     std::string name;
     std::string version;
-    std::string descr;
+    std::string description;
+    std::string descr = description;
     std::vector<std::string> maintainer;
     /* optional */
     std::vector<std::string> author;
@@ -29,14 +30,14 @@ struct packinfo {
         return !package.empty() && 
                !maintainer.empty() && 
                !version.empty() && 
-               !descr.empty();
+               !description.empty();
     }
     std::vector<std::string> get_miss_fields() const {
         std::vector<std::string> miss;
         if (package.empty()) miss.push_back("package");
         if (maintainer.empty()) miss.push_back("maintainer");
         if (version.empty()) miss.push_back("version");
-        if (descr.empty()) miss.push_back("descr_msg.descr");
+        if (description.empty()) miss.push_back("description");
         return miss;
     }
 };
@@ -44,7 +45,7 @@ struct packinfo {
 // module database entry
 struct module_entry {
     std::string name;
-    std::string package;  // Added for consistency
+    std::string package;
     std::string author;
     std::string maintainer;
     std::string version;
@@ -64,7 +65,8 @@ inline packinfo parse_packinfo(const a1::ini::ini_parser& parser) {
     info.package = parser.get("", "package");
     info.name = parser.get("", "name", info.package);
     info.version = parser.get("", "version");
-    info.descr = parser.get("descr_msg", "descr");
+    info.description = parser.get("", "description");
+    info.descr = info.description;
     // parse maintainer
     std::string maintainer_str = parser.get("", "maintainer");
     if (!maintainer_str.empty()) {
@@ -124,7 +126,8 @@ private:
     a1::config::jb_path g_jb;
 public:
     std::string mod_install_tmp = g_jb.mod_dir + "/cache/temp";
-    std::string users = g_jb.mod_dir + "/users";
+    std::string install_db_path = g_jb.mod_dir + "/db";
+    std::string users = install_db_path;
     std::string authors = g_jb.mod_dir + "/official";
 };
 

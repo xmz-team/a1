@@ -13,7 +13,7 @@ public:
     std::string pm_cache = g_jb.mod_dir + "/cache/repos";
     std::string repo_f = g_jb.mod_dir + "/repos.ini";
     std::string repo_default_cfg = R"(### example config ###
-[YouURL]
+;;[YouURL]
 ;;url: https://example.com/yourepo
 ;;last_sync: UpdateTime
 ######################

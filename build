@@ -1,0 +1,112 @@
+#!/bin/bash
+#build.sh
+set -ex
+script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+
+source ${script_path}/ci/env.sh
+source ${script_path}/ci/package.sh
+source ${script_path}/ci/build-tool.sh
+source ${script_path}/ci/generate-version.sh
+
+b_a1() {
+    local lua_patch_file="${script_path}/paths/loslib_lsystem.patch"
+    if [ "$use_lua_cache" = false ]; then
+        cd ${script_path}/libs/lua
+        cp loslib.c loslib.c.orig
+        patch -p0 < ${lua_patch_file}
+        CC="$(which cc)"
+        make clean
+        make CC=${CC} a
+        rm -f loslib.c && mv loslib.c.orig loslib.c
+        cd ${script_path}
+    else
+        if [ ! -f "${script_path}/libs/lua/liblua.a" ]; then
+            echo "[Error]: cache: ${script_path}/libs/lua/liblua.a does not exist" && exit 1;
+        else
+            c++ -ObjC++ \
+             $CXXFLAGS ${lib_path[@]} \
+             ${src_path}/src/cxxa1.cc -o cxxa1 \
+             -lm ${script_path}/libs/lua/liblua.a
+        fi
+    fi
+    sign bin cxxa1
+}
+
+b_a1ctl() {
+    c++ -ObjC++ \
+     $CXXFLAGS ${lib_path[@]} \
+     -lzip \
+     ${src_path}/src/cxxa1ctl.cc -o cxxa1ctl
+    sign bin cxxa1ctl
+}
+
+b_a1mod() {
+    c++ -ObjC++ \
+     $CXXFLAGS ${lib_path[@]} \
+     -lzip -lssl -lcrypto \
+     ${src_path}/src/cxxa1mod.cc -o cxxa1mod
+    sign bin cxxa1mod
+}
+
+b_a1pm() {
+    c++ -ObjC++ \
+     $CXXFLAGS ${lib_path[@]} \
+     -lzip -lcurl -lssl -lcrypto \
+     ${src_path}/src/cxxa1pm.cc -o cxxa1pm
+    sign bin cxxa1pm
+}
+
+if [ $# -eq 0 ]; then
+    echo "usage: $0 [a1|a1ctl|a1mod|a1pm|all|pack|tool] [--a1-use-lua-cache]" >&2
+    exit 1
+fi
+
+use_lua_cache=false
+for arg in "$@"
+do
+    if [ $arg = "--a1-use-lua-cache" ]; then
+        use_lua_cache=true
+        break
+    fi
+done
+
+for target in "$@"
+do
+    case $target in
+        a1)
+            generate_version a1
+            b_a1
+            ;;
+        a1ctl)
+            generate_version a1ctl
+            b_a1ctl
+            ;;
+        a1mod)
+            generate_version a1mod
+            b_a1mod
+            ;;
+        a1pm)
+            generate_version a1pm
+            b_a1pm
+            ;;
+        all)
+            generate_version all
+            b_a1
+            b_a1ctl
+            b_a1mod
+            b_a1pm
+            ;;
+        package|pack)
+            pack
+            ;;
+        tool)
+            build_tool
+            ;;
+        --a1-use-lua-cache) break ;;
+        *)
+            echo "unknown target: $target" >&2
+            echo "usage: $0 [a1|a1ctl|a1mod|a1pm|all|pack|tool] [--a1-use-lua-cache]" >&2
+            exit 1;
+            ;;
+    esac
+done

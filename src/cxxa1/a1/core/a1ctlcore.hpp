@@ -295,6 +295,7 @@ namespace a1ctl {
         if (xmz::aux::is_file(config_file) == 1) { a1_conf(); }
         pini.parse_file(config_file);
         pini.set("", key_name, value ? "true" : "false");
+        pini.save_cover(config_file);
         xmz::log::info("the configuration has been updated:", key_name, "=", value);
     }
 
@@ -306,6 +307,7 @@ namespace a1ctl {
         if (xmz::aux::is_file(config_file) == 1) { a1_conf(); }
         pini.parse_file(config_file);
         pini.set_int("", key_name, value);
+        pini.save_cover(config_file);
         xmz::log::info("the configuration has been updated:", key_name, "=", value);
     }
 
@@ -556,4 +558,13 @@ namespace a1ctl {
         return 0;
     }
 
+    inline void mod_switch_mode(const bool opt) {
+        if (opt) {
+            update_config("module_switch", true);
+            xmz::log::info("the module system has been turned on");
+        } else {
+            update_config("module_switch", false);
+            xmz::log::info("the module system has been shut down");
+        }
+    }
 } /* namespace a1ctl */

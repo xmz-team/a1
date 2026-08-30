@@ -1,5 +1,6 @@
 #!/bin/bash
-set -x # debug
+#a1cil.sh
+#set -x # debug
 
 jbdpkgarch="$(dpkg --print-architecture)"
 

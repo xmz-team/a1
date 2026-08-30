@@ -1,0 +1,34 @@
+@interface A1Executor : NSObject
++ (instancetype)shared;
+- (NSString *)executeCommand:(NSString *)cmd;
+- (BOOL)executeCommandSync:(NSString *)cmd;
+- (BOOL)isA1Running;
+- (NSDictionary<NSString *,NSString *> *)currentModeStatus;
+- (NSArray<NSString *> *)priorityListForType:(NSString *)type;
+- (NSDictionary<NSString *,NSString *> *)customPriorityMap;
+- (void)startA1;
+- (void)stopA1;
+- (void)restartA1;
+- (void)returnPriority;
+- (void)setMode:(NSString *)mode on:(BOOL)on;
+- (void)addPriority:(NSString *)process type:(NSString *)type value:(nullable NSString *)value;
+- (void)removePriority:(NSString *)process;
+- (void)setPriorityValue:(NSString *)type value:(NSInteger)val;
+- (void)cleanType:(NSString *)type;
+- (void)saveConfig;
+- (void)restoreConfig;
+- (void)setAutoApply:(BOOL)enable;
+- (void)setCompatMode:(BOOL)enable;
+- (void)setLockMode:(BOOL)enable;
+- (void)setSudoFor:(NSString *)target on:(BOOL)on;
+- (void)setRootMode:(BOOL)enable;
+- (void)setOptimizeInterval:(NSInteger)seconds;
+- (void)setLoopSleepInterval:(NSInteger)seconds;
+- (NSArray<NSString *> *)moduleList;
+- (void)moduleEnable:(NSString *)modId enable:(BOOL)enable;
+- (void)moduleInstall:(NSString *)filePath;
+- (void)modulePack:(NSString *)dirPath;
+- (void)moduleRemove:(NSString *)modId;
+- (void)loadModules;
+- (NSString *)getConfigContent;
+@end

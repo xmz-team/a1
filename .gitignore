@@ -2,6 +2,8 @@
 packages/a1/*
 packages/gui/*
 packages/packdeb.d/*
+packages/packdeb/*
+packages/cxxa1/*
 
 .env
 .env.*
@@ -20,10 +22,10 @@ tmp/*
 induce-code
 a1.AllCode.all.md
 
-!src/bin/**/*.*
-src/gui/*.*
 src/cxxa1/a1/core/version.hpp
 
 src/induce-code
 src/a1.AllCode.all.md
 
+*.a
+*.o

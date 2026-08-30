@@ -10,7 +10,7 @@
 #include <a1/core/mod/a1mod_version.hpp>
 #include <a1/core/mod/a1mod_depends.hpp>
 #include <a1/core/a1modcore.hpp>
-#include <a1/core/version.1.hpp>
+#include <a1/core/version.hpp>
 #include <a1/core/lock.hpp>
 #include <a1/core/myini.hpp>
 #include <a1/core/config.hpp>

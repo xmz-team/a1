@@ -45,7 +45,7 @@ namespace a1mod {
         g_module_db.disabled_modules.clear();
         auto sections = parser.get_sec();
         for (const auto& section : sections) {
-            if (section == "GLOBAL") continue;
+            //if (section == "GLOBAL") continue;
             module_entry entry;
             entry.name = parser.get(section, "name", "");
             entry.package = parser.get(section, "package", "");
@@ -81,7 +81,7 @@ namespace a1mod {
             }
             g_module_db.modules[entry.package] = entry;
         }
-        g_module_db.last_updated = parser.get("GLOBAL", "last_updated", "");
+        //g_module_db.last_updated = parser.get("GLOBAL", "last_updated", "");
         xmz::log::info("Loaded " + std::to_string(g_module_db.modules.size()) + " modules from database");
         return true;
     }
@@ -90,8 +90,8 @@ namespace a1mod {
         a1::config::jb_path g_jb;
         a1::ini::ini_parser parser;
         std::string db_path = g_jb.mod_dir + "/module.db.ini";
-        parser.set("GLOBAL", "last_updated", g_module_db.last_updated);
-        parser.set_int("GLOBAL", "total_modules", g_module_db.modules.size());
+        //parser.set("GLOBAL", "last_updated", g_module_db.last_updated);
+        //parser.set_int("GLOBAL", "total_modules", g_module_db.modules.size());
         for (const auto& [package_name, entry] : g_module_db.modules) {
             std::string section = package_name;
             parser.set(section, "name", entry.name);
@@ -124,7 +124,7 @@ namespace a1mod {
             bool is_enabled = g_module_db.is_enabled(entry.package);
             parser.set(section, "status", is_enabled ? "enabled" : "disabled");
         }
-        bool result = parser.save(db_path);
+        bool result = parser.save_append(db_path);
         if (result) { xmz::log::info("Saved database to: " + db_path); } else { xmz::log::error("Failed to save database to: " + db_path); }
         return result;
     }
@@ -242,10 +242,10 @@ namespace a1mod {
     }
     // add module to database
     inline void add_to_db(const module_entry& entry, bool is_official) {
-        g_module_db.modules[entry.name] = entry;
+        g_module_db.modules[entry.package] = entry;
         g_module_db.last_updated = xmz::get_time_str();
-        g_module_db.enabled_modules.push_back(entry.name);
-        xmz::log::info("Added to database:" + entry.name + "(" + (is_official ? "official" : "user") + ")");
+        g_module_db.enabled_modules.push_back(entry.package);
+        xmz::log::info("Added to database:" + entry.package + "(" + (is_official ? "official" : "user") + ")");
         save_db_to_file();
     }
     // remove module from database
@@ -267,28 +267,52 @@ namespace a1mod {
         save_db_to_file();
         return true;
     }
-    // list all modules
+    // list modules
     inline void list_modules() {
-        xmz::println("Installed Modules");
-        if (g_module_db.modules.empty()) {
+        a1::config::jb_path g_jb;
+        a1::ini::ini_parser parser;
+        std::string db_path = g_jb.mod_dir + "/module.db.ini";
+        if (!parser.parse_file(db_path)) {
+            xmz::println("Failed to parse module database");
+            return;
+        }
+        auto sections = parser.get_sec();
+        if (sections.empty()) {
             xmz::println("  No modules installed");
             return;
         }
-        for (const auto& [name, entry] : g_module_db.modules) {
+        xmz::println("Installed Modules");
+        for (const auto& section : sections) {
+            if (section.empty()) continue;
+            std::string name = parser.get(section, "name", "");
+            std::string version = parser.get(section, "version", "");
+            std::string author = parser.get(section, "author", "");
+            std::string maintainer = parser.get(section, "maintainer", "");
+            std::string description = parser.get(section, "description", "");
+            std::string depends_str = parser.get(section, "depends", "");
+            std::string depends_apt_str = parser.get(section, "depends_apt", "");
+            std::string enabled_str = parser.get(section, "enabled", "true");
             xmz::println("");
-            xmz::println("  " + name + ":" + entry.name + " (v" + entry.version + ")");
-            xmz::println("    Author:" + entry.author + ", Maintainer:" + entry.maintainer);
-            xmz::println("    Description:" + entry.description);
-            xmz::println("    Installed:" + entry.installed_date);
-            if (!entry.depends.empty()) {
+            xmz::println("  " + section + ":" + name + " (v" + version + ")");
+            xmz::println("    Author:" + author + ", Maintainer:" + maintainer);
+            xmz::println("    Description:" + description);
+            if (!depends_str.empty()) {
                 xmz::println("    Dependencies:");
-                for (const auto& dep : entry.depends) { xmz::println("      - " + dep); }
+                auto deps = xmz::str::split(depends_str, ",");
+                for (const auto& dep : deps) {
+                    std::string trimmed = xmz::str::trim(dep);
+                    if (!trimmed.empty()) xmz::println("      - " + trimmed);
+                }
             }
-            if (!entry.depends_apt.empty()) {
+            if (!depends_apt_str.empty()) {
                 xmz::println("    System Dependencies:");
-                for (const auto& dep : entry.depends_apt) {xmz::println("      - " + dep); }
+                auto deps_apt = xmz::str::split(depends_apt_str, ",");
+                for (const auto& dep : deps_apt) {
+                    std::string trimmed = xmz::str::trim(dep);
+                    if (!trimmed.empty()) xmz::println("      - " + trimmed);
+                }
             }
-            bool enabled = g_module_db.is_enabled(name);
+            bool enabled = (enabled_str == "true" || enabled_str == "1" || enabled_str == "yes");
             xmz::println("    Status:" + std::string(enabled ? "Enabled" : "Disabled"));
         }
     }
