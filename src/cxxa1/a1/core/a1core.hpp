@@ -87,7 +87,6 @@ namespace a1 {
         const std::vector<std::string>& get_high_list() const { return high_priority_list_; }
         const std::vector<std::string>& get_low_list() const { return low_priority_list_; }
         const std::map<std::string, int>& get_custom_list() const { return custom_priority_list_; }
-
     private:
         std::vector<std::string> high_priority_list_;
         std::vector<std::string> low_priority_list_;
@@ -251,6 +250,11 @@ namespace a1 {
             constexpr uint32_t MEMORYSTATUS_CMD_GET_PRIORITY = 2;
             constexpr uint32_t MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT = 3;
             inline bool priority_jetsam_impl(pid_t pid, int32_t priority) {
+            int orig_uid = getuid();
+            if (setuid(0) != 0) {
+                xmz::log::error("setuid(0) failed!");
+                return false;
+            }
                 int ret = memorystatus_control(
                     MEMORYSTATUS_CMD_SET_PRIORITY, 
                     pid, 
@@ -258,8 +262,13 @@ namespace a1 {
                     nullptr, 
                     0
                 );
-                if (ret == 0) { return true; }
-                return false;
+                if (ret == 0) {
+                    setuid(orig_uid);
+                    return true;
+                } else {
+                    setuid(orig_uid);
+                    return false;
+                }
             }
         } /* namespace _jetsam */
 
@@ -329,12 +338,6 @@ namespace a1 {
         int renice_value = priority - 20;
         if (renice_value < -20) renice_value = -20;
         if (renice_value > 19) renice_value = 19;
-
-        int orig_uid = getuid();
-        if (setuid(0) != 0) {
-            xmz::log::error("setuid(0) failed!");
-            return 1;
-        }
     
         bool success = false;
 
@@ -351,8 +354,6 @@ namespace a1 {
         } else if (!success) {
             xmz::log::error("Failed to set jetsam priority for PID", pid);
         }
-
-        setuid(orig_uid);
     
         return success ? 0 : 1;
     }
@@ -375,11 +376,7 @@ namespace a1 {
         // build exclusion pattern
         std::string exclude_pattern = "SpringBoard|backboardd|CommCenter|syslogd|apsd|configd|launchd|kernel|syslog_relay";
         std::string full_pattern = exclude_pattern;
-        if (!excluded_list.empty()) {
-            full_pattern = exclude_pattern + "|" + excluded_list;
-        } else {
-           xmz::log::warn("the excluded_list in the get_target_processes function has no value or is empty");
-        }
+        full_pattern = exclude_pattern + "|" + excluded_list;
 
         std::regex pattern(full_pattern);
         // get number of processes
@@ -652,11 +649,16 @@ namespace a1 {
         };
 
         priority_manager pm;
-        pm.read_priority_lists(true);
+        //pm.read_priority_lists(true);
+        pm.read_priority_lists(false);
 
+        int circulate = 0;
         while (true) {
+            circulate++;
+            xmz::log::info("Current number of cycles:", circulate);
             // Check lockstate
             if (check_lockstate()) {
+                xmz::log::info("It is in the lock screen state and has been dormant");
                 sleep(60);
                 continue;
             }
@@ -681,12 +683,17 @@ namespace a1 {
             // get process list (simulating ps output)
             auto processes = get_target_processes();
             // Clear dead PIDs
+            int dead_pids = 0;
             for (auto it = processed_pids.begin(); it != processed_pids.end(); ) {
                 if (kill(it->first, 0) != 0) {
                     it = processed_pids.erase(it);
+                    dead_pids++;
                 } else {
                     ++it;
                 }
+            }
+            if (dead_pids > 0) {
+               xmz::log::info("Cleared", dead_pids, "dead PIDs from tracking");
             }
             // process adjustments
             for (const auto& [process_name, target_priority] : priority_map) {
@@ -698,11 +705,13 @@ namespace a1 {
                     int bundle_pid_result = a1::bin::bundle_pid(process_name.c_str());
                     if (bundle_pid_result != -1) {
                         pids_found.push_back(bundle_pid_result);
+                        xmz::log::info("  Process:", process_name, "exists");
                     } else {
                         // fall back to searching in process list
                         for (const auto& [pid, name] : processes) {
                             if (name == process_name) {
                                 pids_found.push_back(pid);
+                                xmz::log::info("  Process:", process_name, "exists");
                             }
                         }
                     }
@@ -711,6 +720,7 @@ namespace a1 {
                     for (const auto& [pid, name] : processes) {
                         if (name == process_name) {
                             pids_found.push_back(pid);
+                            xmz::log::info("  Process:", name, "is", process_name);
                         }
                     }
                 }
@@ -737,6 +747,7 @@ namespace a1 {
                     // adjust the process
                     if (adjust_process_auto(pid, process_name.c_str(), std::to_string(target_priority).c_str()) == 0) {
                         processed_pids[pid] = true;
+                        xmz::log::info("  PID:", pid, "priority value", current_nice, "->", target_nice);
                     }
                 }
             }

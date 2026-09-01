@@ -19,6 +19,10 @@ b_a1() {
         make CC=${CC} a
         rm -f loslib.c && mv loslib.c.orig loslib.c
         cd ${script_path}
+        c++ -ObjC++ \
+         $CXXFLAGS ${lib_path[@]} \
+         ${src_path}/src/cxxa1.cc -o cxxa1 \
+         -lm ${script_path}/libs/lua/liblua.a
     else
         if [ ! -f "${script_path}/libs/lua/liblua.a" ]; then
             echo "[Error]: cache: ${script_path}/libs/lua/liblua.a does not exist" && exit 1;
