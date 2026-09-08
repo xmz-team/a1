@@ -1,4 +1,0 @@
-#custom priority format: process_name = value
-#value range: 0-99 (Jetsam 0 = Nice -20, Jetsam 39 = Nice 19)
-#eample: com.apple.springboard = 0
-

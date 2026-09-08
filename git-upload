@@ -9,5 +9,5 @@ git add .
 git commit -m "updated by the update script; $text; $(date +'%Y-%m-%d %H:%M')"
 git pull --rebase
 git submodule update --remote libs/libxmz
-git submodule update --remote libs/lua
-git push origin main
+#git submodule update --remote libs/lua
+git push origin 1.x

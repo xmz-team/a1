@@ -7,7 +7,7 @@ git clone --recursive https://github.com/xmz-team/a1.git
 # if you use ssh
 # git clone --recursive git@github.com:xmz-team/a1.git
 cd a1
-./build all tool pack
+./build
 ```
 
 # description

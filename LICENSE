@@ -7,15 +7,11 @@ Files: *
 Copyright: 2026 XMZ <xmz-team@outlook.com>, LF <yitat1006@outlook.com>, AD-iOS <ad-ios334@outlook.com>
 License: MIT
 
-Files: src/cxxa1/*
-Copyright: 2026 XMZ <xmz-team@outlook.com>, LF <yitat1006@outlook.com>, AD-iOS <ad-ios334@outlook.com>
-License: MIT
-
 Files: src/bin/*/*.hpp src/bin/*/*.cc src/cxxa1/a1/core/myini.hpp
 Copyright: 2026 XMZ <xmz-team@outlook.com>
 License: LGPL-3.0-only
 
-Files: src/gui/*, src/old/gui/*
+Files: src/gui/*
 Copyright: 2026 XMZ <xmz-team@outlook.com>
 License: LGPL-3.0-only
 
