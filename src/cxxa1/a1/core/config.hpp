@@ -1,19 +1,16 @@
 // config.hpp
 #pragma once
 #include <string>
-#include <libxmz/io.hpp>
-#include <libxmz/fs.hpp>
-#include <libxmz/aux.hpp>
-#include <libxmz/log.hpp>
-#include <a1/core/myini.hpp>
 #include <cstdlib>
 
+#ifdef A1_USE_GUI_CFG
+#include <a1/core/a1gui_config.hpp>
+#else
 namespace a1::config {
     class jb_path {
     public:
-        std::string jb = std::getenv("jb");
+        std::string jb = get_jb();
         std::string a1_dir = jb + "/a1";
-        std::string core_config_dir = a1_dir + "/core_config";
         std::string a1config = a1_dir + "/configs";
         std::string a1_script = jb + "/usr/local/bin/a1";
         std::string 
@@ -28,5 +25,8 @@ a1_return_script = jb + "/usr/local/bin/a1-return";
         std::string mod_dir = a1_dir + "/modules";
         std::string mod_cfg = mod_dir + "/config.ini";
         std::string mod_list = mod_dir + "/module.list.ini";
+    private:
+        std::string get_jb() { const char *v = std::getenv("jb"); return v ? v : ""; }
     };
 } /* namespace a1::config */
+#endif /* A1_USE_GUI_CFG */

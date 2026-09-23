@@ -8,6 +8,7 @@
 #include <libxmz/io.hpp>
 #include <libxmz/log.hpp>
 #include <libxmz/fs.hpp>
+#include <libxmz/aux.hpp>
 #include <libxmz/runsh.hpp>
 #include <libxmz/str.hpp>
 

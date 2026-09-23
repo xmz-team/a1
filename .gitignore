@@ -1,5 +1,6 @@
 .idea
 packages/a1/*
+packages/a1gui/*
 packages/gui/*
 packages/packdeb.d/*
 packages/packdeb/*
@@ -29,3 +30,8 @@ src/a1.AllCode.all.md
 
 *.a
 *.o
+
+src/gui/induce-code
+src/gui/a1gui.AllCode.all.md
+
+src/gui/Info.plist

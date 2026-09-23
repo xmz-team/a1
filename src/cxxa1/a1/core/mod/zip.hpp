@@ -1,5 +1,6 @@
 // zip.hpp
 #include <libxmz/fs.hpp>
+#include <libxmz/aux.hpp>
 #include <zip.h>
 #include <vector>
 #include <string>

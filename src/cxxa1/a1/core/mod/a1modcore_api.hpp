@@ -2,8 +2,11 @@
 #pragma once
 #include <a1/core/a1core.hpp>
 #include <a1/core/a1ctlcore.hpp>
+
 #include <libxmz/io.hpp>
 #include <libxmz/fs.hpp>
+#include <libxmz/aux.hpp>
+
 #include <optional>
 #include <vector>
 #include <map>

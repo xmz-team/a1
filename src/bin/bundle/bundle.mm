@@ -19,8 +19,7 @@
  */
 // c++ -fobjc-arc -framework Foundation -framework Security -I. bundle.mm -o bundle && ldid -S../../../a1.bin.ens.xml -Hsha1 -Hsha256 -M  bundle && ln -s bundle bundle_pid && ln -s bundle pid_bundle
 
-#include "bundle_pid.hpp"
-#include "pid_bundle.hpp"
+#include "bundle.hpp"
 #include <libxmz/log.hpp>
 #include <string>
 #include <cstdlib>

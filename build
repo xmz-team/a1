@@ -1,6 +1,6 @@
 #!/bin/bash
 #build.sh
-set -ex
+set -e
 script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
 
 source ${script_path}/ci/env.sh
@@ -14,13 +14,12 @@ b_a1() {
         cd ${script_path}/libs/lua
         cp loslib.c loslib.c.orig
         patch -p0 < ${lua_patch_file}
-        CC="$(which cc)"
         make clean
-        make CC=${CC} a
+        make CC="$(which cc) -target arm64-apple-ios14.0" a
         rm -f loslib.c && mv loslib.c.orig loslib.c
         cd ${script_path}
         c++ -ObjC++ \
-         $CXXFLAGS ${lib_path[@]} \
+         $CXXFLAGS \
          ${src_path}/src/cxxa1.cc -o cxxa1 \
          -lm ${script_path}/libs/lua/liblua.a
     else
@@ -28,7 +27,7 @@ b_a1() {
             echo "[Error]: cache: ${script_path}/libs/lua/liblua.a does not exist" && exit 1;
         else
             c++ -ObjC++ \
-             $CXXFLAGS ${lib_path[@]} \
+             $CXXFLAGS \
              ${src_path}/src/cxxa1.cc -o cxxa1 \
              -lm ${script_path}/libs/lua/liblua.a
         fi
@@ -38,7 +37,7 @@ b_a1() {
 
 b_a1ctl() {
     c++ -ObjC++ \
-     $CXXFLAGS ${lib_path[@]} \
+     $CXXFLAGS \
      -lzip \
      ${src_path}/src/cxxa1ctl.cc -o cxxa1ctl
     sign bin cxxa1ctl
@@ -46,7 +45,7 @@ b_a1ctl() {
 
 b_a1mod() {
     c++ -ObjC++ \
-     $CXXFLAGS ${lib_path[@]} \
+     $CXXFLAGS \
      -lzip -lssl -lcrypto \
      ${src_path}/src/cxxa1mod.cc -o cxxa1mod
     sign bin cxxa1mod
@@ -54,15 +53,33 @@ b_a1mod() {
 
 b_a1pm() {
     c++ -ObjC++ \
-     $CXXFLAGS ${lib_path[@]} \
+     $CXXFLAGS \
      -lzip -lcurl -lssl -lcrypto \
      ${src_path}/src/cxxa1pm.cc -o cxxa1pm
     sign bin cxxa1pm
 }
 
+b_gui() {
+    src_gui=${script_path}/src/gui
+    local CXXFLAGS="$CXXFLAGS -I${src_gui} -framework UIKit -framework CoreGraphics -framework QuartzCore"
+    c++ -ObjC++ -fobjc-arc \
+        $CXXFLAGS \
+        -Wno-deprecated-declarations \
+        -DA1_USE_GUI_CFG \
+        -lzip -lcurl -lssl -lcrypto \
+        ${src_gui}/app/*.mm \
+        ${src_gui}/ui/Categories/*.mm \
+        ${src_gui}/ui/ViewControllers/*.mm \
+        ${src_gui}/core/*.mm \
+        -o a1gui
+    sign gui a1gui
+}
+
+show_help() { echo "usage: $0 [a1|a1ctl|a1mod|a1pm|a1gui] [build-a1-all|build-a1-tool|build-a1] [pack-a1|pack-a1gui|pack-all] [--a1-use-lua-cache]" >&2; }
+
 if [ $# -eq 0 ]; then
-    echo "usage: $0 [a1|a1ctl|a1mod|a1pm|all|pack|tool] [--a1-use-lua-cache]" >&2
-    exit 1
+    show_help
+    exit 1;
 fi
 
 use_lua_cache=false
@@ -93,23 +110,26 @@ do
             generate_version a1pm
             b_a1pm
             ;;
-        all)
+        a1gui)
+            generate_version gui
+            b_gui
+            ;;
+        build-a1-all|build-a1)
             generate_version all
             b_a1
             b_a1ctl
             b_a1mod
             b_a1pm
+            b_gui
             ;;
-        package|pack)
-            pack
-            ;;
-        tool)
-            build_tool
-            ;;
+        --package-a1|pack-a1) pack_a1 ;;
+        --package-a1gui|pack-a1gui) pack_a1gui ;;
+        --package-all|pack-all) pack_all ;;
+        build-a1-tool) build_tool ;;
         --a1-use-lua-cache) break ;;
         *)
             echo "unknown target: $target" >&2
-            echo "usage: $0 [a1|a1ctl|a1mod|a1pm|all|pack|tool] [--a1-use-lua-cache]" >&2
+            show_help
             exit 1;
             ;;
     esac

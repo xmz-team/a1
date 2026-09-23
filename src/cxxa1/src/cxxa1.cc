@@ -204,6 +204,7 @@ int main() {
         xmz::log::info("Use a1 status, not cxxa1!");
         return 1;
     }
+    a1::init();
     a1::config::jb_path g_jb;
     a1mod::luatime lt;
     xmz::println(xmz::get_time_str());
@@ -227,16 +228,6 @@ int main() {
     a1::apply_kernel_patches();
     a1::adjust_launchd(config.launchd_priority);
     optimize_system();
-    // log reincarnation
-    if (config.log_reincarnation) {
-        std::string info_log = g_jb.a1_dir + "/a1.log";
-        std::string err_log = g_jb.a1_dir + "/a1error.log";
-        xmz::println("cleaning up...");
-        std::ofstream info_file(info_log, std::ios::trunc);
-        info_file.close();
-        std::ofstream err_file(err_log, std::ios::trunc);
-        err_file.close();
-    }
     // mode selection
     if (config.auto_adjust) {
         xmz::println("starting Auto-Adjust (real-time) mode...");

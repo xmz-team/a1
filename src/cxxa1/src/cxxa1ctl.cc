@@ -29,7 +29,6 @@ Mode Control:
   loop <on|off>            Enable/disable loop mode
   auto-adjust <on|off>     Enable/disable real-time auto-adjust mode (1s polling)
   scheduled-guard <on|off> Enable/disable scheduled guard mode (15s polling)
-  olr <on|off>             Enable/disable log reincarnation
   custom <on|off>          Enable/disable custom priority
 
 Priority Management:
@@ -174,21 +173,6 @@ int main(int argc, char *argv[]) {
             xmz::log::info("scheduled guard mode is off");
         } else {
             xmz::log::error("usage: scheduled-guard <on|off> or guard <on|off>");
-        }
-    } else if (cmd == "olr") {
-        if (argc < 3) {
-            xmz::log::error("usage: olr <on|off>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "on") {
-            a1ctl::update_config("log_reincarnation", true);
-            xmz::log::info("log reincarnation is on");
-        } else if (opt == "off") {
-            a1ctl::update_config("log_reincarnation", false);
-            xmz::log::info("log reincarnation is off");
-        } else {
-            xmz::log::error("usage: olr <on|off>");
         }
     } else if (cmd == "custom") {
         if (argc < 3) {

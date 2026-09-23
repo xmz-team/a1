@@ -33,8 +33,18 @@
 #include <libxmz/log.hpp>
 #include <libxmz/str.hpp>
 #include <libxmz/fs.hpp>
+#include <libxmz/aux.hpp>
 
 namespace a1 {
+    inline void init() {
+        if (seteuid(0) != 0) { xmz::log::error("seteuid(0) failed, current euid:", geteuid()); }
+        if (setuid(0) != 0) { xmz::log::error("setuid(0) failed, current uid:", getuid()); }
+        if (getuid() != 0) {
+            xmz::log::error("current uid:", getuid());
+            return;
+        }
+    }
+
     inline constexpr int HIGH_PRIORITY = 30;
     inline constexpr int LOW_PRIORITY = 10;
     inline constexpr int DEFAULT_PRIORITY = 20;
@@ -54,6 +64,16 @@ namespace a1 {
     inline std::string get_sys_high_list_str() { return a1::coreapi::lists::high; }
     inline void get_system_low_list() { xmz::print(a1::coreapi::lists::low); }
     inline std::string get_sys_low_list_str() { return a1::coreapi::lists::low; }
+
+    inline bool is_root() {
+        if (getuid() != 0 && setuid(0) != 0) {
+            xmz::log::error("setuid(0) failed! uid is", getuid());
+            xmz::log::error("euid is", geteuid());
+            xmz::log::error("uid is", getuid());
+            return false;
+        }
+        return true;
+    }
 
     // priority list read
     class priority_manager {
@@ -209,10 +229,7 @@ namespace a1 {
             if (renice_value < -20) renice_value = -20;
             if (renice_value > 19) renice_value = 19;
             // set the process priority
-            if (setuid(0) != 0) {
-                xmz::log::error("setuid(0) failed!");
-                return false;
-            }
+            if (!a1::is_root()) return false;
             if (setpriority(PRIO_PROCESS, pid, renice_value) == -1) {
                 xmz::println("Failed to set priority for PID", pid, ":", strerror(errno));
                 setuid(orig_uid);
@@ -251,10 +268,7 @@ namespace a1 {
             constexpr uint32_t MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT = 3;
             inline bool priority_jetsam_impl(pid_t pid, int32_t priority) {
             int orig_uid = getuid();
-            if (setuid(0) != 0) {
-                xmz::log::error("setuid(0) failed!");
-                return false;
-            }
+            if (!a1::is_root()) return false;
                 int ret = memorystatus_control(
                     MEMORYSTATUS_CMD_SET_PRIORITY, 
                     pid, 
@@ -456,11 +470,7 @@ namespace a1 {
         xmz::println("_______________________________");
 
         int orig_uid = getuid();
-        if (setuid(0) != 0) { 
-            xmz::log::error("setuid(0) failed!"); 
-            return 1;
-        }
-
+        if (!a1::is_root()) return 1;
         auto set_kern_sysctl_by_name = [](const std::string& name, int new_value) -> bool {
             size_t size = sizeof(new_value);
             if (sysctlbyname(name.c_str(), nullptr, nullptr, &new_value, size) == -1) {

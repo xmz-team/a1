@@ -11,6 +11,7 @@
 #include <libxmz/log.hpp>
 #include <libxmz/fs.hpp>
 #include <libxmz/time.hpp>
+#include <libxmz/aux.hpp>
 
 #include <a1/core/a1modcore.hpp>
 #include <a1/core/pm/a1pm_config.hpp>

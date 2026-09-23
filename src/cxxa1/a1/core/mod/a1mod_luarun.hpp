@@ -10,7 +10,11 @@ extern "C" {
 #include <vector>
 #include <map>
 #include <type_traits>
+
 #include <a1/core/mod/a1modcore_api.hpp>
+
+#include <libxmz/fs.hpp>
+#include <libxmz/aux.hpp>
 #include <libxmz/io.hpp>
 #include <libxmz/log.hpp>
 

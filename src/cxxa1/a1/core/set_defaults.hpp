@@ -1,4 +1,4 @@
-// set_defaults.hpp
+// a1_config.hpp
 #pragma once
 #include <string>
 #include <cstdlib>
@@ -17,19 +17,12 @@ struct set_defaults_config {
     bool loop_mode = false;
     bool auto_adjust = false;
     bool scheduled_guard = false;
-    bool experimental = false;
-    bool log_reincarnation = false;
     bool custom_priority_enabled = false;
     bool debug_mode = true;
     bool module_switch = false;
     // gap set
     int optimize_interval = 1800;
     int loop_sleep_interval = 5;
-    // Permission set
-    bool use_sudo_all = true;
-    bool use_sudo_a1 = true;
-    bool use_sudo_a1ctl = true;
-    bool use_root_a1ctl = true;
     // other
     bool compat_mode = false;
     bool lock_use = true;
@@ -43,7 +36,6 @@ inline set_defaults_config& get_config() {
 
 inline std::string config_text = []() -> std::string {
     return R"(#config.ini
-
 #Priority configuration
 high_priority = 0
 low_priority = 39
@@ -55,8 +47,6 @@ loop_mode = false
 auto_adjust = false
 auto_apply = false
 scheduled_guard = false
-#experimental = false
-log_reincarnation = false
 custom_priority_enabled = false
 debug_mode = true
 module_switch = false
@@ -64,12 +54,6 @@ module_switch = false
 #gap set
 optimize_interval = 1800
 loop_sleep_interval = 5
-
-#permission set
-#use_sudo_all = false
-#use_sudo_a1 = false
-#use_sudo_a1ctl = false
-#use_root_a1ctl = false
 
 #other
 compat_mode = false
@@ -112,15 +96,9 @@ inline void set_defaults() {
     g_config.loop_mode                = get_config_bool("loop_mode", false);
     g_config.auto_adjust              = get_config_bool("auto_adjust", false);
     g_config.scheduled_guard          = get_config_bool("scheduled_guard", false);
-    g_config.experimental             = get_config_bool("experimental", false);
-    g_config.log_reincarnation        = get_config_bool("log_reincarnation", false);
     g_config.custom_priority_enabled  = get_config_bool("custom_priority_enabled", false);
     g_config.debug_mode               = get_config_bool("debug_mode", true);
     g_config.module_switch            = get_config_bool("module_switch", false);
-    g_config.use_sudo_all             = get_config_bool("use_sudo_all", true);
-    g_config.use_sudo_a1              = get_config_bool("use_sudo_a1", true);
-    g_config.use_sudo_a1ctl           = get_config_bool("use_sudo_a1ctl", true);
-    g_config.use_root_a1ctl           = get_config_bool("use_root_a1ctl", true);
     g_config.compat_mode              = get_config_bool("compat_mode", false);
     g_config.lock_use                 = get_config_bool("lock_use", true);
     g_config.dynamic_optimization     = get_config_bool("dynamic_optimization", false);

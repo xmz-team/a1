@@ -1,22 +1,24 @@
 #env.sh
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
+elif [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
+    jb="$(jbroot)"
 else
-    if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
-        jb="$(jbroot)"
-    else
-        jb=""
-    fi
+    jb=""
 fi
 
-if [ "${jb}" = "" ]; then
+if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ]; then
     SDKROOT="$(xcrun --sdk iphoneos --show-sdk-path)"
-    CXXFLAGS1="-arch arm64 -arch arm64e -target arm64-apple-ios14.0 -isysroot ${SDKROOT} -stdlib=libc++"
+    if [ -z "$SDKROOT" ]; then
+        mkdir -p "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp && cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp && wget "https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz"
+        tar xvf *.tar.xz
+        cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
+        SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
+    fi
+    _CXXFLAGS1="-isysroot ${SDKROOT} -stdlib=libc++"
 fi
 
 src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src/cxxa1"
-
-CXXFLAGS="$CXXFLAGS1 -framework Foundation -framework Security -I${src_path} -I. -Isrc/cxxa1 -Isrc/bin/bundle -Isrc/bin -Ilibs/sol2/include -Ilibs/lua -I${jb}/usr/include -I${jb}/usr/local/include $CXXFLAGS2"
 
 lib_path=(
     -Wl,-rpath,/usr/lib
@@ -29,6 +31,8 @@ lib_path=(
     -Wl,-rpath,@loader_path/.jbroot/usr/lib
     -Wl,-rpath,@loader_path/.jbroot/lib
 )
+
+CXXFLAGS="$_CXXFLAGS1 -target arm64-apple-ios14.0 -framework Foundation -framework Security -I${src_path} -I. -Isrc/cxxa1 -Isrc/bin/bundle -Isrc/bin -Ilibs/sol2/include -Ilibs/lua -I${jb}/usr/include -I${src_path}/../bin/bundle -I${src_path}/../.. -I${jb}/usr/local/include ${lib_path[@]} $CXXFLAGS2"
 
 sign() {
     local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
@@ -45,4 +49,4 @@ sign() {
     ldid ${SIGN_OPT} "$2"
 }
 
-general_version="2.0.0-beta"
+general_version="2.0.0-beta2+debug2"
