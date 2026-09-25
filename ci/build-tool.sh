@@ -1,9 +1,9 @@
 #build-tool.sh
 build_tool() {
     local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+    local CXXFLAGS2="-I.. -I../.. -I. -I../../cxxa1"
     source "${script_path}/env.sh"
     cd ${script_path}/../src/bin
-    local CXXFLAGS2="-I.. -I../.. -I. -I../../cxxa1"
     cd bundle
     c++ $CXXFLAGS bundle.mm -o bundle && sign bin bundle && mv bundle ../../../
     cd ../flock-ios
