@@ -653,7 +653,7 @@ namespace a1 {
         "configd", "CommCenter", "SpringBoard", "backboardd"
         };
         priority_manager pm;
-        pm.read_priority_lists(true)
+        pm.read_priority_lists(true);
         int circulate = 0;
         while (true) {
             circulate++;
