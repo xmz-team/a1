@@ -11,3 +11,4 @@ git pull --rebase
 git submodule update --remote libs/libxmz
 git submodule update --remote libs/lua
 git push origin main
+git push codeberg main

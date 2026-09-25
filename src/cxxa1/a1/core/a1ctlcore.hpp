@@ -64,7 +64,7 @@ namespace a1ctl {
         }
 
         if (!pini.parse_file(config_file)) return -1;
-        bool loop_mode = pini.get_bool("", "loop", false);
+        bool loop_mode = pini.get_bool("", "loop_mode", false);
         bool auto_adjust = pini.get_bool("", "auto_adjust", false);
         bool scheduled_guard = pini.get_bool("", "scheduled_guard", false);
         int conflicts = 0;
@@ -99,7 +99,7 @@ namespace a1ctl {
         a1::ini::ini_parser pini;
         if (xmz::aux::is_file(config_file) == 0) {
             pini.parse_file(config_file);
-            pini.get_bool("", "loop", false);
+            pini.get_bool("", "loop_mode", false);
             pini.get_bool("", "auto_adjust", false);
             pini.get_bool("", "scheduled_guard", false);
             return 0;
@@ -159,7 +159,7 @@ namespace a1ctl {
         if (xmz::aux::is_file(config_file) == 0) {
             pini.parse_file(config_file);
             auto_apply = pini.get_bool("", "auto_apply", false);
-            loop = pini.get_bool("", "loop", false);
+            loop = pini.get_bool("", "loop_mode", false);
             auto_adjust = pini.get_bool("", "auto_adjust", false);
             scheduled_guard = pini.get_bool("", "scheduled_guard", false);
         }
@@ -186,46 +186,41 @@ namespace a1ctl {
         a1::config::jb_path g_jb;
         std::string config_file = g_jb.a1config + "/config.ini";
         a1::ini::ini_parser pini;
+        if (xmz::aux::is_file(config_file) == 0) {
+            pini.parse_file(config_file);
+            bool loop = pini.get_bool("", "loop_mode", false);
+            bool custom_priority_enabled = pini.get_bool("", "custom_priority_enabled", false);
+            bool auto_apply = pini.get_bool("", "auto_apply", false);
+            bool auto_adjust = pini.get_bool("", "auto_adjust", false);
+            bool scheduled_guard = pini.get_bool("", "scheduled_guard", false);
+            bool module_switch = pini.get_bool("", "module_switch", false);
 
-        if (check_a1_running() == 0) {
-            xmz::log::info("A1 is running");
-            if (xmz::aux::is_file(config_file) == 0) {
-                pini.parse_file(config_file);
-                bool loop = pini.get_bool("", "loop", false);
-                bool log_reincarnation = pini.get_bool("", "log_reincarnation", false);
-                bool custom_priority_enabled = pini.get_bool("", "custom_priority_enabled", false);
-                bool auto_apply = pini.get_bool("", "auto_apply", false);
-                bool auto_adjust = pini.get_bool("", "auto_adjust", false);
-                bool scheduled_guard = pini.get_bool("", "scheduled_guard", false);
-                bool module_switch = pini.get_bool("", "module_switch", false);
+            bool compat_mode = pini.get_bool("", "compat_mode", false);
+            bool lock_use = pini.get_bool("", "lock_use", false);
 
-                bool compat_mode = pini.get_bool("", "compat_mode", false);
-                bool lock_use = pini.get_bool("", "lock_use", false);
-
-                auto auxoutcfg = [&](const std::string& name, bool configs = false) -> std::string {
-                    if (configs == false) {
-                        std::string outcfg = name + " is turned off";
-                        return outcfg;
-                    } else {
-                        std::string outcfg = name + " is turned on";
-                        return outcfg;
-                    }
-                };
-
-                xmz::println("configuration status:");
-                xmz::println("    ", auxoutcfg("loop", loop));
-                xmz::println("    ", auxoutcfg("auto_adjust", auto_adjust));
-                xmz::println("    ", auxoutcfg("scheduled_guard", scheduled_guard));
-                xmz::println("    ", auxoutcfg("log_reincarnation", log_reincarnation));
-                xmz::println("    ", auxoutcfg("auto_apply", auto_apply));
-                xmz::println("    ", auxoutcfg("custom_priority_enabled", custom_priority_enabled));
-                xmz::println("    ", auxoutcfg("module_switch", module_switch));
-                xmz::println("    ", auxoutcfg("compat_mode", compat_mode));
-                xmz::println("    ", auxoutcfg("lock_use", lock_use));
-                check_config_conflict();
-            }
+            auto auxoutcfg = [&](const std::string& name, bool configs = false) -> std::string {
+                if (configs == false) {
+                    std::string outcfg = name + " is turned off";
+                    return outcfg;
+                } else {
+                    std::string outcfg = name + " is turned on";
+                    return outcfg;
+                }
+            };
+            if (check_a1_running() == 0) { xmz::println("A1 is running"); } else { xmz::println("A1 is not running"); }
+            xmz::println("configuration status:");
+            xmz::println("    ", auxoutcfg("loop_mode", loop));
+            xmz::println("    ", auxoutcfg("auto_adjust", auto_adjust));
+            xmz::println("    ", auxoutcfg("scheduled_guard", scheduled_guard));
+            xmz::println("    ", auxoutcfg("auto_apply", auto_apply));
+            xmz::println("    ", auxoutcfg("custom_priority_enabled", custom_priority_enabled));
+            xmz::println("    ", auxoutcfg("module_switch", module_switch));
+            xmz::println("    ", auxoutcfg("compat_mode", compat_mode));
+            xmz::println("    ", auxoutcfg("lock_use", lock_use));
+            check_config_conflict();
         } else {
-            xmz::log::warn("A1 is not running");
+            xmz::log::error("file:", config_file, "not exist");
+            return;
         }
     }
 
@@ -235,7 +230,7 @@ namespace a1ctl {
         if (check_a1_running() == 0) {
             xmz::println("A1 is already running.");
             xmz::println("use 'a1ctl restart' to restart A1");
-            return 0;
+            return 1;
         }
 
         a1::kill_pid();
@@ -248,7 +243,7 @@ namespace a1ctl {
 
         if (pid != -1) {
             xmz::log::info("A1 has been activated(PID:", pid, ")");
-            return 0;
+            return 1;
         } else {
             xmz::log::error("A1 Startup failed, try the backup startup method...");
             pid_t pid2 = fork();
@@ -260,7 +255,6 @@ namespace a1ctl {
                     execl(cxxa1_path.c_str(), nullptr, nullptr);
                 }
             }
-
             sleep(1);
             if (a1::bin::bundle_pid("a1") != -1) {
                 xmz::log::info("A1 has been activated(PID:", pid2, ")");

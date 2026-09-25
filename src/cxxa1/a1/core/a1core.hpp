@@ -26,8 +26,7 @@
 #include <a1/core/get_sys_list.hpp>
 #include <a1/core/config.hpp>
 #include <src/bin/bundle/libproc.h>
-#include <src/bin/bundle/bundle_pid.hpp>
-#include <src/bin/bundle/pid_bundle.hpp>
+#include <src/bin/bundle/bundle.hpp>
 
 #include <libxmz/io.hpp>
 #include <libxmz/log.hpp>
@@ -58,7 +57,6 @@ namespace a1 {
         inline std::string bright_blue = "\033[94m";
         inline std::string nc = "\033[0m";
     } /* namespace color */
-
     // default system list
     inline void get_sys_high_list() { xmz::print(a1::coreapi::lists::high); }
     inline std::string get_sys_high_list_str() { return a1::coreapi::lists::high; }
@@ -74,7 +72,6 @@ namespace a1 {
         }
         return true;
     }
-
     // priority list read
     class priority_manager {
     public:
@@ -103,7 +100,6 @@ namespace a1 {
             // read custom priority
             read_custom_list(g_jb.a1_dir + "/custom_priority.list");
         }
-    
         const std::vector<std::string>& get_high_list() const { return high_priority_list_; }
         const std::vector<std::string>& get_low_list() const { return low_priority_list_; }
         const std::map<std::string, int>& get_custom_list() const { return custom_priority_list_; }
@@ -263,9 +259,9 @@ namespace a1 {
                 JETSAM_PRIORITY_CRITICAL             = 21
             };
 
-            constexpr uint32_t MEMORYSTATUS_CMD_SET_PRIORITY = 1;
-            constexpr uint32_t MEMORYSTATUS_CMD_GET_PRIORITY = 2;
-            constexpr uint32_t MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT = 3;
+            inline constexpr uint32_t MEMORYSTATUS_CMD_SET_PRIORITY = 1;
+            inline constexpr uint32_t MEMORYSTATUS_CMD_GET_PRIORITY = 2;
+            inline constexpr uint32_t MEMORYSTATUS_CMD_SET_JETSAM_TASK_LIMIT = 3;
             inline bool priority_jetsam_impl(pid_t pid, int32_t priority) {
             int orig_uid = getuid();
             if (!a1::is_root()) return false;
@@ -571,11 +567,8 @@ namespace a1 {
 
     // clean func
     inline void kill_pid(const char *script_name = nullptr) {
-        if (script_name == nullptr) {
-            script_name = "a1";
-        }
+        if (script_name == nullptr) { script_name = "a1"; }
         int count = 0;
-
         auto get_a1_pid = [](const std::string& script_name) -> std::vector<int> {
             std::vector<int> pids;
             int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0 };
@@ -610,7 +603,6 @@ namespace a1 {
         std::vector<int> pids = get_a1_pid(script_name);
         pid_t current_pid = getpid();
         pid_t parent_pid = getppid();
-
         for (int pid_int : pids) {
             pid_t pid = static_cast<pid_t>(pid_int);
             if (pid != current_pid && pid != parent_pid && pid > 0) {
@@ -624,7 +616,6 @@ namespace a1 {
                 count++;
             }
         }
-
         int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
         size_t size = 0;
         if (sysctl(mib, 4, nullptr, &size, nullptr, 0) == 0) {
@@ -640,7 +631,11 @@ namespace a1 {
                 }
             }
         }
-        xmz::println("Cleaned", count, "old processes");
+        if (count == 0) {
+            xmz::println("There is no old process to clean up");
+        } else {
+            xmz::println("Cleaned", count, "old processes");
+        }
     }
 
     // Core of monitoring mode
@@ -657,11 +652,8 @@ namespace a1 {
         "kernel_task", "launchd", "syslogd", "UserEventAgent",
         "configd", "CommCenter", "SpringBoard", "backboardd"
         };
-
         priority_manager pm;
-        //pm.read_priority_lists(true);
-        pm.read_priority_lists(false);
-
+        pm.read_priority_lists(true)
         int circulate = 0;
         while (true) {
             circulate++;
@@ -672,23 +664,16 @@ namespace a1 {
                 sleep(60);
                 continue;
             }
-
             // Check config file changes
             if (check_config_changes(file_mtime)) {
                 pm.read_priority_lists(true);
                 priority_map.clear();
                 // build priority map from high priority list
-                for (const auto& p : pm.get_high_list()) {
-                    priority_map[p] = HIGH_PRIORITY;
-                }
+                for (const auto& p : pm.get_high_list()) priority_map[p] = HIGH_PRIORITY;
                 // build priority map from low priority list
-                for (const auto& p : pm.get_low_list()) {
-                    priority_map[p] = LOW_PRIORITY;
-                }
+                for (const auto& p : pm.get_low_list()) priority_map[p] = LOW_PRIORITY;
                 // add custom priorities
-                for (const auto& [proc, prio] : pm.get_custom_list()) {
-                    priority_map[proc] = prio;
-                }
+                for (const auto& [proc, prio] : pm.get_custom_list()) priority_map[proc] = prio;
             }
             // get process list (simulating ps output)
             auto processes = get_target_processes();
@@ -734,7 +719,6 @@ namespace a1 {
                         }
                     }
                 }
-
                 for (int pid : pids_found) {
                     if (pid <= 0) continue;
                     if (processed_pids[pid]) continue;
@@ -779,10 +763,7 @@ namespace a1 {
     // compatible interface
     inline void scheduled_guard() { return run_monitor(15, "Scheduled Guard"); }
     inline void auto_adjust() { run_monitor(1, "Auto-Adjust"); }
-    // a1ctl:custom_auth_adjust, a1ctl:custom_scheduled_guard
-    inline void start_monitor(int interval, const std::string& mode_name) {
-        return run_monitor(interval, mode_name.c_str());
-    }
+    inline void start_monitor(int interval, const std::string& mode_name) { return run_monitor(interval, mode_name.c_str()); }
     inline void custom_auto_adjust() { start_monitor(1, "Auto-Adjust"); }
     inline void custom_scheduled_guard() { start_monitor(15, "Scheduled-Guard"); }
 
