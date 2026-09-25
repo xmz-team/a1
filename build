@@ -33,9 +33,9 @@ envsubst="$jub/envsubst"
 dpkg_deb="$jub/dpkg-deb"
 dpkg_name="$jub/dpkg-name"
 
-source "$origpwd/dependent.ini"
+#source "$origpwd/dependent.ini"
 # sudo apt-get update >/dev/null 2>&1
-sudo apt install -y $dependent
+#sudo apt install -y $dependent
 
 init()
 {
@@ -43,18 +43,20 @@ init()
     cd packages
     $mkdir -p packdeb.d/a1/$date_dir/
     $mkdir -p packdeb.d/gui/$date_dir/
-    
-    cd a1
-    for f in *.deb; do
-        [ -f "$f" ] && $mv "$f" ../packdeb.d/a1/$date_dir/
-    done
-
-    cd ../gui
-    for f in *.deb; do
-        [ -f "$f" ] && $mv "$f" ../packdeb.d/gui/$date_dir/
-    done
-
-    cd ..
+    if [ -d "a1" ]; then
+        cd a1
+        for f in *.deb; do
+            [ -f "$f" ] && $mv "$f" ../packdeb.d/a1/$date_dir/
+        done
+        cd ..
+    fi
+    if [ -d "gui" ]; then
+        cd gui
+        for f in *.deb; do
+            [ -f "$f" ] && $mv "$f" ../packdeb.d/gui/$date_dir/
+        done
+        cd ..
+    fi
     $rm -rf a1 gui
     $cp -a a1.template.d a1
     $cp -a gui.template.d gui
@@ -81,7 +83,7 @@ build()
 		}
 		bundle_pid()
 		{
-				cd src/bin/bundle_pid
+				cd src/bin/bundle
 				$CXX -fobjc-arc -framework Foundation -framework Security -I. bundle.mm -o bundle_pid
 				$ldid -S../../../a1.bin.ens.xml -Hsha1 -Hsha256 -M bundle_pid
 				cd $orig_pwd
@@ -136,9 +138,9 @@ package()
 				$cp -a $src_a1/a1 $rh_pack_a1/
 				$cp -a $src_a1/a1 $rf_pack_a1/var/
 
-            $cp -a $src_a1/usr/local/bin $rl_pack_a1/var/jb/usr/local/
-            $cp -a $src_a1/usr/local/bin $rh_pack_a1/usr/local/
-            $cp -a $src_a1/usr/local/bin $rf_pack_a1/usr/local/
+            $cp -a $src_a1/usr/local/ $rl_pack_a1/var/jb/usr/
+            $cp -a $src_a1/usr/local $rh_pack_a1/usr/
+            $cp -a $src_a1/usr/local $rf_pack_a1/usr/
 
             for f in $rl_pack_a1/var/jb/usr/local/bin/*.sh; do $mv "$f" "${f%.sh}"; done
             for f in $rh_pack_a1/usr/local/bin/*.sh; do $mv "$f" "${f%.sh}"; done
@@ -155,11 +157,11 @@ package()
 				$cp -a $src_bin/a1hub/a1hub $rh_pack_a1/usr/local/bin/
 				$cp -a $src_bin/a1hub/a1hub $rf_pack_a1/usr/local/bin/
 			# bundle_pid
-				$cp -a $src_bin/bundle_pid/bundle_pid $rl_pack_a1/var/jb/usr/bin/
-				$cp -a $src_bin/bundle_pid/bundle_pid $rh_pack_a1/usr/bin/
-				$cp -a $src_bin/bundle_pid/bundle_pid $rf_pack_a1/usr/bin/
+				$cp -a $src_bin/bundle/bundle_pid $rl_pack_a1/var/jb/usr/bin/
+				$cp -a $src_bin/bundle/bundle_pid $rh_pack_a1/usr/bin/
+				$cp -a $src_bin/bundle/bundle_pid $rf_pack_a1/usr/bin/
 			# rm
-				$rm -f $src_bin/flock-ios/flock $src_bin/a1hub/a1hub $src_bin/bundle_pid/bundle_pid $src_bin/raise_power/raise_power
+				$rm -f $src_bin/flock-ios/flock $src_bin/a1hub/a1hub $src_bin/bundle/bundle_pid $src_bin/raise_power/raise_power
 		}
 		cp_gui()
 		{
@@ -247,8 +249,7 @@ package()
 		mv_a1_rh_deb_d
 		mv_a1_rf_deb_d
 		mv_gui_rl_deb_d
-      mv_gui_rh_deb_d
-
+        mv_gui_rh_deb_d
 		cd packages/a1
 		$dpkg_deb -b rootless a1_rl.deb && $dpkg_name a1_rl.deb
 		$dpkg_deb -b roothide a1_rh.deb && $dpkg_name a1_rh.deb
@@ -262,9 +263,8 @@ package()
 }
 
 main() {
-    #init
-    #package
-    echo "If it has been abandoned, please use the new construction stetlet." >&2
+    init
+    package
 }
 
 main
