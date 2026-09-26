@@ -14,7 +14,6 @@ jobs:
 
     - name: Setup
       run: |
-        set -x
         git -c url."https://github.com/".insteadOf="git@github.com:" submodule update --init --recursive
         chmod +x build
         chmod +x ci/*.sh
@@ -33,6 +32,7 @@ jobs:
         cd libzip5/var/jb/usr/lib/
         ln -sf libzip.dylib libzip.5.5.dylib
         cd ../../../../../
+        pwd
         ls -l libzip5/var/jb/usr/lib/libzip.dylib
         #libcurl
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/curl/libcurl4_8.7.1_iphoneos-arm64.deb"
