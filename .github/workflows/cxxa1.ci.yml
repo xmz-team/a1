@@ -21,7 +21,7 @@ jobs:
         wget "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_arm64"
         chmod +x ldid_macosx_arm64
         alias 'ldid'="$(pwd)/ldid_linux_x86_64"
-        berw install dpkg
+        brew install dpkg
 
     - name: Build
       run: |
