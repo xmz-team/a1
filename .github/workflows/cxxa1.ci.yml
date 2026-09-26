@@ -15,12 +15,13 @@ jobs:
     - name: Setup
       run: |
         git -c url."https://github.com/".insteadOf="git@github.com:" submodule update --init --recursive
-        #ls -las libs/lua/
         chmod +x build
         chmod +x ci/*.sh
+        mkdir -p tmp/bin && cd tmp/bin
         wget "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_arm64"
         chmod +x ldid_macosx_arm64
-        alias 'ldid'="$(pwd)/ldid_linux_x86_64"
+        cd ..
+        export PATH="$PATH:$(pwd)/tmp/bin"
         brew install dpkg
 
     - name: Build

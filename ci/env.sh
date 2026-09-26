@@ -8,12 +8,14 @@ else
 fi
 
 if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
-    mkdir -p "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
-    cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
-    wget "https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz"
-    tar xf *.tar.xz
-    cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
-    SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
+    if [ ! -z "$SDKROOT" ]; then
+        mkdir -p "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
+        cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
+        wget "https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz"
+        tar xf *.tar.xz
+        cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
+        SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
+    fi
 fi
 
 src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src/cxxa1"
