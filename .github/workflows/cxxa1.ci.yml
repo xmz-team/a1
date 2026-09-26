@@ -1,0 +1,31 @@
+name: Build and package cxxa1
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup
+      run: |
+        chmod +x build
+        chmod +x ci/*.sh
+
+    - name: Build
+      run: |
+        ./build build-a1-all build-a1-tool
+
+    - name: Package
+      run: |
+        ./build pack-all
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: cxxa1-packages
+        path: packages/packdeb/
