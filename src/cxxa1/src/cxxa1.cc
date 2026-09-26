@@ -72,6 +72,10 @@ int main() {
     }
     a1::init();
     a1::config::jb_path g_jb;
+    xmz::log::debug("current uid:", getuid());
+    xmz::log::debug("current euid:", geteuid());
+    xmz::log::debug("current jb path:", g_jb.jb);
+    xmz::log::debug("current a1 path:", g_jb.a1_dir);
     a1mod::luatime lt;
     xmz::println(xmz::get_time_str());
     xmz::println("______________________");
