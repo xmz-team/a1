@@ -14,8 +14,6 @@ if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
     tar xvf *.tar.xz
     cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
     SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
-    echo "SDK is: $SDKROOT"
-    ls -las
 fi
 
 src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src/cxxa1"
@@ -32,7 +30,7 @@ lib_path=(
     -Wl,-rpath,@loader_path/.jbroot/lib
 )
 
-CXXFLAGS="-target arm64-apple-ios14.0 -isysroot ${SDKROOT} -I${SDKROOT}/usr/include -I${SDKROOT}/usr/include/c++ -miphoneos-version-min=14.0 -framework Foundation -framework Security -I${src_path} -I. -Isrc/cxxa1 -Isrc/bin/bundle -Isrc/bin -Ilibs/sol2/include -Ilibs/lua -I${jb}/usr/include -I${src_path}/../bin/bundle -I${src_path}/../.. -I${jb}/usr/local/include ${lib_path[@]} $CXXFLAGS2"
+CXXFLAGS="-target arm64-apple-ios14.0 -isysroot ${SDKROOT} -I${SDKROOT}/usr/include -I${SDKROOT}/usr/include/c++ -miphoneos-version-min=14.0 -framework Foundation -framework Security -I${src_path} -I. -Isrc/cxxa1 -Isrc/bin/bundle -Isrc/bin -Ilibs/libxmz -Ilibs/lua -I${jb}/usr/include -I${src_path}/../bin/bundle -I${src_path}/../.. -I${jb}/usr/local/include ${lib_path[@]} $CXXFLAGS2"
 
 sign() {
     local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
