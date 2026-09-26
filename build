@@ -15,10 +15,10 @@ b_a1() {
         cp loslib.c loslib.c.orig
         patch -p0 < ${lua_patch_file}
         make clean
-        make CC="cc -target arm64-apple-ios14.0" a
+        make CC="$(command -v clang) -target arm64-apple-ios14.0" a
         rm -f loslib.c && mv loslib.c.orig loslib.c
         cd ${script_path}
-        c++ -ObjC++ \
+        clang++ -ObjC++ \
          $CXXFLAGS \
          ${src_path}/src/cxxa1.cc -o cxxa1 \
          -lm ${script_path}/libs/lua/liblua.a
@@ -26,7 +26,7 @@ b_a1() {
         if [ ! -f "${script_path}/libs/lua/liblua.a" ]; then
             echo "[Error]: cache: ${script_path}/libs/lua/liblua.a does not exist" && exit 1;
         else
-            c++ -ObjC++ \
+            clang++ -ObjC++ \
              $CXXFLAGS \
              ${src_path}/src/cxxa1.cc -o cxxa1 \
              -lm ${script_path}/libs/lua/liblua.a
@@ -36,7 +36,7 @@ b_a1() {
 }
 
 b_a1ctl() {
-    c++ -ObjC++ \
+    clang++ -ObjC++ \
      $CXXFLAGS \
      -lzip \
      ${src_path}/src/cxxa1ctl.cc -o cxxa1ctl
@@ -44,7 +44,7 @@ b_a1ctl() {
 }
 
 b_a1mod() {
-    c++ -ObjC++ \
+    clang++ -ObjC++ \
      $CXXFLAGS \
      -lzip -lssl -lcrypto \
      ${src_path}/src/cxxa1mod.cc -o cxxa1mod
@@ -52,7 +52,7 @@ b_a1mod() {
 }
 
 b_a1pm() {
-    c++ -ObjC++ \
+    clang++ -ObjC++ \
      $CXXFLAGS \
      -lzip -lcurl -lssl -lcrypto \
      ${src_path}/src/cxxa1pm.cc -o cxxa1pm
@@ -62,7 +62,7 @@ b_a1pm() {
 b_gui() {
     src_gui=${script_path}/src/gui
     local CXXFLAGS="$CXXFLAGS -I${src_gui} -framework UIKit -framework CoreGraphics -framework QuartzCore"
-    c++ -ObjC++ -fobjc-arc \
+    clang++ -ObjC++ -fobjc-arc \
         $CXXFLAGS \
         -Wno-deprecated-declarations \
         -DA1_USE_GUI_CFG \

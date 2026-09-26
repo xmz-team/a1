@@ -18,8 +18,6 @@ jobs:
         ls -las libs/lua/
         chmod +x build
         chmod +x ci/*.sh
-        alias 'c++'='clang++'
-        alias 'cc'='clang'
         wget "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_linux_x86_64"
         chmod +x ldid_linux_x86_64
         alias 'ldid'="$(pwd)/ldid_linux_x86_64"
