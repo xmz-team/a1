@@ -19,6 +19,7 @@ if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
 fi
 
 src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src/cxxa1"
+export PATH="${PATH}:$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../tmp/bin"
 
 lib_path=(
     -Wl,-rpath,/usr/lib
