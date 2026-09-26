@@ -14,9 +14,8 @@ if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
     tar xvf *.tar.xz
     cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
     SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
-    echo $SDKROOT
+    echo "SDK is: $SDKROOT"
     ls -las
-    fi
 fi
 
 src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src/cxxa1"
