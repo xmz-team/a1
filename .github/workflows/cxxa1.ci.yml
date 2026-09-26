@@ -19,6 +19,7 @@ jobs:
         chmod +x ci/*.sh
         mkdir -p tmp/bin && cd tmp/bin
         wget "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_arm64"
+        ln -sf ldid_macosx_arm64 ldid
         cd ../..
         chmod +x tmp/bin/*
         brew install dpkg
