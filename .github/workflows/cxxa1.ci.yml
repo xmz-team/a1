@@ -6,11 +6,14 @@ on:
 
 jobs:
   build:
-#    runs-on: ubuntu-latest
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        persist-credentials: true
 
     - name: Setup
       run: |
@@ -55,8 +58,16 @@ jobs:
         mv packages/cxxa1/*.deb packages/pack-full
         mv packages/a1gui/*.deb packages/pack-full
 
+    - name: Update Version
+      run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add version.ini
+          git diff --staged --quiet || git commit -m "chore: update version.ini [skip ci]"
+          git push
+
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: packages
+        name: a1-full-packages
         path: packages/pack-full
