@@ -15,7 +15,7 @@ b_a1() {
         cp loslib.c loslib.c.orig
         patch -p0 < ${lua_patch_file}
         make clean
-        make CC="$(which cc) -target arm64-apple-ios14.0" a
+        make CC="cc -target arm64-apple-ios14.0" a
         rm -f loslib.c && mv loslib.c.orig loslib.c
         cd ${script_path}
         c++ -ObjC++ \
