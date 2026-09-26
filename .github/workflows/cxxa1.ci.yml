@@ -14,7 +14,7 @@ jobs:
 
     - name: Setup
       run: |
-        git submodule update --init --recursive
+        git -c url."https://github.com/".insteadOf="git@github.com:" submodule update --init --recursive
         ls -las libs/lua/
         chmod +x build
         chmod +x ci/*.sh
