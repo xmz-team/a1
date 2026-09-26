@@ -7,13 +7,15 @@ else
     jb=""
 fi
 
-if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ]; then
-    SDKROOT="$(xcrun --sdk iphoneos --show-sdk-path)"
-    if [ -z "$SDKROOT" ]; then
-        mkdir -p "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp && cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp && wget "https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz"
-        tar xvf *.tar.xz
-        cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
-        SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
+if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
+    mkdir -p "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
+    cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
+    wget "https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz"
+    tar xvf *.tar.xz
+    cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
+    SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
+    echo $SDKROOT
+    ls -las
     fi
 fi
 
