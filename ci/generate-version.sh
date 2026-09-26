@@ -8,6 +8,7 @@ a1ctl_version=""
 a1mod_version=""
 a1pm_version=""
 gui_version=""
+general_version=""
 temp_file=$(mktemp)
 
 while IFS= read -r line || [[ -n "$line" ]]
@@ -21,7 +22,7 @@ do
         in_new_section=0
     fi
     if [[ -n "$in_new_section" ]] && \
-       [[ "$line" =~ ^(a1_version|a1ctl_version|a1mod_version|a1pm_version|gui_version)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
+       [[ "$line" =~ ^(a1_version|a1ctl_version|a1mod_version|a1pm_version|gui_version|general_version)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
         key="${BASH_REMATCH[1]}"
         value="${BASH_REMATCH[2]}"
         value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
@@ -32,6 +33,7 @@ do
             a1mod)   [[ "$key" == "a1mod_version" ]] && should_update=1 ;;
             a1pm)    [[ "$key" == "a1pm_version" ]] && should_update=1 ;;
             gui)     [[ "$key" == "gui_version" ]] && should_update=1 ;;
+            general) [[ "$key" == "general_version" ]] && should_update=1 ;;
             all|"")  should_update=1 ;;
         esac
         if [[ $should_update -eq 1 ]] && [[ "$value" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(\.([0-9]+))?(-([^+]+))?(\+(.+))?$ ]]; then
@@ -58,6 +60,7 @@ do
             a1mod_version) a1mod_version="$new_value"; ;;
             a1pm_version) a1pm_version="$new_value"; ;;
             gui_version) gui_version="$new_value"; ;;
+            general_version) general_version="$new_value"; ;;
         esac
     else
         echo "$line" >> "$temp_file"
@@ -66,11 +69,12 @@ done < "${script_path}/../version.ini"
 
 mv "$temp_file" "${script_path}/../version.ini"
 
-if [ -z "$a1_version" ] || \
-   [ -z "$a1ctl_version" ] || \
-   [ -z "$a1mod_version" ] || \
-   [ -z "$a1pm_version" ] || \
-   [ -z "$gui_version" ]; then
+if [ -z "$a1_version" ]      || \
+   [ -z "$a1ctl_version" ]   || \
+   [ -z "$a1mod_version" ]   || \
+   [ -z "$a1pm_version" ]    || \
+   [ -z "$gui_version" ]     || \
+   [ -z "$general_version" ]; then
     while IFS='=' read -r key value
     do
         key=$(echo "$key" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
@@ -81,8 +85,9 @@ if [ -z "$a1_version" ] || \
             a1mod_version) a1mod_version="$value" ;;
             a1pm_version) a1pm_version="$value" ;;
             gui_version) gui_version="$value" ;;
+            general_version) general_version="$value" ;;
         esac
-    done < <(grep -E "^(a1_version|a1ctl_version|a1mod_version|a1pm_version|gui_version)=" "${script_path}/../version.ini")
+    done < <(grep -E "^(a1_version|a1ctl_version|a1mod_version|a1pm_version|gui_version|general_version)=" "${script_path}/../version.ini")
 fi
 
 echo "a1_version=$a1_version"
@@ -90,6 +95,7 @@ echo "a1ctl_version=$a1ctl_version"
 echo "a1mod_version=$a1mod_version"
 echo "a1pm_version=$a1pm_version"
 echo "gui_version=$gui_version"
+echo "general_version=$general_version"
 
 sed -e "s/@a1_version@/$a1_version/g" \
     -e "s/@a1ctl_version@/$a1ctl_version/g" \
@@ -112,7 +118,7 @@ get_version() {
             continue
         fi
         if [[ $in_new_section -eq 1 ]] && \
-           [[ "$line" =~ ^(a1_version|a1ctl_version|a1mod_version|a1pm_version|gui_version)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
+           [[ "$line" =~ ^(a1_version|a1ctl_version|a1mod_version|a1pm_version|gui_version|general_version)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
             local key="${BASH_REMATCH[1]}"
             local value="${BASH_REMATCH[2]}"
             value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
@@ -122,6 +128,7 @@ get_version() {
                 a1mod_version) a1mod_version="$value" ;;
                 a1pm_version)  a1pm_version="$value" ;;
                 gui_version)   gui_version="$value" ;;
+                general_version) general_version="$value" ;;
             esac
         fi
     done < "${script_path}/../version.ini"
@@ -132,6 +139,7 @@ get_version() {
         a1mod) printf "%s" "$a1mod_version" ;;
         a1pm) printf "%s" "$a1pm_version" ;;
         gui|a1gui) printf "%s" "$gui_version" ;;
+        general) printf "%s" "$general_version" ;;
         *) echo "[Error]: unsupported parameters: $1" >&2; exit 1; ;;
     esac
 }

@@ -51,12 +51,11 @@ jobs:
     - name: Package
       run: |
         ./build pack-all
-
-    - name: Upload
-      run: |
         mkdir -p packages/pack-full
         mv packages/cxxa1/*.deb packages/pack-full
         mv packages/a1gui/*.deb packages/pack-full
+
+    - name: Upload
       uses: actions/upload-artifact@v4
       with:
         name: packages

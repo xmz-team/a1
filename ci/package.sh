@@ -25,7 +25,7 @@ pack() {
         ln -sf bundle packages/cxxa1/$1/$2/a1/bin/bundle_pid
         ln -sf bundle packages/cxxa1/$1/$2/a1/bin/pid_bundle
         ln -sf flock packages/cxxa1/$1/$2/a1/bin/flock-ios
-        echo "Version: ${general_version}" >> packages/cxxa1/$1/DEBIAN/control
+        echo "Version: $(get_version general)" >> packages/cxxa1/$1/DEBIAN/control
         dpkg-deb -b packages/cxxa1/$1 packages/cxxa1/cxxa1-${1}.deb
         dpkg-name packages/cxxa1/cxxa1-${1}.deb
     }

@@ -76,5 +76,3 @@ sign() {
     [ -z "$2" ] && echo "[Error]: the name of the document that needs to be signed" >&2 && return 1;
     ldid ${SIGN_OPT} "$2"
 }
-
-general_version="2.0.0-beta2+debug2"

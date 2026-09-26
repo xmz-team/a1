@@ -7,6 +7,7 @@ source ${script_path}/ci/env.sh
 source ${script_path}/ci/package.sh
 source ${script_path}/ci/build-tool.sh
 source ${script_path}/ci/generate-version.sh
+generate_version general
 
 b_a1() {
     local lua_patch_file="${script_path}/paths/loslib_lsystem.patch"
