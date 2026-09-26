@@ -15,7 +15,7 @@ if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ]; then
         cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
         SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
     fi
-    _CXXFLAGS1="-isysroot ${SDKROOT} -stdlib=libc++"
+    _CXXFLAGS1="-isysroot ${SDKROOT} -stdlib=libc++ -I${SDKROOT}/usr/include -I${SDKROOT}/usr/include/c++"
 fi
 
 src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src/cxxa1"
