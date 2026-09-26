@@ -23,7 +23,7 @@ jobs:
         cd ../..
         chmod +x tmp/bin/*
         brew install dpkg
-        mkdir -p tmp/lib
+        mkdir -p tmp/lib && cd tmp/lib
         #libzip5
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/libzip/libzip5_1.9.2_iphoneos-arm64.deb"
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/libzip/libzip-dev_1.9.2_iphoneos-arm64.deb"
@@ -32,7 +32,7 @@ jobs:
         #libcurl
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/curl/libcurl4_8.7.1_iphoneos-arm64.deb"
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/curl/libcurl4-openssl-dev_8.7.1_iphoneos-arm64.deb"
-        dpkg-deb -R libcurl4_8.7.1_iphoneos-arm64.deb lincurl
+        dpkg-deb -R libcurl4_8.7.1_iphoneos-arm64.deb libcurl
         dpkg-deb -R libcurl4-openssl-dev_8.7.1_iphoneos-arm64.deb libcurl-openssl-dev
         #openssl
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/openssl/libssl3_3.2.1_iphoneos-arm64.deb"
