@@ -30,13 +30,13 @@ jobs:
         dpkg-deb -R libzip-dev_1.9.2_iphoneos-arm64.deb libzip-dev
         dpkg-deb -R libzip5_1.9.2_iphoneos-arm64.deb libzip5
         #libcurl
-        wegt "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/curl/libcurl4_8.7.1_iphoneos-arm64.deb"
-        wegt "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/curl/libcurl4-openssl-dev_8.7.1_iphoneos-arm64.deb"
+        wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/curl/libcurl4_8.7.1_iphoneos-arm64.deb"
+        wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/curl/libcurl4-openssl-dev_8.7.1_iphoneos-arm64.deb"
         dpkg-deb -R libcurl4_8.7.1_iphoneos-arm64.deb lincurl
         dpkg-deb -R libcurl4-openssl-dev_8.7.1_iphoneos-arm64.deb libcurl-openssl-dev
         #openssl
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/openssl/libssl3_3.2.1_iphoneos-arm64.deb"
-        wegt "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/openssl/libssl-dev_3.2.1_iphoneos-arm64.deb"
+        wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/openssl/libssl-dev_3.2.1_iphoneos-arm64.deb"
         dpkg-deb -R libssl3_3.2.1_iphoneos-arm64.deb libssl3
         dpkg-deb -R libssl-dev_3.2.1_iphoneos-arm64.deb libssl-dev
         cd ../..
