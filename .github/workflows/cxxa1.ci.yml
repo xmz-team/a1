@@ -14,6 +14,7 @@ jobs:
 
     - name: Setup
       run: |
+        ls -las libs/lua/
         chmod +x build
         chmod +x ci/*.sh
 
