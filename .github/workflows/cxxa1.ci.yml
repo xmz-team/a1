@@ -6,8 +6,8 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-#    runs-on: macos-latest
+#    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -15,12 +15,13 @@ jobs:
     - name: Setup
       run: |
         git -c url."https://github.com/".insteadOf="git@github.com:" submodule update --init --recursive
-        ls -las libs/lua/
+        #ls -las libs/lua/
         chmod +x build
         chmod +x ci/*.sh
-        wget "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_linux_x86_64"
-        chmod +x ldid_linux_x86_64
+        wget "https://github.com/ProcursusTeam/ldid/releases/download/v2.1.5-procursus7/ldid_macosx_arm64"
+        chmod +x ldid_macosx_arm64
         alias 'ldid'="$(pwd)/ldid_linux_x86_64"
+        berw install dpkg
 
     - name: Build
       run: |
