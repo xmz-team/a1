@@ -8,7 +8,7 @@ else
 fi
 
 if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
-    if [ ! -z "$SDKROOT" ]; then
+    if [ -z "$SDKROOT" ]; then
         mkdir -p "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
         cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
         wget "https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz"
@@ -32,7 +32,20 @@ lib_path=(
     -Wl,-rpath,@loader_path/.jbroot/lib
 )
 
-CXXFLAGS="-std=c++17 -target arm64-apple-ios14.0 -isysroot ${SDKROOT} -I${SDKROOT}/usr/include -I${SDKROOT}/usr/include/c++ -miphoneos-version-min=14.0 -framework Foundation -framework Security -I${src_path} -I. -Isrc/cxxa1 -Isrc/bin/bundle -Isrc/bin -Ilibs/libxmz -Ilibs/lua -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs -Ilibs -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs/libxmz -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs/lua -I${jb}/usr/include -I${src_path}/../bin/bundle -I${src_path}/../.. -I${jb}/usr/local/include ${lib_path[@]} $CXXFLAGS2"
+CXXFLAGS="\
+  -target arm64-apple-ios14.0 -isysroot ${SDKROOT} -miphoneos-version-min=14.0 \
+  -std=c++17 \
+  -framework Foundation -framework Security \
+  -I${SDKROOT}/usr/include \
+  -I${SDKROOT}/usr/include/c++ \
+  -I${src_path} -I. -Isrc/cxxa1 -Isrc/bin/bundle -Isrc/bin \
+  -Ilibs/libxmz -Ilibs/lua \
+  -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs -Ilibs \
+  -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs/libxmz \
+  -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs/lua \
+  -I${jb}/usr/include -I${jb}/usr/local/include \
+  -I${src_path}/../bin/bundle -I${src_path}/../.. \
+  ${lib_path[@]} $CXXFLAGS2"
 
 sign() {
     local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
