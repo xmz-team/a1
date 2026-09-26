@@ -11,11 +11,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-          recursive: true
 
     - name: Setup
       run: |
+        git submodule update --init --recursive
         ls -las libs/lua/
         chmod +x build
         chmod +x ci/*.sh
