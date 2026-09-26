@@ -46,7 +46,9 @@ CXXFLAGS="\
   -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs/lua \
   -I${jb}/usr/include -I${jb}/usr/local/include \
   -I${src_path}/../bin/bundle -I${src_path}/../.. \
-  ${lib_path[@]} $CXXFLAGS2"
+  ${lib_path[@]} \
+  -Wl,-undefined,dynamic_lookup \
+  $CXXFLAGS1 $CXXFLAGS2"
 
 sign() {
     local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
