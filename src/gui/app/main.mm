@@ -9,6 +9,7 @@
 #import "AppDelegate.h"
 #include <core/env.h>
 #include <core/cfg.h>
+#include <a1/core/a1core.hpp>
 
 #include <libxmz/log.hpp>
 #include <libxmz/fs.hpp>
@@ -17,12 +18,9 @@
 
 int main(int argc, char * argv[]) {
     g_env.init();
+    a1::init();
     xmz::crash::init_crash_handler(g_jb.a1_dir + "/a1gui_crash.log");
     @autoreleasepool {
-        if (setuid(0) != 0 && getuid() != 0) {
-            xmz::log::error("a1gui requires root permissions!");
-            return 1;
-        }
         xmz::log::info("a1gui starting...");
         xmz::log::debug("app path:", g_env.get_self_path());
         xmz::log::debug("uid:", getuid());

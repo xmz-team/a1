@@ -4,6 +4,8 @@
 #include <a1/core/a1core.hpp>
 #include <a1/core/myini.hpp>
 #include <a1/core/set_defaults.hpp>
+#include <src/bin/bundle/libproc.h>
+#include <src/bin/bundle/bundle.hpp>
 
 #include <string>
 #include <sys/wait.h>
@@ -91,7 +93,7 @@ namespace a1ctl {
         return 0;
     }
 
-    inline int check_a1_running() { if (a1::bin::bundle_pid("a1") == -1) { return 1; } else { return 0; } }
+    inline int check_a1_running() { if (a1::bin::bundle_pid("cxxa1") == -1) { return 1; } else { return 0; } }
 
     inline int check_if_should_run_a1() {
         a1::config::jb_path g_jb;
@@ -238,7 +240,7 @@ namespace a1ctl {
         start_a1_service();
         sleep(1);
 
-        int pid = a1::bin::bundle_pid("a1");
+        int pid = a1::bin::bundle_pid("cxxa1");
         std::string cxxa1_path = g_jb.a1_dir + "/bin/cxxa1";
 
         if (pid != -1) {
@@ -256,7 +258,7 @@ namespace a1ctl {
                 }
             }
             sleep(1);
-            if (a1::bin::bundle_pid("a1") != -1) {
+            if (a1::bin::bundle_pid("cxxa1") != -1) {
                 xmz::log::info("A1 has been activated(PID:", pid2, ")");
                 return 0;
             } else {

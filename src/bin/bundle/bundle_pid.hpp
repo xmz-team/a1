@@ -30,13 +30,13 @@ OSStatus SecCodeCopySigningInformation(SecStaticCodeRef code, SecCSFlags flags, 
 }
 #endif
 
-extern "C" {
-int bundle_pid(const char *target);
-}
+#ifdef __cplusplus
+inline int bundle_pid(const char *target);
+#endif
 
 namespace a1::bin::_bundle_pid {
 /* Signature check core */
-BOOL checkSignature(NSString *path, NSString *targetID) {
+inline BOOL checkSignature(NSString *path, NSString *targetID) {
     if (!path || !targetID) return NO;
     NSURL *url = [NSURL fileURLWithPath:path];
     SecStaticCodeRef staticCode = NULL;
@@ -57,7 +57,7 @@ BOOL checkSignature(NSString *path, NSString *targetID) {
     return match;
 }
 
-int findPIDByBundle(const char *target) {
+inline int findPIDByBundle(const char *target) {
     @autoreleasepool {
         if (!target) return -1;
         NSString *targetInput = [NSString stringWithUTF8String:target];
@@ -111,8 +111,6 @@ int findPIDByBundle(const char *target) {
 
 #ifdef __cplusplus
 namespace a1::bin {
-extern "C" int bundle_pid(const char *target) {
-    return a1::bin::_bundle_pid::findPIDByBundle(target);
-}
-#endif
+inline int bundle_pid(const char *target) { return a1::bin::_bundle_pid::findPIDByBundle(target); }
 } /* namespace a1::bin */
+#endif

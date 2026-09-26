@@ -1,7 +1,7 @@
 #pragma once
 #include "bundle_pid.hpp"
 namespace a1::bin {
-extern "C" const char* pid_bundle(int pid) {
+inline const char* pid_bundle(int pid) {
     @autoreleasepool {
         if (pid <= 0) return NULL;
         char pathBuffer[PROC_PIDPATHINFO_MAXSIZE];
