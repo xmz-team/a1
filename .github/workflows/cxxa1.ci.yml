@@ -22,7 +22,7 @@ jobs:
         ln -sf ldid_macosx_arm64 ldid
         cd ../..
         chmod +x tmp/bin/*
-        brew install dpkg
+        brew install dpkg tree
         mkdir -p tmp/lib && cd tmp/lib
         #libzip5
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/libzip/libzip5_1.9.2_iphoneos-arm64.deb"
@@ -33,6 +33,7 @@ jobs:
         ln -sf libzip.dylib libzip.5.5.dylib
         cd ../../../../../
         pwd
+        tree libzip5
         ls -l libzip5/var/jb/usr/lib/libzip.dylib
         #libcurl
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/curl/libcurl4_8.7.1_iphoneos-arm64.deb"
