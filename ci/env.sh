@@ -19,6 +19,8 @@ if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
     if [ $(uname -s) = "Darwin" ] && [ "$(dpkg --print-architecture)" = "darwin-arm64" ]; then
         CXXFLAGS1="\
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libzip5/var/jb/usr/lib \
+  -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libzip-dev/var/jb/usr/lib \
+  -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libssl-dev/var/jb/usr/lib \
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libssl3/var/jb/usr/lib \
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libcurl/var/jb/usr/lib \
   -I$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libcurl-openssl-dev/var/jb/usr/include \
