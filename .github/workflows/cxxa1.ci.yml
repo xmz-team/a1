@@ -53,7 +53,11 @@ jobs:
         ./build pack-all
 
     - name: Upload
+      run: |
+        mkdir -p packages/pack-full
+        mv packages/cxxa1/*.deb packages/pack-full
+        mv packages/a1gui/*.deb packages/pack-full
       uses: actions/upload-artifact@v4
       with:
-        name: cxxa1-packages
-        path: packages/packdeb/
+        name: packages
+        path: packages/pack-full
