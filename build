@@ -2,14 +2,15 @@
 #build.sh
 set -ex
 script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
-have_general=false
+export have_general=false
 
 source ${script_path}/ci/env.sh
 source ${script_path}/ci/package.sh
 source ${script_path}/ci/build-tool.sh
 source ${script_path}/ci/generate-version.sh
 if [ "$have_general" = "false" ]; then
-generate_version general
+    generate_version general
+    export have_general=true
 fi
 
 b_a1() {
