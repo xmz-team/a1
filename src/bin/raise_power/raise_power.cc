@@ -1,7 +1,7 @@
 /*
  * raise_power.cc
- * Created by XMZ <ad-ios334@outlook.com> on 2026-07-04
- * Copyright (c) 2026 XMZ <xmz-team@outlook.com>
+ * Created by AD-iOS <ad-ios334@outlook.com> on 2026-07-04
+ * Copyright (c) 2026 AD-iOS <ad-ios334@outlook.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

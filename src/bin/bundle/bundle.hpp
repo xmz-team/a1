@@ -1,5 +1,5 @@
 /*
- *  bundle.mm
+ *  bundle.hpp
  *  Added support for Bundle Identifier by XMZ <ad-ios334@outlook.com> on 5/12/25
  * Copyright (c) 2026 XMZ <xmz-team@outlook.com>
  *

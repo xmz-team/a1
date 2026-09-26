@@ -1,6 +1,6 @@
 /*
  * flock.hpp
- * Created by XMZ <ad-ios334@outlook.com> on 2026-07-28
+ * Created by XMZ <xmz-team@outlook.com> on 2026-07-28
  * Copyright (c) 2026 XMZ <xmz-team@outlook.com>
  *
  * This library is free software; you can redistribute it and/or
