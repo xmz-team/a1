@@ -16,7 +16,7 @@ if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
         cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
         SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
     fi
-    if [ $(uname -s) = "darwin" ] && [ "$(dpkg --print-architecture)" = "darwin-arm64" ]; then
+    if [ $(uname -s) = "Darwin" ] && [ "$(dpkg --print-architecture)" = "darwin-arm64" ]; then
         CXXFLAGS1="\
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/*/var/jb/usr/lib \
   -I$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libcurl-openssl-dev/var/jb/usr/include \
