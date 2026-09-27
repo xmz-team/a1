@@ -12,6 +12,9 @@ jobs:
     steps:
     - name: Checkout
       uses: https://codeberg.org/actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: true
 
     - name: Setup
       run: |
@@ -29,6 +32,7 @@ jobs:
         fi
         cd ../..
         chmod +x tmp/bin/*
+        sudo apt-get update && sudo apt-get install -y dpkg
         mkdir -p tmp/lib && cd tmp/lib
         #libzip5
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/libzip/libzip5_1.9.2_iphoneos-arm64.deb"
@@ -61,13 +65,16 @@ jobs:
         mv packages/cxxa1/*.deb packages/pack-full
         mv packages/a1gui/*.deb packages/pack-full
 
-    - name: Update Version
+    - name: Update Version and Tags
       run: |
         git config user.name "forgejo-actions[bot]"
         git config user.email "forgejo-actions[bot]@noreply.codeberg.org"
-        git add version.ini
-        git diff --staged --quiet || git commit -m "chore: update version.ini [skip ci]"
+        source ci/generate-version.sh
+        generate_version all
+        git add version.ini src/cxxa1/a1/core/version.hpp src/gui/Info.plist
+        git diff --staged --quiet || git commit -m "chore: bump version [skip ci]"
         git push
+        git push -f --tags
 
     - name: Upload
       uses: https://codeberg.org/forgejo/upload-artifact@v4

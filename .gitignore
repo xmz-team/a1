@@ -36,3 +36,5 @@ src/gui/a1gui.AllCode.all.md
 
 src/gui/Info.plist
 .generate.lock
+induce-code-ci
+*.AllCode.all.*

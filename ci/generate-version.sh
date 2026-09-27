@@ -3,175 +3,165 @@ generate_version() {
     local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
     source "${script_path}/env.sh"
 
-    a1_version=""
-    a1ctl_version=""
-    a1mod_version=""
-    a1pm_version=""
-    gui_version=""
-    general_version=""
-    temp_file=$(mktemp)
+    _git_tag_of() {
+        local name="$1"
+        git tag -l "${name}-v*" --sort=-v:refname | head -n1
+    }
 
-    local include_set=""
-    local -A exclude_map=()
+    _parse_version() {
+        local tag="$1"
+        local ver="${tag#*-v}"
+        IFS='.' read -r major minor patch build <<< "$ver"
+        printf '%s %s %s %s' "$major" "$minor" "$patch" "$build"
+    }
+
+    _commit_count_since() {
+        local tag="$1"
+        git rev-list --count "${tag}..HEAD" 2>/dev/null || echo 0
+    }
+
+    _bump() {
+        local name="$1"
+        local tag
+        tag="$(_git_tag_of "$name")"
+        if [[ -z "$tag" ]]; then
+            echo "[Error]: no tag found for ${name}" >&2
+            return 1
+        fi
+        local major minor patch build
+        read -r major minor patch build <<< "$(_parse_version "$tag")"
+        local cnt
+        cnt="$(_commit_count_since "$tag")"
+        local new_build=$((build + cnt))
+        printf '%s.%s.%s.%s' "$major" "$minor" "$patch" "$new_build"
+    }
+
+    _retag() {
+        local name="$1"
+        local new_ver="$2"
+        local new_tag="${name}-v${new_ver}"
+        local old_tag
+        old_tag="$(_git_tag_of "$name")"
+        if [[ "$old_tag" == "$new_tag" ]]; then
+            echo "[Info]: ${name} tag unchanged: ${new_tag}"
+            return 0
+        fi
+        git tag -f "$new_tag" >/dev/null 2>&1
+        if git remote get-url origin >/dev/null 2>&1; then
+            git push -f origin "$new_tag" >/dev/null 2>&1 || \
+                echo "[Warn]: failed to push tag ${new_tag}" >&2
+        fi
+        if [[ -n "$old_tag" && "$old_tag" != "$new_tag" ]]; then
+            git tag -d "$old_tag" >/dev/null 2>&1
+            if git remote get-url origin >/dev/null 2>&1; then
+                git push origin ":refs/tags/${old_tag}" >/dev/null 2>&1 || true
+            fi
+        fi
+        echo "[Info]: ${name} retagged: ${old_tag} -> ${new_tag}"
+    }
+
+    _write_version_ini() {
+        local name="$1" ver="$2"
+        local key="${name}_version"
+        local ini="${script_path}/../version.ini"
+        if grep -qE "^${key}[[:space:]]*=" "$ini" 2>/dev/null; then
+            sed -i.bak -E "s|^${key}[[:space:]]*=.*|${key} = ${ver}|" "$ini"
+            rm -f "${ini}.bak"
+        else
+            printf '%s = %s\n' "$key" "$ver" >> "$ini"
+        fi
+    }
+
+    _render_headers() {
+        local ini="${script_path}/../version.ini"
+        local a1_v a1ctl_v a1mod_v a1pm_v gui_v general_v
+        a1_v="$(get_version a1)"
+        a1ctl_v="$(get_version a1ctl)"
+        a1mod_v="$(get_version a1mod)"
+        a1pm_v="$(get_version a1pm)"
+        gui_v="$(get_version gui)"
+        general_v="$(get_version general)"
+
+        sed -e "s/@a1_version@/${a1_v}/g" \
+            -e "s/@a1ctl_version@/${a1ctl_v}/g" \
+            -e "s/@a1mod_version@/${a1mod_v}/g" \
+            -e "s/@a1pm_version@/${a1pm_v}/g" \
+            "${src_path}/a1/core/version.hpp.in" > "${src_path}/a1/core/version.hpp"
+
+        sed -e "s/@version@/${gui_v}/g" \
+            "${script_path}/../src/gui/Info.plist.in" > "${script_path}/../src/gui/Info.plist"
+
+        echo "a1_version=${a1_v}"
+        echo "a1ctl_version=${a1ctl_v}"
+        echo "a1mod_version=${a1mod_v}"
+        echo "a1pm_version=${a1pm_v}"
+        echo "gui_version=${gui_v}"
+        echo "general_version=${general_v}"
+    }
+
+    local targets=()
     local arg
-
     for arg in "$@"
     do
         case "$arg" in
-            --no-a1)      exclude_map[a1]=1 ;;
-            --no-a1ctl)   exclude_map[a1ctl]=1 ;;
-            --no-a1mod)   exclude_map[a1mod]=1 ;;
-            --no-a1pm)    exclude_map[a1pm]=1 ;;
-            --no-gui)     exclude_map[gui]=1 ;;
-            --no-general) exclude_map[general]=1 ;;
-            --no-*)       echo "[Error]: unknown option: $arg" >&2; rm -f "$temp_file"; return 1 ;;
-            all|"")       include_set="all" ;;
-            a1|a1ctl|a1mod|a1pm|gui|general)
-                          include_set="${include_set:+$include_set,}$arg" ;;
-            *)            echo "[Error]: unsupported parameter: $arg" >&2; rm -f "$temp_file"; return 1 ;;
+            all|"") targets=(a1 a1ctl a1mod a1pm gui general) ;;
+            a1|a1ctl|a1mod|a1pm|gui|general) targets+=("$arg") ;;
+            --no-*) ;;
+            *) echo "[Error]: unsupported parameter: $arg" >&2; return 1 ;;
         esac
     done
+    [[ ${#targets[@]} -eq 0 ]] && targets=(a1 a1ctl a1mod a1pm gui general)
 
-    _should_update() {
-        local key="$1"
-        [[ -n "${exclude_map[$key]}" ]] && return 1
-        [[ -z "$include_set" || "$include_set" == "all" ]] && return 0
-        [[ ",$include_set," == *",$key,"* ]] && return 0
-        return 1
-    }
-
-    while IFS= read -r line || [[ -n "$line" ]]
+    local t new_ver
+    for t in "${targets[@]}"
     do
-        if [[ "$line" =~ ^\[new_version\]$ ]]; then
-            in_new_section=1
-            echo "$line" >> "$temp_file"
-            continue
-        fi
-        if [[ "$line" =~ ^\[.+\]$ ]] && [[ -n "$in_new_section" ]]; then
-            in_new_section=0
-        fi
-        if [[ -n "$in_new_section" ]] && \
-           [[ "$line" =~ ^(a1_version|a1ctl_version|a1mod_version|a1pm_version|gui_version|general_version)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
-            key="${BASH_REMATCH[1]}"
-            value="${BASH_REMATCH[2]}"
-            value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
-            local short
-            case "$key" in
-                a1_version)      short="a1" ;;
-                a1ctl_version)   short="a1ctl" ;;
-                a1mod_version)   short="a1mod" ;;
-                a1pm_version)    short="a1pm" ;;
-                gui_version)     short="gui" ;;
-                general_version) short="general" ;;
-            esac
+        new_ver="$(_bump "$t")" || return 1
+        _write_version_ini "$t" "$new_ver"
+        _retag "$t" "$new_ver"
+    done
 
-            should_update=0
-            _should_update "$short" && should_update=1
-
-            if [[ $should_update -eq 1 ]] && [[ "$value" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)(\.([0-9]+))?(-([^+]+))?(\+(.+))?$ ]]; then
-                major="${BASH_REMATCH[1]}"
-                minor="${BASH_REMATCH[2]}"
-                patch="${BASH_REMATCH[3]}"
-                build="${BASH_REMATCH[5]}"
-                prerelease="${BASH_REMATCH[7]}"
-                metadata="${BASH_REMATCH[9]}"
-                if [[ -n "$build" ]]; then
-                    build=$((build + 1))
-                fi
-                new_value="${major}.${minor}.${patch}"
-                [[ -n "$build" ]] && new_value="${new_value}.${build}"
-                [[ -n "$prerelease" ]] && new_value="${new_value}-${prerelease}"
-                [[ -n "$metadata" ]] && new_value="${new_value}+${metadata}"
-            else
-                new_value="$value"
-            fi
-            echo "${key} = ${new_value}" >> "$temp_file"
-            case "$key" in
-                a1_version) a1_version="$new_value"; ;;
-                a1ctl_version) a1ctl_version="$new_value"; ;;
-                a1mod_version) a1mod_version="$new_value"; ;;
-                a1pm_version) a1pm_version="$new_value"; ;;
-                gui_version) gui_version="$new_value"; ;;
-                general_version) general_version="$new_value"; ;;
-            esac
-        else
-            echo "$line" >> "$temp_file"
-        fi
-    done < "${script_path}/../version.ini"
-
-    mv "$temp_file" "${script_path}/../version.ini"
-
-    if [ -z "$a1_version" ]      || \
-       [ -z "$a1ctl_version" ]   || \
-       [ -z "$a1mod_version" ]   || \
-       [ -z "$a1pm_version" ]    || \
-       [ -z "$gui_version" ]     || \
-       [ -z "$general_version" ]; then
-        while IFS='=' read -r key value
-        do
-            key=$(echo "$key" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-            value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//')
-            case "$key" in
-                a1_version) a1_version="$value" ;;
-                a1ctl_version) a1ctl_version="$value" ;;
-                a1mod_version) a1mod_version="$value" ;;
-                a1pm_version) a1pm_version="$value" ;;
-                gui_version) gui_version="$value" ;;
-                general_version) general_version="$value" ;;
-            esac
-        done < <(grep -E "^(a1_version|a1ctl_version|a1mod_version|a1pm_version|gui_version|general_version)=" "${script_path}/../version.ini")
-    fi
-
-    echo "a1_version=$a1_version"
-    echo "a1ctl_version=$a1ctl_version"
-    echo "a1mod_version=$a1mod_version"
-    echo "a1pm_version=$a1pm_version"
-    echo "gui_version=$gui_version"
-    echo "general_version=$general_version"
-
-    sed -e "s/@a1_version@/$a1_version/g" \
-        -e "s/@a1ctl_version@/$a1ctl_version/g" \
-        -e "s/@a1mod_version@/$a1mod_version/g" \
-        -e "s/@a1pm_version@/$a1pm_version/g" \
-        "${src_path}/a1/core/version.hpp.in" > "${src_path}/a1/core/version.hpp"
-
-    sed -e "s/@version@/$gui_version/g" ${script_path}/../src/gui/Info.plist.in > ${script_path}/../src/gui/Info.plist
+    _render_headers
 }
 
 get_version() {
-    local in_new_section=0
-    while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ "$line" =~ ^\[new_version\][[:space:]]*$ ]]; then
-            in_new_section=1
-            continue
-        fi
-        if [[ "$line" =~ ^\[.+\][[:space:]]*$ ]]; then
-            in_new_section=0
-            continue
-        fi
-        if [[ $in_new_section -eq 1 ]] && \
-           [[ "$line" =~ ^(a1_version|a1ctl_version|a1mod_version|a1pm_version|gui_version|general_version)[[:space:]]*=[[:space:]]*(.+)$ ]]; then
-            local key="${BASH_REMATCH[1]}"
-            local value="${BASH_REMATCH[2]}"
-            value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
-            case "$key" in
-                a1_version)    a1_version="$value" ;;
-                a1ctl_version) a1ctl_version="$value" ;;
-                a1mod_version) a1mod_version="$value" ;;
-                a1pm_version)  a1pm_version="$value" ;;
-                gui_version)   gui_version="$value" ;;
-                general_version) general_version="$value" ;;
-            esac
-        fi
-    done < "${script_path}/../version.ini"
-    case $1 in
-        "") echo "[Error]: need options" >&2; exit 1; ;;
-        a1) printf "%s" "$a1_version" ;;
-        a1ctl) printf "%s" "$a1ctl_version" ;;
-        a1mod) printf "%s" "$a1mod_version" ;;
-        a1pm) printf "%s" "$a1pm_version" ;;
-        gui|a1gui) printf "%s" "$gui_version" ;;
-        general) printf "%s" "$general_version" ;;
-        *) echo "[Error]: unsupported parameters: $1" >&2; exit 1; ;;
+    local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+    _read_ini() {
+        local key="$1"
+        local ini="${script_path}/../version.ini"
+        [[ -f "$ini" ]] || return 1
+        local line
+        line="$(grep -E "^${key}[[:space:]]*=" "$ini" 2>/dev/null | head -n1)" || return 1
+        [[ -z "$line" ]] && return 1
+        local val="${line#*=}"
+        val="$(echo "$val" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' \
+            -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")"
+        printf '%s' "$val"
+    }
+
+    _from_git() {
+        local name="$1"
+        local tag
+        tag="$(git tag -l "${name}-v*" --sort=-v:refname | head -n1)"
+        [[ -z "$tag" ]] && return 1
+        local ver="${tag#*-v}"
+        local major minor patch build
+        IFS='.' read -r major minor patch build <<< "$ver"
+        local cnt
+        cnt="$(git rev-list --count "${tag}..HEAD" 2>/dev/null || echo 0)"
+        printf '%s.%s.%s.%s' "$major" "$minor" "$patch" "$((build + cnt))"
+    }
+
+    local key="$1"
+    case "$key" in
+        "") echo "[Error]: need options" >&2; exit 1 ;;
+        a1|a1ctl|a1mod|a1pm|gui|general) ;;
+        a1gui) key="gui" ;;
+        *) echo "[Error]: unsupported parameters: $1" >&2; exit 1 ;;
     esac
+
+    local v
+    v="$(_from_git "$key")" && { printf '%s' "$v"; return 0; }
+    v="$(_read_ini "${key}_version")" && { printf '%s' "$v"; return 0; }
+    echo "[Error]: cannot resolve version for ${key}" >&2
+    exit 1
 }
