@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <cctype>
 
+#include <libxmz/str.hpp>
+
 namespace a1mod {
 namespace version {
 struct parsed_version {

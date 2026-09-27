@@ -8,8 +8,8 @@
 
 namespace a1::_coreapi {
 struct set_defaults_config {
-    int high_priority = 39;
-    int low_priority = 0;
+    int high_priority = 0;
+    int low_priority = 39;
     int launchd_priority = 20;
     int jetsam_priority = 15;
     int max_cpu_percent = 15;
