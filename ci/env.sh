@@ -32,6 +32,12 @@ if [ -z "$jb" ]; then
   -I$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libssl-dev/var/jb/usr/include"
         fi
     fi
+else
+    CXXFLAGS1="\
+-L$jb/usr/lib \
+-L$jb/usr/local/lib \
+-L$jb/lib \
+-L/usr/lib"
 fi
 
 src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src/cxxa1"

@@ -7,7 +7,12 @@ git clone --recursive https://github.com/xmz-team/a1.git
 # if you use ssh
 # git clone --recursive git@github.com:xmz-team/a1.git
 cd a1
-./build build-a1-all build-a1-tool pack-all
+SDKROOT=[path/to/sdks/XXX.sdk] ./build build-a1-all build-a1-tool pack-all
+# example
+# SDKROOT="/var/theos/sdks/iPhoneOS16.5.sdk" ./build build-a1-all build-a1-tool pack-all
+# SDKROOT="${THEOS_SDK_ROOT}" ./build build-a1-all build-a1-tool pack-all
+# If you are a PC/non-iOS
+# ./build build-a1-all build-a1-tool pack-all
 ```
 
 # description

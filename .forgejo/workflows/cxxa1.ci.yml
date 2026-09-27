@@ -69,8 +69,8 @@ jobs:
         git diff --staged --quiet || git commit -m "chore: update version.ini [skip ci]"
         git push
 
-      - name: Upload
-        uses: https://codeberg.org/forgejo/upload-artifact@v4
-        with:
-          name: a1-full-packages
-          path: packages/pack-full
+    - name: Upload
+      uses: https://codeberg.org/forgejo/upload-artifact@v4
+      with:
+        name: a1-full-packages
+        path: packages/pack-full

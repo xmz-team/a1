@@ -119,7 +119,7 @@ do
             b_gui
             ;;
         build-a1-all|build-a1)
-            generate_version all
+            generate_version all --no-general
             b_a1
             b_a1ctl
             b_a1mod
