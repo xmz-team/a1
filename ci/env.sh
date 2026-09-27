@@ -7,17 +7,20 @@ else
     jb=""
 fi
 
-if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
-    if [ -z "$SDKROOT" ]; then
-        mkdir -p "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
-        cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
-        wget "https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz"
-        tar xf *.tar.xz
-        cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
-        SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
+if [ -z "$jb" ]; then
+    if [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
+        if [ -z "$SDKROOT" ]; then
+            mkdir -p "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
+            cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/../tmp
+            wget "https://github.com/theos/sdks/releases/download/master-146e41f/iPhoneOS16.5.sdk.tar.xz"
+            tar xf *.tar.xz
+            cd "$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)"/..
+            SDKROOT="$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/iPhoneOS16.5.sdk"
+        fi
     fi
-    if [ $(uname -s) = "Darwin" ] && [ "$(dpkg --print-architecture)" = "darwin-arm64" ]; then
-        CXXFLAGS1="\
+    if [[ ! "$(dpkg --print-architecture)" = iphoneos-* ]]; then
+        if [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
+            CXXFLAGS1="\
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libzip5/var/jb/usr/lib \
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libzip-dev/var/jb/usr/lib \
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libssl-dev/var/jb/usr/lib \
@@ -27,6 +30,7 @@ if [ -z "$jb" ] && [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
   -I$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libcurl-openssl-dev/var/jb/usr/include \
   -I$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libzip-dev/var/jb/usr/include \
   -I$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libssl-dev/var/jb/usr/include"
+        fi
     fi
 fi
 

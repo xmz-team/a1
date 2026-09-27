@@ -6,14 +6,12 @@ on:
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        persist-credentials: true
+      uses: https://codeberg.org/actions/checkout@v4
 
     - name: Setup
       run: |
@@ -31,7 +29,6 @@ jobs:
         fi
         cd ../..
         chmod +x tmp/bin/*
-        brew install dpkg
         mkdir -p tmp/lib && cd tmp/lib
         #libzip5
         wget "https://apt.procurs.us/pool/main/iphoneos-arm64-rootless/1800/libzip/libzip5_1.9.2_iphoneos-arm64.deb"
@@ -66,14 +63,14 @@ jobs:
 
     - name: Update Version
       run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add version.ini
-          git diff --staged --quiet || git commit -m "chore: update version.ini [skip ci]"
-          git push
+        git config user.name "forgejo-actions[bot]"
+        git config user.email "forgejo-actions[bot]@noreply.codeberg.org"
+        git add version.ini
+        git diff --staged --quiet || git commit -m "chore: update version.ini [skip ci]"
+        git push
 
-    - name: Upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: a1-full-packages
-        path: packages/pack-full
+      - name: Upload
+        uses: https://codeberg.org/forgejo/upload-artifact@v4
+        with:
+          name: a1-full-packages
+          path: packages/pack-full
