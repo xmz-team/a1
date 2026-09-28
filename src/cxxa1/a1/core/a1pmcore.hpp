@@ -53,7 +53,7 @@ namespace a1pm {
 		} else {
 			std::string time = xmz::get_time_str();
 			std::string repo_text = "[" + url + "]\n" + "url: " + url + "\n" + "last_sync: " + time + "\n";
-			xmz::fs::writefile(repo_text, cfg.repo_f);
+			xmz::fs::append(repo_text, cfg.repo_f);
 			xmz::println("added successfully");
 		}
 	}

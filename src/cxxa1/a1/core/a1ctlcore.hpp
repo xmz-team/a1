@@ -478,11 +478,9 @@ namespace a1ctl {
     inline void clear_priority(const std::string& opt) {
         a1::config::jb_path g_jb;
         auto empty = [&](const std::string& name) -> void {
-            std::string display_name = name;
-            if (name == "h") { display_name = "high"; } 
-            else if (name == "l") { display_name = "low"; } 
-            else if (name == "c") { display_name = "custom"; }
-            xmz::fs::emptyfile(g_jb.high_f);
+            if (name == "h" || name == "high") { xmz::fs::emptyfile(g_jb.high_f); } 
+            else if (name == "l" || name == "low") { xmz::fs::emptyfile(g_jb.low_f); } 
+            else if (name == "c" || name == "custom") { xmz::fs::emptyfile(g_jb.custom_f); }
             xmz::log::info("the", display_name, "priority list has been cleared");
             auto_apply_check();
         };
