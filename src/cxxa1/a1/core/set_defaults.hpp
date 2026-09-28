@@ -1,4 +1,4 @@
-// a1_config.hpp
+// set_defaults.hpp
 #pragma once
 #include <string>
 #include <cstdlib>
@@ -16,6 +16,7 @@ struct set_defaults_config {
     // mode on/off
     bool loop_mode = false;
     bool auto_adjust = false;
+    bool auto_apply = false;
     bool scheduled_guard = false;
     bool custom_priority_enabled = false;
     bool debug_mode = true;
@@ -85,29 +86,31 @@ inline void set_defaults() {
     };
 
     // read all configuration items
-    g_config.high_priority       = get_config_int("high_priority", 30);
-    g_config.low_priority        = get_config_int("low_priority", 10);
+    // priority configuration
+    g_config.high_priority       = get_config_int("high_priority", 0);
+    g_config.low_priority        = get_config_int("low_priority", 39);
     g_config.launchd_priority    = get_config_int("launchd_priority", 20);
     g_config.jetsam_priority     = get_config_int("jetsam_priority", 15);
+    // gap set
     g_config.max_cpu_percent     = get_config_int("max_cpu_percent", 15);
     g_config.optimize_interval   = get_config_int("optimize_interval", 1800);
     g_config.loop_sleep_interval = get_config_int("loop_sleep_interval", 5);
-
+    // mode
     g_config.loop_mode                = get_config_bool("loop_mode", false);
     g_config.auto_adjust              = get_config_bool("auto_adjust", false);
+    g_config.auto_apply               = get_config_bool("auto_apply", false);
     g_config.scheduled_guard          = get_config_bool("scheduled_guard", false);
     g_config.custom_priority_enabled  = get_config_bool("custom_priority_enabled", false);
-    g_config.debug_mode               = get_config_bool("debug_mode", true);
     g_config.module_switch            = get_config_bool("module_switch", false);
     g_config.compat_mode              = get_config_bool("compat_mode", false);
+    // other
+    g_config.debug_mode               = get_config_bool("debug_mode", true);
     g_config.lock_use                 = get_config_bool("lock_use", true);
     g_config.dynamic_optimization     = get_config_bool("dynamic_optimization", false);
 }
 
+inline void load_cfg() { set_defaults(); }
 inline const _coreapi::set_defaults_config& set_defaults_cfg() { return _coreapi::get_config(); }
-
 inline std::string cfg_text = []() -> std::string { return _coreapi::config_text; }();
-
 inline const _coreapi::set_defaults_config& get_cfg() { return _coreapi::get_config(); }
-
 } /* namespace a1::coreapi */

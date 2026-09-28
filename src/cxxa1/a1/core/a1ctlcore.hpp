@@ -329,20 +329,20 @@ namespace a1ctl {
             xmz::println("----------------");
             pini.parse_file(config_file);
             xmz::println("priority setting:");
-            xmz::println("  high priority: renice 20 (jetsam", pini.get_int("", "high_priority", 39), ")");
-            xmz::println("  low priority: renice 19 (jetsam", pini.get_int("", "low_priority", 19), ")");
-            xmz::println("  launchd: renice 0 (jetsam", pini.get_int("", "high_priority", 20), ")");
+            xmz::println("  high priority:", pini.get_int("", "high_priority", a1::coreapi::get_cfg().high_priority));
+            xmz::println("  low priority:", pini.get_int("", "low_priority", a1::coreapi::get_cfg().low_priority));
+            xmz::println("  launchd priority:", pini.get_int("", "launchd_priority", a1::coreapi::get_cfg().launchd_priority));
+            xmz::println("  jetsam priority:", pini.get_int("", "jetsam_priority", a1::coreapi::get_cfg().jetsam_priority));
+
             xmz::println("loop settings:");
-            xmz::println("  loop sleep:", pini.get_int("", "loop_sleep_interval", 5));
+            xmz::println("  loop sleep:", pini.get_int("", "loop_sleep_interval", a1::coreapi::get_cfg().loop_sleep_interval));
+
             xmz::println("other settings:");
-            xmz::println("  take effect automatically:", pini.get_bool("", "auto_apply", false));
-            xmz::println("  real-time automatic adjustment:", pini.get_bool("", "auto_adjust", false));
-            xmz::println("  regular guard:", pini.get_bool("", "scheduled_guard", false));
-            xmz::println("  sudo password-free mode(all):", pini.get_bool("", "use_sudo_all", false));
-            xmz::println("  sudo password-free mode(a1):", pini.get_bool("", "use_sudo_a1", false));
-            xmz::println("  sudo password-free mode(a1ctl):", pini.get_bool("", "use_sudo_a1ctl", false));
-            xmz::println("  root-free execution a1ctl:", pini.get_bool("", "use_root_a1ctl", false));
-            xmz::println("  compatible mode:", pini.get_bool("", "compat_mode", false));
+            xmz::println("  take effect automatically:", pini.get_bool("", "auto_apply", a1::coreapi::get_cfg().auto_apply));
+            xmz::println("  real-time automatic adjustment:", pini.get_bool("", "auto_adjust", a1::coreapi::get_cfg().auto_adjust));
+            xmz::println("  regular guard:", pini.get_bool("", "scheduled_guard", a1::coreapi::get_cfg().scheduled_guard));
+
+            xmz::println("  compatible mode:", pini.get_bool("", "compat_mode", a1::coreapi::get_cfg().compat_mode));
         } else {
             xmz::log::error("the document could not be found:", config_file);
             return;
