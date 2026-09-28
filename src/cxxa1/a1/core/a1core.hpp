@@ -235,7 +235,7 @@ namespace a1 {
             return true;
         }
 
-        namespace _jetsan {
+        namespace _jetsam {
             extern "C" {
                 int memorystatus_control(uint32_t command, pid_t pid, uint32_t flags, 
                                 void *buffer, size_t buffersize);
@@ -285,7 +285,7 @@ namespace a1 {
         inline bool priority_jetsamctl(pid_t pid, int32_t priority) {
             a1::config::jb_path g_jb;
             const char* jb = g_jb.jb.c_str();
-            if (_jetsan::priority_jetsam_impl(pid, priority)) { return true; }
+            if (_jetsam::priority_jetsam_impl(pid, priority)) { return true; }
             return false;
         }
 
