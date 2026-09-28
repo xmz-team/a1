@@ -481,7 +481,7 @@ namespace a1ctl {
             if (name == "h" || name == "high") { xmz::fs::emptyfile(g_jb.high_f); } 
             else if (name == "l" || name == "low") { xmz::fs::emptyfile(g_jb.low_f); } 
             else if (name == "c" || name == "custom") { xmz::fs::emptyfile(g_jb.custom_f); }
-            xmz::log::info("the", display_name, "priority list has been cleared");
+            xmz::log::info("the", name, "priority list has been cleared");
             auto_apply_check();
         };
         if (opt == "high" || opt == "h") {
