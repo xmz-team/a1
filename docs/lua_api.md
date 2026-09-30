@@ -45,11 +45,12 @@ print("This is low priority list")
 print("------------")
 print(a1.GetLowPriorityList())
 print("------------")
-# A1 is running?
+-- A1 is running?
 if (a1.GetProcessPid("a1") == -1) then
-    print("a1 is not running") # if return value is -1 A1 is not running
+    -- if return value is -1 A1 is not running
+    print("a1 is not running")
 else
-    # if return value is non -1 A1 is running
+    -- if return value is non -1 A1 is running
     print("a1 pid is " .. a1.GetProcessPid("a1"))
 end
 ```
