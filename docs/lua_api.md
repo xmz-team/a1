@@ -16,7 +16,7 @@ a1.GetParsedHighList()           Get parsed high list
 a1.GetParsedLowList()            Get parsed low list  
 a1.GetParsedCustomList()         Get parsed custom list  
 a1.GetPresetHighPriorityList()   Get preset high priority list  
-a1.GetPresetLowPriorityList()    Get preset high priority list  
+a1.GetPresetLowPriorityList()    Get preset low priority list  
 a1.GetA1Dir()                    Get A1 main path  
 a1.GetA1ConfigDir()              Get A1 config path  
 

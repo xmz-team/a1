@@ -209,6 +209,13 @@ static int lua_GetVmSwapUsage(lua_State* L) {
     return 0;
 }
 
+static int lua_GetVmSwapUsageInfo(lua_State* L) {
+    a1mod::apis::a1api api;
+    auto result = api.GetVmSwapUsageInfo();
+    lua_traits::to_lua<std::map<std::string, std::string>>::push(L, result);
+    return 1;
+}
+
 #define REGISTER_LUA_FUNCTION(name) \
     lua_pushcfunction(L, lua_##name); \
     lua_setfield(L, -2, #name);

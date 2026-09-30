@@ -45,4 +45,24 @@ namespace a1mod::lua_traits {
             }
         }
     };
+    template<> struct to_lua<std::map<std::string, std::string>> {
+        static void push(lua_State* L, const std::map<std::string, std::string>& map) {
+            lua_newtable(L);
+            for (const auto& pair : map) {
+                lua_pushlstring(L, pair.first.c_str(), pair.first.size());
+                lua_pushlstring(L, pair.second.c_str(), pair.second.size());
+                lua_settable(L, -3);
+            }
+        }
+    };
+    template<> struct to_lua<std::map<std::string, double>> {
+        static void push(lua_State* L, const std::map<std::string, double>& map) {
+            lua_newtable(L);
+            for (const auto& pair : map) {
+                lua_pushlstring(L, pair.first.c_str(), pair.first.size());
+                lua_pushnumber(L, pair.second);
+                lua_settable(L, -3);
+            }
+        }
+    };
 } /* namespace a1mod::lua_traits */

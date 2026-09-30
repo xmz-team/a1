@@ -124,6 +124,7 @@ private:
         REGISTER_LUA_FUNCTION(SetVmSysctlByName);
         REGISTER_LUA_FUNCTION(GetAndSetVmSysctl);
         REGISTER_LUA_FUNCTION(GetVmSwapUsage);
+        REGISTER_LUA_FUNCTION(GetVmSwapUsageInfo);
         lua_setglobal(L, "a1");
     }
 };

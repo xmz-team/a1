@@ -493,6 +493,37 @@ namespace a1 {
             }
 
             inline bool get_and_set_sysctl(const std::string& name, int new_value, const std::string& display_name) { return get_and_set_sysctl_impl(name, new_value, display_name, set_sysctl_by_name); }
+
+            struct swap_usage_info {
+                bool ok = false;          // Whether it has been obtained successfully
+                int64_t total = 0;        // Total size (bytes)
+                int64_t used = 0;         // Used (bytes)
+                int64_t avail = 0;        // Available (bytes)
+                int64_t free = 0;         // Idle (bytes)
+                std::string error;        // Error message in time of failure
+                int err_code = 0;         // errno
+                double used_ratio = 0.0;  // Usage rate (0.0 ~ 1.0)
+            };
+
+            inline swap_usage_info query_vm_swapusage() {
+                swap_usage_info info;
+                struct xsw_usage swap_usage;
+                size_t swap_len = sizeof(swap_usage);
+                if (sysctlbyname("vm.swapusage", &swap_usage, &swap_len, nullptr, 0) == -1) {
+                    info.ok = false;
+                    info.err_code = errno;
+                    info.error = strerror(errno);
+                    return info;
+                }
+                info.ok = true;
+                info.total = static_cast<int64_t>(swap_usage.xsu_total);
+                info.used  = static_cast<int64_t>(swap_usage.xsu_used);
+                info.avail = static_cast<int64_t>(swap_usage.xsu_avail);
+                info.free  = info.total - info.used;
+                if (info.free < 0) info.free = info.avail;
+                if (info.total > 0) info.used_ratio = static_cast<double>(info.used) / static_cast<double>(info.total);
+                return info;
+            }
         } /* namespace _ */
 
         inline bool set_kern_sysctl_by_name(const std::string& name, int new_value) { return _::set_sysctl_by_name(name, new_value); }
@@ -512,6 +543,8 @@ namespace a1 {
                     " avail=", swap_usage.xsu_avail
                 );
             }
+
+            inline swap_usage_info get_vm_swapusage_info() { return _::query_vm_swapusage(); }
         }
     } /* namespace sys */
 
