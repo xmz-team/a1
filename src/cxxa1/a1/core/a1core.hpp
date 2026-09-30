@@ -525,7 +525,7 @@ namespace a1 {
                 return info;
             }
         } /* namespace _ */
-
+        using _::swap_usage_info;
         inline bool set_kern_sysctl_by_name(const std::string& name, int new_value) { return _::set_sysctl_by_name(name, new_value); }
         inline bool get_and_set_kern_sysctl(const std::string& name, int new_value, const std::string& display_name) { return _::get_and_set_sysctl(name, new_value, display_name); }
         inline bool set_vm_sysctl_by_name(const std::string& name, int new_value) { return _::set_sysctl_by_name(name, new_value); }
