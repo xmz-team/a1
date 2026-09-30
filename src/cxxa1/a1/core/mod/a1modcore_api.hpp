@@ -20,21 +20,15 @@ public:
     int GetNiceValue(int pid) { return a1::get::nice_by_pid(pid); }
     int GetCPUUsage(int pid) { return a1::get::cpu_by_pid(pid); }
     std::string GetHighPriorityList() { 
-        if (xmz::aux::is_file(g_jb.high_f) == 0) {
-            return xmz::fs::readfile_str(g_jb.high_f);
-        }
+        if (xmz::aux::is_file(g_jb.high_f) == 0) { return xmz::fs::readfile_str(g_jb.high_f); }
         return "";
     }
     std::string GetLowPriorityList() { 
-        if (xmz::aux::is_file(g_jb.low_f) == 0) {
-            return xmz::fs::readfile_str(g_jb.low_f);
-        }
+        if (xmz::aux::is_file(g_jb.low_f) == 0) { return xmz::fs::readfile_str(g_jb.low_f); }
         return "";
     }
     std::string GetCustomPriorityList() {
-        if (xmz::aux::is_file(g_jb.custom_f) == 0) {
-            return xmz::fs::readfile_str(g_jb.custom_f);
-        }
+        if (xmz::aux::is_file(g_jb.custom_f) == 0) { return xmz::fs::readfile_str(g_jb.custom_f); }
         return "";
     }
     std::vector<std::string> GetParsedHighList() {
@@ -89,10 +83,14 @@ public:
             std::to_string(priority_value).c_str()
         ) == 0;
     }
+    bool SetKernSysctlByName(const std::string& name, int new_value) { return a1::sys::set_sysctl_by_name(name, new_value); }
+    bool GetAndSetKernSysctl(const std::string& name, int new_value, const std::string& display_name) { return a1::sys::get_and_set_sysctl(name, new_value, display_name); }
+    bool SetVmSysctlByName(const std::string& name, int new_value) { return a1::sys::set_sysctl_by_name(name, new_value); }
+    bool GetAndSetVmSysctl(const std::string& name, int new_value, const std::string& display_name) { return a1::sys::get_and_set_sysctl(name, new_value, display_name); }
+    void GetVmSwapUsage() { a1::sys::get_vm_swapusage(); }
 private:
     a1::config::jb_path g_jb;
 };
-
 } // namespace a1::_modapi
 
 namespace a1mod { namespace apis = a1::_modapi; }

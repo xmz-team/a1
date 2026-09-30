@@ -460,6 +460,60 @@ namespace a1 {
         return reload_needed;
     }
 
+    namespace sys {
+        namespace _ {
+            inline bool set_sysctl_by_name(const std::string& name, int new_value) {
+            size_t size = sizeof(new_value);
+            if (sysctlbyname(name.c_str(), nullptr, nullptr, &new_value, size) == -1) {
+                xmz::log::error("Failed to set", name, ":", strerror(errno));
+                return false;
+            }
+            return true;
+
+            inline bool get_sysctl_by_name(const std::string& name, int& out_value) {
+                size_t size = sizeof(out_value);
+                return sysctlbyname(name.c_str(), &out_value, &size, nullptr, 0) == 0;
+            }
+
+            template <typename Setter>
+            inline bool get_and_set_sysctl_impl(const std::string& name, int new_value, const std::string& display_name, Setter&& setter) {
+                int current_value = 0;
+                if (get_sysctl_by_name(name, current_value)) {
+                    xmz::log::info("Current", display_name, ":", current_value);
+                } else {
+                    xmz::log::warn("Cannot read current", display_name);
+                }
+
+                if (setter(name, new_value)) {
+                    xmz::log::info("Successfully set", display_name, "to", new_value);
+                    return true;
+                }
+                return false;
+            }
+
+            inline bool get_and_set_sysctl(const std::string& name, int new_value, const std::string& display_name) { return get_and_set_sysctl_impl(name, new_value, display_name, set_sysctl_by_name); }
+        } /* namespace _ */
+
+        inline bool set_kern_sysctl_by_name(const std::string& name, int new_value) { return _::set_sysctl_by_name(name, new_value); }
+        inline bool get_and_set_kern_sysctl(const std::string& name, int new_value, const std::string& display_name) { return _::get_and_set_sysctl(name, new_value, display_name); }
+        inline bool set_vm_sysctl_by_name(const std::string& name, int new_value) { return _::set_sysctl_by_name(name, new_value); }
+        inline bool get_and_set_vm_sysctl(const std::string& name, int new_value, const std::string& display_name) { return _::get_and_set_sysctl(name, new_value, display_name); }
+
+        inline void get_vm_swapusage() {
+            struct xsw_usage swap_usage;
+            size_t swap_len = sizeof(swap_usage);
+            if (sysctlbyname("vm.swapusage", &swap_usage, &swap_len, nullptr, 0) == -1) {
+                xmz::log::error("Failed to get vm.swapusage:", strerror(errno));
+            } else {
+                xmz::log::info(
+                    "vm.swapusage: total=", swap_usage.xsu_total,
+                    " used=", swap_usage.xsu_used,
+                    " avail=", swap_usage.xsu_avail
+                );
+            }
+        }
+    } /* namespace sys */
+
     // kern option tweak
     inline int apply_kernel_patches() {
         xmz::println("Applying kernel patches...");
@@ -467,86 +521,19 @@ namespace a1 {
 
         int orig_uid = getuid();
         if (!a1::is_root()) return 1;
-        auto set_kern_sysctl_by_name = [](const std::string& name, int new_value) -> bool {
-            size_t size = sizeof(new_value);
-            if (sysctlbyname(name.c_str(), nullptr, nullptr, &new_value, size) == -1) {
-                xmz::log::error("Failed to set", name, ":", strerror(errno));
-                return false;
-            }
-            return true;
-        };
-
-        auto get_and_set_kern_sysctl = [&](const std::string& name, int new_value, const std::string& display_name) {
-            int current_value = 0;
-            size_t size = sizeof(current_value);
-            if (sysctlbyname(name.c_str(), &current_value, &size, nullptr, 0) == 0) {
-                xmz::log::info("Current", display_name, ":", current_value);
-            } else {
-                xmz::log::warn("Cannot read current", display_name);
-            }
-
-            if (set_kern_sysctl_by_name(name, new_value)) {
-                xmz::log::info("Successfully set", display_name, "to", new_value);
-                return true;
-            }
-            return false;
-        };
-
         std::vector<std::tuple<std::string, int, std::string>> kern_params = {
             {"kern.wq_max_threads", 4096, "kern.wq_max_threads"},
             {"kern.maxvnodes", 100000, "kern.maxvnodes"},
             {"kern.memorystatus_sysprocs_idle_delay_time", 0, "kern.memorystatus_sysprocs_idle_delay_time"},
             {"kern.memorystatus_apps_idle_delay_time", 0, "kern.memorystatus_apps_idle_delay_time"}
         };
-
-        for (const auto& [name, value, display] : kern_params) { get_and_set_kern_sysctl(name, value, display); }
-
-        auto set_vm_sysctl_by_name = [](const std::string& name, int new_value) -> bool {
-            size_t size = sizeof(new_value);
-            if (sysctlbyname(name.c_str(), nullptr, nullptr, &new_value, size) == -1) {
-                xmz::log::error("Failed to set", name, ":", strerror(errno));
-                return false;
-            }
-            return true;
-        };
-
-        auto get_and_set_vm_sysctl = [&](const std::string& name, int new_value, const std::string& display_name) {
-            int current_value = 0;
-            size_t size = sizeof(current_value);
-            if (sysctlbyname(name.c_str(), &current_value, &size, nullptr, 0) == 0) {
-                xmz::log::info("Current", display_name, ":", current_value);
-            } else {
-                xmz::log::warn("Cannot read current", display_name);
-            }
-
-            if (set_vm_sysctl_by_name(name, new_value)) {
-                xmz::log::info("Successfully set", display_name, "to", new_value);
-                return true;
-            }
-            return false;
-        };
-
+        for (const auto& [name, value, display] : kern_params) { a1::sys::get_and_set_kern_sysctl(name, value, display); }
         std::vector<std::tuple<std::string, int, std::string>> vm_params = {
             {"vm.vm_page_free_min", 10000, "vm.vm_page_free_min"},
             {"vm.vm_page_free_reserved", 256, "vm.vm_page_free_reserved"}
         };
-        for (const auto& [name, value, display] : vm_params) { get_and_set_vm_sysctl(name, value, display); }
-
-        auto get_vm_swapusage = []() {
-            struct xsw_usage swap_usage;
-            size_t swap_len = sizeof(swap_usage);
-            if (sysctlbyname("vm.swapusage", &swap_usage, &swap_len, nullptr, 0) == -1) {
-                xmz::log::error("Failed to get vm.swapusage:", strerror(errno));
-            } else {
-                xmz::log::info(
-                    "vm.swapusage: total=", swap_usage.xsu_total, 
-                    " used=", swap_usage.xsu_used, 
-                    " avail=", swap_usage.xsu_avail
-                );
-            }
-        };
-        get_vm_swapusage();
-
+        for (const auto& [name, value, display] : vm_params) { a1::sys::get_and_set_vm_sysctl(name, value, display); }
+        a1::sys::get_vm_swapusage();
         setuid(orig_uid);
 
         xmz::println("Done.");
