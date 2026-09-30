@@ -463,12 +463,13 @@ namespace a1 {
     namespace sys {
         namespace _ {
             inline bool set_sysctl_by_name(const std::string& name, int new_value) {
-            size_t size = sizeof(new_value);
-            if (sysctlbyname(name.c_str(), nullptr, nullptr, &new_value, size) == -1) {
-                xmz::log::error("Failed to set", name, ":", strerror(errno));
-                return false;
+                size_t size = sizeof(new_value);
+                if (sysctlbyname(name.c_str(), nullptr, nullptr, &new_value, size) == -1) {
+                    xmz::log::error("Failed to set", name, ":", strerror(errno));
+                    return false;
+                }
+                return true;
             }
-            return true;
 
             inline bool get_sysctl_by_name(const std::string& name, int& out_value) {
                 size_t size = sizeof(out_value);
