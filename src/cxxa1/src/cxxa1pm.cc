@@ -38,8 +38,8 @@ inline void signal_handler(int sig) {
 
 int main(int argc, char *argv[]) {
     if (std::getenv("jb") == nullptr) {
-        xmz::log::warn("A1Mod need set jb env value!");
-        xmz::log::info("Use a1mod status, not cxxa1mod");
+        xmz::log::warn("A1PM need set jb env value!");
+        xmz::log::info("Use a1pm status, not cxxa1pm");
         return 1;
     }
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     } else if (cmd == "check-update") {
         a1pm::check_updates();
     } else if (cmd == "version" || cmd == "V") {
-        xmz::println("A1PM Version:", a1::_coreapi::a1mod_version);
+        xmz::println("A1PM Version:", a1::_coreapi::a1pm_version);
     } else {
         xmz::log::error("unknown command: ", cmd);
         xmz::log::info("use 'a1pm help' to view help");

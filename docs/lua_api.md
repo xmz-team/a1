@@ -28,6 +28,7 @@ a1.IsA1Running()                 Check if A1 is running
 a1.SetProcessNiceValue()         Set process nice value  
 a1.SetProcessJetsamValue()       Set process jetsam value  
 a1.SetProcessPriority()          Set process priority (pid or name)  
+- sysctl API, which is a risky function
 a1.SetKernSysctlByName()         Set kernel sysctl by name  
 a1.GetAndSetKernSysctl()         Get current value then set kernel sysctl  
 a1.SetVmSysctlByName()           Set VM sysctl by name  

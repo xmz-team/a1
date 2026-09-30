@@ -460,7 +460,7 @@ namespace a1pm {
 		repo_parser.parse_file(cfg.repo_f);
 		std::string time = xmz::get_time_str();
 		repo_parser.set(repo_url, "last_sync", time);
-		repo_parser.save_cover(cfg.repo_f);
+		repo_parser.save_append(cfg.repo_f);
 		auto packages = parser.get_sec();
 		xmz::log::info("Repository updated successfully");
 		xmz::println("	Packages:", packages.size());
