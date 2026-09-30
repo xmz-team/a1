@@ -543,9 +543,9 @@ namespace a1 {
                     " avail=", swap_usage.xsu_avail
                 );
             }
-
-            inline swap_usage_info get_vm_swapusage_info() { return _::query_vm_swapusage(); }
         }
+
+        inline swap_usage_info get_vm_swapusage_info() { return _::query_vm_swapusage(); }
     } /* namespace sys */
 
     // kern option tweak
