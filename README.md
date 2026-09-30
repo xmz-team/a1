@@ -1,6 +1,8 @@
 # a1
 this is the source code repository of a1 and its accessory suite.  
 
+[API Document](./docs/lua_api.md)
+
 # build
 ```bash
 git clone --recursive https://github.com/xmz-team/a1.git
