@@ -83,10 +83,10 @@ public:
             std::to_string(priority_value).c_str()
         ) == 0;
     }
-    bool SetKernSysctlByName(const std::string& name, int new_value) { return a1::sys::set_sysctl_by_name(name, new_value); }
-    bool GetAndSetKernSysctl(const std::string& name, int new_value, const std::string& display_name) { return a1::sys::get_and_set_sysctl(name, new_value, display_name); }
-    bool SetVmSysctlByName(const std::string& name, int new_value) { return a1::sys::set_sysctl_by_name(name, new_value); }
-    bool GetAndSetVmSysctl(const std::string& name, int new_value, const std::string& display_name) { return a1::sys::get_and_set_sysctl(name, new_value, display_name); }
+    bool SetKernSysctlByName(const std::string& name, int new_value) { return a1::sys::set_kern_sysctl_by_name(name, new_value); }
+    bool GetAndSetKernSysctl(const std::string& name, int new_value, const std::string& display_name) { return a1::sys::get_and_set_kern_sysctl(name, new_value, display_name); }
+    bool SetVmSysctlByName(const std::string& name, int new_value) { return a1::sys::set_vm_sysctl_by_name(name, new_value); }
+    bool GetAndSetVmSysctl(const std::string& name, int new_value, const std::string& display_name) { return a1::sys::get_and_set_vm_sysctl(name, new_value, display_name); }
     void GetVmSwapUsage() { a1::sys::get_vm_swapusage(); }
 private:
     a1::config::jb_path g_jb;
