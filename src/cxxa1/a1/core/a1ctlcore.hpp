@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <filesystem>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <libxmz/fs.hpp>
 #include <libxmz/aux.hpp>
@@ -132,14 +134,23 @@ namespace a1ctl {
             if (pid == 0) {
                 pid2 = fork();
                 if (pid2 == 0) {
-                    execl((g_jb.jb + "/usr/local/bin/a1").c_str(), nullptr, nullptr, nullptr);
+                    int out_fd = open((g_jb.a1_dir + "/a1.log").c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+                    if (out_fd >= 0) {
+                        dup2(out_fd, STDOUT_FILENO);
+                        if (out_fd != STDOUT_FILENO) close(out_fd);
+                    }
+                    int err_fd = open((g_jb.a1_dir + "/a1error.log").c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+                    if (err_fd >= 0) {
+                        dup2(err_fd, STDERR_FILENO);
+                        if (err_fd != STDERR_FILENO) close(err_fd);
+                    }
+                    execl((g_jb.jb + "/usr/local/bin/a1").c_str(), ("cxxa1").c_str(), nullptr);
                     _exit(127);
                 }
                 _exit(0);
             } else if (pid > 0) {
                 waitpid(pid, nullptr, 0);
             }
-            
             sleep(2);
             if (kill(pid2, 0) == 0) {
                 xmz::log::info("A1 has been activated(PID:", pid2, ")");
@@ -251,10 +262,10 @@ namespace a1ctl {
             pid_t pid2 = fork();
             if (pid2 == 0) {
                 if (std::getenv("jb") != nullptr) {
-                    execl(cxxa1_path.c_str(), nullptr, nullptr);
+                    execl(cxxa1_path.c_str(), ("cxxa1").c_str(), nullptr);
                 } else {
                     setenv("jb", g_jb.jb.c_str(), 1);
-                    execl(cxxa1_path.c_str(), nullptr, nullptr);
+                    execl(cxxa1_path.c_str(), ("cxxa1").c_str(), nullptr);
                 }
             }
             sleep(1);
@@ -277,7 +288,7 @@ namespace a1ctl {
         sleep(1);
         xmz::println("_______________________________________________");
         if (xmz::aux::is_file(a1_script) == 0) {
-            execl(a1_script.c_str(), nullptr, nullptr);
+            execl(a1_script.c_str(), ("cxxa1").c_str(), nullptr);
         } else {
             xmz::log::error("Unable to find A1 script", a1_script);
         }
