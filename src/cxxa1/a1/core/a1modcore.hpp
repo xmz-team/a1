@@ -144,11 +144,6 @@ namespace a1mod {
         }
         return authors;
     }
-    // check if author is official
-    inline bool is_official_author(const std::string& author, const config& cfg) {
-        auto authors = parse_authors(cfg.authors);
-        return std::find(authors.begin(), authors.end(), author) != authors.end();
-    }
     // Initialize module system
     inline void init_system(const a1mod::config& cfg, const a1::config::jb_path& g_jb) {
         xmz::log::info("Initializing module system...");
@@ -161,11 +156,9 @@ namespace a1mod {
         }
         if (xmz::aux::is_dir(cfg.users) == 1) { xmz::fs::mkdir(cfg.users); }
         if (xmz::aux::is_dir(cfg.authors) == 1) { xmz::fs::mkdir(cfg.authors); }
-        if (xmz::aux::exist(cfg.authors + "/authors.ini") == 1) { xmz::fs::writefile("author: XMZ, LF, AD-iOS", cfg.authors + "/authors.ini"); }
         if (xmz::aux::is_dir(g_jb.mod_dir + "/store") == 1) {
             xmz::fs::mkdir(g_jb.mod_dir + "/store");
             xmz::fs::mkdir(g_jb.mod_dir + "/store/users");
-            xmz::fs::mkdir(g_jb.mod_dir + "/store/official");
         }
         load_db_from_file();
         g_module_db.last_updated = xmz::get_time_str();
@@ -242,11 +235,11 @@ namespace a1mod {
         return {true, conflict_result::different_author};
     }
     // add module to database
-    inline void add_to_db(const module_entry& entry, bool is_official) {
+    inline void add_to_db(const module_entry& entry) {
         g_module_db.modules[entry.package] = entry;
         g_module_db.last_updated = xmz::get_time_str();
         g_module_db.enabled_modules.push_back(entry.package);
-        xmz::log::info("Added to database:" + entry.package + "(" + (is_official ? "official" : "user") + ")");
+        xmz::log::info("Added to database:" + entry.package);
         save_db_to_file();
     }
     // remove module from database
@@ -424,14 +417,11 @@ namespace a1mod {
                 remove_from_db(info.package);
             }
         }
-        // determine if official
-        bool is_official = false;
         std::string author = info.maintainer.empty() ? "unknown" : info.maintainer[0];
         if (!info.author.empty()) { author = info.author[0]; }
-        is_official = is_official_author(author, cfg);
         // set install path
         std::string install_base;
-        if (is_official) { install_base = cfg.authors + "/" + author + "/" + info.package; } else { install_base = cfg.users + "/" + author + "/" + info.package; }
+        install_base = cfg.users + "/" + author + "/" + info.package;
         // clean and create install directory
         xmz::fs::recrmdir(install_base);
         xmz::fs::mkdir(install_base);
@@ -456,14 +446,13 @@ namespace a1mod {
         entry.last_updated = xmz::get_time_str();
         entry.depends = info.depends;
         entry.depends_apt = info.depends_apt;
-        add_to_db(entry, is_official);
+        add_to_db(entry);
         xmz::fs::recrmdir(temp_dir);
         xmz::log::info("Module installed successfully!");
         xmz::println("  Name:" + info.name);
         xmz::println("  Package:" + info.package);
         xmz::println("  Version:" + info.version);
         xmz::println("  Author:" + author);
-        xmz::println("  Type:" + std::string(is_official ? "Official" : "User"));
         xmz::println("  Location:" + install_base);
         return 0;
     }
