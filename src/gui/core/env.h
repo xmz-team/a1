@@ -74,12 +74,14 @@ private:
     }
     std::string _get_self_path() {
         @autoreleasepool {
+            NSString *bundlePath = [[NSBundle mainBundle] bundlePath];
+            NSString *path;
             if (_get_jb_env() == "iphoneos-arm64e") {
-                NSString *path = [@"/rootfs" stringByAppendingString:[[NSBundle mainBundle] bundlePath]];
+                path = [@"/rootfs" stringByAppendingString:bundlePath];
             } else {
-                NSString *path = [[NSBundle mainBundle] bundlePath];
+                path = bundlePath;
             }
-            return [path UTF8String];
+            return std::string([path UTF8String]);
         }
     }
 public:
