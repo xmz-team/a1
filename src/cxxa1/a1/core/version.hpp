@@ -2,10 +2,10 @@
 #pragma once
 #include <string>
 namespace a1::_coreapi::version {
-    std::string a1_version = "2.0.0.250";
-    std::string a1ctl_version = "2.0.0.162";
-    std::string a1mod_version = "2.0.0.162";
-    std::string a1pm_version = "2.0.0.151";
+    std::string a1_version = "2.0.0.252";
+    std::string a1ctl_version = "2.0.0.164";
+    std::string a1mod_version = "2.0.0.164";
+    std::string a1pm_version = "2.0.0.153";
 }
 
 namespace a1::_coreapi {
