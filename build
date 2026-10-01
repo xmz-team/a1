@@ -79,7 +79,7 @@ b_gui() {
     sign gui a1gui
 }
 
-show_help() { echo "usage: $0 [a1|a1ctl|a1mod|a1pm|a1gui] [build-a1-all|build-a1-tool|build-a1] [pack-a1|pack-a1gui|pack-all] [--a1-use-lua-cache]" >&2; }
+show_help() { echo "usage: $0 [a1|a1ctl|a1mod|a1pm|a1gui] [build-a1-all|build-a1-tool|build-a1] [pack-a1|pack-a1gui|pack-all] [--a1-use-lua-cache|--is-local-build]" >&2; }
 
 if [ $# -eq 0 ]; then
     show_help
@@ -95,31 +95,52 @@ do
     fi
 done
 
+is_local_build=false
+for arg in "$@"
+do
+    if [ $arg = "--is-local-build" ]; then
+        is_local_build=true
+        break
+    fi
+done
+
 for target in "$@"
 do
     case $target in
         a1)
-            generate_version a1
+            if [ ! "$is_local_build" = true ]; then
+                generate_version a1
+            fi
             b_a1
             ;;
         a1ctl)
-            generate_version a1ctl
+            if [ ! "$is_local_build" = true ]; then
+                generate_version a1ctl
+            fi
             b_a1ctl
             ;;
         a1mod)
-            generate_version a1mod
+            if [ ! "$is_local_build" = true ]; then
+                generate_version a1mod
+            fi
             b_a1mod
             ;;
         a1pm)
-            generate_version a1pm
+            if [ ! "$is_local_build" = true ]; then
+                generate_version a1pm
+            fi
             b_a1pm
             ;;
         a1gui)
-            generate_version gui
+            if [ ! "$is_local_build" = true ]; then
+                generate_version gui
+            fi
             b_gui
             ;;
         build-a1-all|build-a1)
-            generate_version all --no-general
+            if [ ! "$is_local_build" = true ]; then
+                generate_version all --no-general
+            fi
             b_a1
             b_a1ctl
             b_a1mod
@@ -131,6 +152,7 @@ do
         --package-all|pack-all) pack_all ;;
         build-a1-tool) build_tool ;;
         --a1-use-lua-cache) break ;;
+        --is-local-build) break ;;
         *)
             echo "unknown target: $target" >&2
             show_help
