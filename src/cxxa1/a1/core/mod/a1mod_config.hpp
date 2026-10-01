@@ -128,7 +128,7 @@ public:
     std::string mod_install_tmp = g_jb.mod_dir + "/cache/temp";
     std::string install_db_path = g_jb.mod_dir + "/db";
     std::string users = install_db_path;
-    std::string authors = g_jb.mod_dir + "/official";
+    std::string authors = install_db_path;
 };
 
 } // namespace a1mod
