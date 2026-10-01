@@ -25,8 +25,8 @@ class env {
 private:
     std::string _get_self_path() {
         @autoreleasepool {
-            NSString *path = [[NSBundle mainBundle] bundlePath];
-            return std::string("/rootfs" + [path UTF8String]);
+            NSString *path = [@"/rootfs" stringByAppendingString:[[NSBundle mainBundle] bundlePath]];
+            return [path UTF8String];
         }
     }
     std::string _get_jb_env() {
