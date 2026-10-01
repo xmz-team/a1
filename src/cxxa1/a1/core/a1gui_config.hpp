@@ -2,6 +2,7 @@
 #pragma once
 #include <string>
 #include <cstdlib>
+#include <a1/core/cfg.hpp>
 
 namespace a1::config {
     class jb_path {

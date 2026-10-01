@@ -2,6 +2,7 @@
 #pragma once
 #include <string>
 #include <cstdlib>
+#include <a1/core/cfg.hpp>
 
 #ifdef A1_USE_GUI_CFG
 #include <a1/core/a1gui_config.hpp>
