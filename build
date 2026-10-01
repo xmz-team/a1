@@ -13,7 +13,7 @@ if [ ! -f "${script_path}/.generate.lock" ]; then
 fi
 
 b_a1() {
-    local lua_patch_file="${script_path}/paths/loslib_lsystem.patch"
+    local lua_patch_file="${script_path}/patchs/loslib_lsystem.patch"
     if [ "$use_lua_cache" = false ]; then
         cd ${script_path}/libs/lua
         cp loslib.c loslib.c.orig
