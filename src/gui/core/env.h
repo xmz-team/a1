@@ -23,12 +23,6 @@ inline a1::config::jb_path g_jb;
 namespace a1gui {
 class env {
 private:
-    std::string _get_self_path() {
-        @autoreleasepool {
-            NSString *path = [@"/rootfs" stringByAppendingString:[[NSBundle mainBundle] bundlePath]];
-            return [path UTF8String];
-        }
-    }
     std::string _get_jb_env() {
         auto run_capture = [&](char *const argv[], char *buf, size_t cap) -> int {
             int pipefd[2];
@@ -76,6 +70,16 @@ private:
             return arch;
         } else {
             return "";
+        }
+    }
+    std::string _get_self_path() {
+        @autoreleasepool {
+            if (_get_jb_env() == "iphoneos-arm64e") {
+                NSString *path = [@"/rootfs" stringByAppendingString:[[NSBundle mainBundle] bundlePath]];
+            } else {
+                NSString *path = [[NSBundle mainBundle] bundlePath];
+            }
+            return [path UTF8String];
         }
     }
 public:
