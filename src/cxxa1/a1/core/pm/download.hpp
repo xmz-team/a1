@@ -27,7 +27,6 @@ static int progress_callback(
         int percent = static_cast<int>((dlnow / dltotal) * 100);
         xmz::print("\rDownload progress:", percent, "%");
         xmz::println("");
-        //std::flush();
     }
     return 0;
 }
@@ -61,7 +60,7 @@ bool download_file(
     curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, std::string("a1pm/" + a1::_coreapi::a1pm_version).c_str());
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, std::string("a1pm/" + a1::version::a1pm).c_str());
 
     CURLcode res = curl_easy_perform(curl);
     long httpCode = 0;

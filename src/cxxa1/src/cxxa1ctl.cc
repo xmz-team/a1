@@ -103,10 +103,7 @@ int main(int argc, char *argv[]) {
         signal(SIGINT, signal_handler);
         signal(SIGTERM, signal_handler);
         atexit([]() { g_lock_mgr.release(); });
-        //xmz::log::debug("successfully obtained the file lock");
-    } /* else {
-        //xmz::log::debug("the lock has been disabled. skip this stage");
-    } */
+    }
 
     std::string cmd = argv[1];
 
@@ -310,7 +307,7 @@ int main(int argc, char *argv[]) {
     } else if (cmd == "help" || cmd == "--help" || cmd == "-h" || cmd == "h" || cmd == "") {
         xmz::println(help_text(std::string(argv[0])));
     } else if (cmd == "version") {
-        xmz::println("A1Ctl Version:", a1::_coreapi::a1ctl_version);
+        xmz::println("A1Ctl Version:", a1::version::a1ctl);
     } else if (cmd == "-f") {
         if (argc >= 3 && std::string(argv[2]) == "start") {
             a1ctl::start_a1_foreground();

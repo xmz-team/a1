@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     } else if (cmd == "check-update") {
         a1pm::check_updates();
     } else if (cmd == "version" || cmd == "V") {
-        xmz::println("A1PM Version:", a1::_coreapi::a1pm_version);
+        xmz::println("A1PM Version:", a1::version::a1pm);
     } else {
         xmz::log::error("unknown command: ", cmd);
         xmz::log::info("use 'a1pm help' to view help");

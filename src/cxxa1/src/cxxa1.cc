@@ -80,7 +80,7 @@ int main() {
     xmz::println(xmz::get_time_str());
     xmz::println("______________________");
     xmz::println("A1 are working......");
-    xmz::println("A1 Version:", a1::_coreapi::a1_version);
+    xmz::println("A1 Version:", a1::version::a1);
     xmz::println("----------------------");
     // Initialize environment, read defaults from environment
     a1::coreapi::set_defaults();

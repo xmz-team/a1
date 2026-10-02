@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
         if (!check_opt(argv[3])) { xmz::log::error("the name cannot be empty."); return 1; }
         a1mod::package_module(argv[2], argv[3]);
     } else if (cmd == "version" || cmd == "V") {
-        xmz::println("A1Mod Version:", a1::_coreapi::a1mod_version);
+        xmz::println("A1Mod Version:", a1::version::a1mod);
     } else {
         xmz::log::error("unknown command: ", cmd);
         xmz::log::info("use 'a1mod help' to view help");

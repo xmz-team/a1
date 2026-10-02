@@ -9,15 +9,15 @@ namespace a1::_coreapi::version {
 }
 
 namespace a1::_coreapi {
-    using a1::_coreapi::version::a1_version;
-    using a1::_coreapi::version::a1ctl_version;
-    using a1::_coreapi::version::a1mod_version;
-    using a1::_coreapi::version::a1pm_version;
+    inline const std::string& a1_version = a1::_coreapi::version::a1;
+    inline const std::string& a1ctl_version = a1::_coreapi::version::a1ctl;
+    inline const std::string& a1mod_version = a1::_coreapi::version::a1mod;
+    inline const std::string& a1pm_version = a1::_coreapi::version::a1pm;
 }
 
 namespace a1::version {
-    std::string a1 = a1::_coreapi::version::a1_version;
-    std::string a1ctl = a1::_coreapi::version::a1ctl_version;
-    std::string a1mod = a1::_coreapi::version::a1mod_version;
-    std::string a1pm = a1::_coreapi::version::a1pm_version;
+    inline const std::string& a1 = a1::_coreapi::version::a1_version;
+    inline const std::string& a1ctl = a1::_coreapi::version::a1ctl_version;
+    inline const std::string& a1mod = a1::_coreapi::version::a1mod_version;
+    inline const std::string& a1pm = a1::_coreapi::version::a1pm_version;
 }
