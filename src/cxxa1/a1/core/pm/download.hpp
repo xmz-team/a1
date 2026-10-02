@@ -60,8 +60,7 @@ bool download_file(
     curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, 30L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, std::string("a1pm/" + a1::version::a1pm).c_str());
-
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, ("a1pm/" + std::string(a1::version::a1pm)).c_str());
     CURLcode res = curl_easy_perform(curl);
     long httpCode = 0;
     curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
