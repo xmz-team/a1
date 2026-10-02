@@ -10,8 +10,8 @@ namespace a1::_coreapi::version {
 }
 
 namespace a1::version {
-    using coreapi::version::a1;
-    using coreapi::version::a1ctl;
-    using coreapi::version::a1mod;
-    using coreapi::version::a1pm;
+    using _coreapi::version::a1;
+    using _coreapi::version::a1ctl;
+    using _coreapi::version::a1mod;
+    using _coreapi::version::a1pm;
 }
