@@ -3,10 +3,10 @@
 #include <string_view>
 #include <string>
 namespace a1::_coreapi::version {
-    inline constexpr std::string_view a1    = "2.0.0.258";
-    inline constexpr std::string_view a1ctl = "2.0.0.170";
-    inline constexpr std::string_view a1mod = "2.0.0.170";
-    inline constexpr std::string_view a1pm  = "2.0.0.159";
+    inline constexpr std::string_view a1    = "2.0.0.260";
+    inline constexpr std::string_view a1ctl = "2.0.0.172";
+    inline constexpr std::string_view a1mod = "2.0.0.172";
+    inline constexpr std::string_view a1pm  = "2.0.0.161";
 }
 
 namespace a1::version {
