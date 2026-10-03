@@ -35,7 +35,7 @@ public:
                 if (!lock_pid.empty()) {
                     xmz::log::error("process:", lock_pid, "holding lock, unable to continue the operation");
                     xmz::log::warn("you can choose to delete the lock file to continue the operation.");
-                    xmz::log::warn("but! We don’t recommend using this method, unless the holding process is a zombie process, etc.");
+                    xmz::log::warn("but! We don't recommend using this method, unless the holding process is a zombie process, etc.");
                 } else {
                     xmz::log::error("unable to get the lock");
                 }

@@ -24,7 +24,6 @@
 #include <a1/core/config.hpp>
 #include <a1/core/myini.hpp>
 #include <a1/core/get_sys_list.hpp>
-#include <a1/core/config.hpp>
 #include <src/bin/bundle/libproc.h>
 #include <src/bin/bundle/bundle.hpp>
 
@@ -283,8 +282,6 @@ namespace a1 {
         } /* namespace _jetsam */
 
         inline bool priority_jetsamctl(pid_t pid, int32_t priority) {
-            a1::config::jb_path g_jb;
-            const char* jb = g_jb.jb.c_str();
             if (_jetsam::priority_jetsam_impl(pid, priority)) { return true; }
             return false;
         }
