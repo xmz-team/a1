@@ -52,7 +52,7 @@ Its design is meant to be embedded into applications, giving them flexible ways 
 ### a1.SetProcessPriority(name, priority)
 - Set process priority by name/bundle id
 
-***sysctl API, which is a risky function***
+> **sysctl API, which is a risky function**
 
 ### a1.SetKernSysctlByName(name, value)
 - Set kernel sysctl by name
