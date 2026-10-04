@@ -43,7 +43,7 @@ namespace a1ctl {
             xmz::fs::writefile({
                 "#custom priority format: process_name = value",
                 "#value range: 0-99 (Jetsam 0 = Nice -20, Jetsam 39 = Nice 19)",
-                "#eample: com.apple.springboard = 0"
+                "#example: com.apple.springboard = 0"
             }, g_jb.custom_f);
         }
     }
@@ -495,7 +495,7 @@ namespace a1ctl {
             xmz::fs::writefile({
                 "#custom priority format: process_name = value",
                 "#value range: 0-99 (Jetsam 0 = Nice -20, Jetsam 39 = Nice 19)",
-                "#eample: com.apple.springboard = 0"
+                "#example: com.apple.springboard = 0"
             }, g_jb.custom_f);
         } else {
             xmz::log::error("undefined options:", opt);
