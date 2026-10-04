@@ -305,8 +305,6 @@ namespace a1pm {
 				std::string version = pkg_parser.get(pkg_name, "version", "");
 				std::string name = pkg_parser.get(pkg_name, "name", pkg_name);
 				std::string description = pkg_parser.get(pkg_name, "description", "");
-				//std::string descr_msg = pkg_parser.get(pkg_name, "descr", "");
-				//if (description.empty()) { description = descr_msg; }
 				std::string pkg_lower = pkg_name;
 				std::string name_lower = name;
 				std::string desc_lower = description;

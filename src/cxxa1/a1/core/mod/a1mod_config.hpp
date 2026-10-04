@@ -19,7 +19,6 @@ struct packinfo {
     std::string name;
     std::string version;
     std::string description;
-    std::string descr = description;
     std::vector<std::string> maintainer;
     /* optional */
     std::vector<std::string> author;
@@ -66,7 +65,6 @@ inline packinfo parse_packinfo(const a1::ini::ini_parser& parser) {
     info.name = parser.get("", "name", info.package);
     info.version = parser.get("", "version");
     info.description = parser.get("", "description");
-    info.descr = info.description;
     // parse maintainer
     std::string maintainer_str = parser.get("", "maintainer");
     if (!maintainer_str.empty()) {

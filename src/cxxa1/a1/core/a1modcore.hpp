@@ -82,7 +82,6 @@ namespace a1mod {
             }
             g_module_db.modules[entry.package] = entry;
         }
-        //g_module_db.last_updated = parser.get("GLOBAL", "last_updated", "");
         xmz::log::info("Loaded " + std::to_string(g_module_db.modules.size()) + " modules from database");
         return true;
     }
@@ -388,7 +387,7 @@ namespace a1mod {
         xmz::println("  Package:" + info.package);
         xmz::println("  Name:" + info.name);
         xmz::println("  Version:" + info.version);
-        xmz::println("  Description:" + info.descr);
+        xmz::println("  Description:" + info.description);
         // check dependencies
         xmz::log::info("Checking dependencies...");
         if (!check_depends(info)) {
@@ -437,7 +436,7 @@ namespace a1mod {
         entry.name = info.name;
         entry.package = info.package;
         entry.version = info.version;
-        entry.description = info.descr;
+        entry.description = info.description;
         entry.author = author;
         entry.maintainer = info.maintainer.empty() ? author : info.maintainer[0];
         entry.path = install_base;

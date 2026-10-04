@@ -46,12 +46,12 @@ parse_ini_metadata() {
     local version=$("$myini" get "$metadata_file" "$section.version" 2>/dev/null || echo "")
     local author=$("$myini" get "$metadata_file" "$section.author" 2>/dev/null || echo "")
     local maintainer=$("$myini" get "$metadata_file" "$section.maintainer" 2>/dev/null || echo "")
-    local descr=$("$myini" get "$metadata_file" "$section.description" 2>/dev/null || echo "")
+    local description=$("$myini" get "$metadata_file" "$section.description" 2>/dev/null || echo "")
     local depends=$("$myini" get "$metadata_file" "$section.depends" 2>/dev/null || echo "")
     local depends_apt=$("$myini" get "$metadata_file" "$section.depends_apt" 2>/dev/null || echo "")
     local section_name=$("$myini" get "$metadata_file" "$section.section" 2>/dev/null || echo "")
     local priority=$("$myini" get "$metadata_file" "$section.priority" 2>/dev/null || echo "")
-    echo "$package|$name|$version|$author|$maintainer|$descr|$depends|$depends_apt|$section_name|$priority"
+    echo "$package|$name|$version|$author|$maintainer|$description|$depends|$depends_apt|$section_name|$priority"
     return 0
 }
 
@@ -127,7 +127,7 @@ scan_packages() {
             rm -rf "$extract_dir"
             continue
         fi
-        if [ -z "$descr" ]; then
+        if [ -z "$description" ]; then
             echo -e "${RED}[Error]${NC}: missing necessary fields description: $filename" >&2
             rm -rf "$extract_dir"
             continue
@@ -145,7 +145,7 @@ scan_packages() {
             fi
         fi
         [ -z "$file_path" ] && file_path="$filename"
-        descr=$(echo "$descr" | tr '\n' ' ' | sed 's/  */ /g')
+        description=$(echo "$description" | tr '\n' ' ' | sed 's/  */ /g')
         cat >> "$temp_packages" << EOF
 [${package}]
 package: ${package}
@@ -161,7 +161,7 @@ size: $file_size
 sha256: $sha256
 depends: $depends
 depends_apt: $depends_apt
-description: $descr
+description: $description
 
 EOF
         count=$((count + 1))
