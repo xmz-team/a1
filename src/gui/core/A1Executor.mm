@@ -72,7 +72,7 @@ auto& _env = g_env;
 
 - (NSString *)getConfigContent {
     std::string path = [self configPath];
-    if (xmz::aux::is_file(xmz::aux::parselink(path)) == 0) {
+    if (xmz::aux::is_file(xmz::aux::parselink(path))) {
         std::string content = xmz::fs::readfile_str(path);
         return [NSString stringWithUTF8String:content.c_str()];
     }

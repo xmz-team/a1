@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
     if (cmd == "list-sec" && argc >= 3) {
         std::string filepath = argv[2];
-        if (xmz::aux::is_file(filepath) != 0) {
+        if (!xmz::aux::is_file(filepath)) {
             xmz::log::error("File not found:", filepath);
             return 1;
         }
@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
     if (cmd == "list-key" && argc >= 3) {
         std::string filepath = argv[2];
         std::string section = (argc >= 4) ? argv[3] : "";
-        if (xmz::aux::is_file(filepath) != 0) {
+        if (!xmz::aux::is_file(filepath)) {
             xmz::log::error("File not found:", filepath);
             return 1;
         }
@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
     if (cmd == "rm-key" && argc >= 4) {
         std::string filepath = argv[2];
         auto [sec, key] = parse_section_key(argv[3]);
-        if (xmz::aux::is_file(filepath) != 0) {
+        if (!xmz::aux::is_file(filepath)) {
             xmz::log::error("File not found:", filepath);
             return 1;
         }
@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
     if (cmd == "rm-sec" && argc >= 4) {
         std::string filepath = argv[2];
         std::string section = argv[3];
-        if (xmz::aux::is_file(filepath) != 0) {
+        if (!xmz::aux::is_file(filepath)) {
             xmz::log::error("File not found:", filepath);
             return 1;
         }
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
             xmz::log::error("Key is required");
             return 1;
         }
-        if (xmz::aux::is_file(filepath) != 0) {
+        if (!xmz::aux::is_file(filepath)) {
             xmz::log::error("File not found:", filepath);
             return 1;
         }
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
             xmz::log::error("Key is required");
             return 1;
         }
-        if (xmz::aux::is_file(filepath) != 0) { xmz::fs::touch(filepath); }
+        if (!xmz::aux::is_file(filepath)) { xmz::fs::touch(filepath); }
         pini.parse_file(filepath);
         if (cmd == "set" || cmd == "set-str") {
             pini.set(sec, key, val);

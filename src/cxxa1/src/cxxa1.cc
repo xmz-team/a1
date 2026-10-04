@@ -52,7 +52,7 @@ void load_modules(a1mod::luatime& lt) {
     }
     for (const auto& mod : modules) {
         if (mod.status == "enabled") {
-            if (xmz::aux::is_file(mod.path + "/main.lua") == 0) {
+            if (xmz::aux::is_file(mod.path + "/main.lua")) {
                 lt.run_file(mod.path + "/main.lua");
                 xmz::log::info("Module:", mod.section, "run successfully");
             } else {

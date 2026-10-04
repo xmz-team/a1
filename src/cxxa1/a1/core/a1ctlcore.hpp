@@ -33,35 +33,26 @@ namespace a1ctl {
 
     inline void init_config() {
         a1::config::jb_path g_jb;
-        if (xmz::aux::path_exist(g_jb.a1_dir) == 1)
-            xmz::fs::mkdir(g_jb.a1_dir);
+        if (!xmz::aux::path_exist(g_jb.a1_dir)) xmz::fs::mkdir(g_jb.a1_dir);
+        if (!xmz::aux::is_dir(g_jb.a1config)) xmz::fs::mkdir(g_jb.a1config);
+        if (!xmz::aux::is_dir(g_jb.bak_d)) xmz::fs::mkdir(g_jb.bak_d);
+        if (!xmz::aux::is_file(g_jb.high_f)) xmz::fs::writefile(a1::coreapi::lists::high, g_jb.high_f);
+        if (!xmz::aux::is_file(g_jb.low_f)) xmz::fs::writefile(a1::coreapi::lists::low, g_jb.low_f);
 
-        if (xmz::aux::is_dir(g_jb.a1config) == 1)
-            xmz::fs::mkdir(g_jb.a1config);
-
-        if (xmz::aux::is_dir(g_jb.bak_d) == 1)
-            xmz::fs::mkdir(g_jb.bak_d);
-
-        if (xmz::aux::is_file(g_jb.high_f) == 1)
-            xmz::fs::writefile(a1::coreapi::lists::high, g_jb.high_f);
-
-        if (xmz::aux::is_file(g_jb.low_f) == 1) {
-            xmz::fs::writefile(a1::coreapi::lists::low, g_jb.low_f);
-        }
-
-        if (xmz::aux::is_file(g_jb.custom_f) == 1)
+        if (!xmz::aux::is_file(g_jb.custom_f)) {
             xmz::fs::writefile({
                 "#custom priority format: process_name = value",
                 "#value range: 0-99 (Jetsam 0 = Nice -20, Jetsam 39 = Nice 19)",
                 "#eample: com.apple.springboard = 0"
             }, g_jb.custom_f);
+        }
     }
 
     inline int check_config_conflict() {
         a1::config::jb_path g_jb;
         a1::ini::ini_parser pini;
         std::string config_file = g_jb.a1config + "/config.ini";
-        if (xmz::aux::is_file(config_file) == 1) {
+        if (!xmz::aux::is_file(config_file)) {
             xmz::log::warn("file:", config_file, "not exist!");
             xmz::log::warn("The default configuration has been automatically created");
             xmz::fs::writefile(a1::coreapi::cfg_text, config_file);
@@ -101,7 +92,7 @@ namespace a1ctl {
         a1::config::jb_path g_jb;
         std::string config_file = g_jb.a1config + "/config.ini";
         a1::ini::ini_parser pini;
-        if (xmz::aux::is_file(config_file) == 0) {
+        if (xmz::aux::is_file(config_file)) {
             pini.parse_file(config_file);
             pini.get_bool("", "loop_mode", false);
             pini.get_bool("", "auto_adjust", false);
@@ -125,7 +116,7 @@ namespace a1ctl {
 
         std::string a1_script;
 
-        if (xmz::aux::is_file((g_jb.jb + "/usr/local/bin/a1")) == 0) { a1_script = g_jb.jb + "/usr/local/bin/a1"; }
+        if (xmz::aux::is_file((g_jb.jb + "/usr/local/bin/a1"))) { a1_script = g_jb.jb + "/usr/local/bin/a1"; }
 
         if (a1_script != "") {
             xmz::log::info("pull up A1 service...");
@@ -169,7 +160,7 @@ namespace a1ctl {
         bool auto_adjust = false;
         bool scheduled_guard = false;
 
-        if (xmz::aux::is_file(config_file) == 0) {
+        if (xmz::aux::is_file(config_file)) {
             pini.parse_file(config_file);
             auto_apply = pini.get_bool("", "auto_apply", false);
             loop = pini.get_bool("", "loop_mode", false);
@@ -199,7 +190,7 @@ namespace a1ctl {
         a1::config::jb_path g_jb;
         std::string config_file = g_jb.a1config + "/config.ini";
         a1::ini::ini_parser pini;
-        if (xmz::aux::is_file(config_file) == 0) {
+        if (xmz::aux::is_file(config_file)) {
             pini.parse_file(config_file);
             bool loop = pini.get_bool("", "loop_mode", false);
             bool custom_priority_enabled = pini.get_bool("", "custom_priority_enabled", false);
@@ -287,7 +278,7 @@ namespace a1ctl {
         a1::kill_pid();
         sleep(1);
         xmz::println("_______________________________________________");
-        if (xmz::aux::is_file(a1_script) == 0) {
+        if (xmz::aux::is_file(a1_script)) {
             execl(a1_script.c_str(), a1::config::program_name::a1.c_str(), nullptr);
         } else {
             xmz::log::error("Unable to find A1 script", a1_script);
@@ -298,8 +289,8 @@ namespace a1ctl {
         a1::config::jb_path g_jb;
         a1::ini::ini_parser pini;
         std::string config_file = g_jb.a1config + "/config.ini";
-        if (xmz::aux::is_dir(g_jb.a1_dir) == 1) { xmz::fs::mkdir(g_jb.a1_dir); }
-        if (xmz::aux::is_file(config_file) == 1) { a1_conf(); }
+        if (!xmz::aux::is_dir(g_jb.a1_dir)) { xmz::fs::mkdir(g_jb.a1_dir); }
+        if (!xmz::aux::is_file(config_file)) { a1_conf(); }
         pini.parse_file(config_file);
         pini.set("", key_name, value ? "true" : "false");
         pini.save_cover(config_file);
@@ -310,8 +301,8 @@ namespace a1ctl {
         a1::config::jb_path g_jb;
         a1::ini::ini_parser pini;
         std::string config_file = g_jb.a1config + "/config.ini";
-        if (xmz::aux::is_dir(g_jb.a1_dir) == 1) { xmz::fs::mkdir(g_jb.a1_dir); }
-        if (xmz::aux::is_file(config_file) == 1) { a1_conf(); }
+        if (!xmz::aux::is_dir(g_jb.a1_dir)) { xmz::fs::mkdir(g_jb.a1_dir); }
+        if (!xmz::aux::is_file(config_file)) { a1_conf(); }
         pini.parse_file(config_file);
         pini.set_int("", key_name, value);
         pini.save_cover(config_file);
@@ -333,7 +324,7 @@ namespace a1ctl {
         a1::config::jb_path g_jb;
         a1::ini::ini_parser pini;
         std::string config_file = g_jb.a1config + "/config.ini";
-        if (xmz::aux::is_file(config_file) == 0) {
+        if (xmz::aux::is_file(config_file)) {
             xmz::println("Current configuration");
             xmz::println("----------------");
             xmz::println(xmz::fs::readfile_str(config_file));
@@ -365,7 +356,7 @@ namespace a1ctl {
         a1::ini::ini_parser pini;
 
         if (priority_opt == "high" || priority_opt == "h") {
-            if (xmz::aux::is_file(g_jb.high_f) == 0) {
+            if (xmz::aux::is_file(g_jb.high_f)) {
                 if (xmz::fs::findstr(g_jb.high_f, process_name) == false) {
                     xmz::fs::append(process_name, g_jb.high_f);
                     xmz::log::info(process_name, "has been added to the high priority list");
@@ -377,7 +368,7 @@ namespace a1ctl {
                 xmz::log::error("file:", g_jb.high_f, "not exist!");
             }
         } else if (priority_opt == "low" || priority_opt == "l") {
-            if (xmz::aux::is_file(g_jb.low_f) == 0) {
+            if (xmz::aux::is_file(g_jb.low_f)) {
                 if (xmz::fs::findstr(g_jb.low_f, process_name) == false) {
                     xmz::fs::append(process_name, g_jb.low_f);
                     xmz::log::info(process_name, "has been added to the low priority list");
@@ -389,7 +380,7 @@ namespace a1ctl {
                 xmz::log::error("file:", g_jb.low_f, "not exist!");
             }
         } else if (priority_opt == "custom" || priority_opt == "c") {
-            if (xmz::aux::is_file(g_jb.custom_f) == 0) {
+            if (xmz::aux::is_file(g_jb.custom_f)) {
                 if (xmz::fs::findstr(g_jb.custom_f, process_name) == false) {
                     if (priority_value != -255 && priority_value >= 0 && priority_value < 100) {
                         pini.set("", process_name, std::to_string(priority_value));
@@ -415,7 +406,7 @@ namespace a1ctl {
         a1::ini::ini_parser pini;
 
         if (priority_opt == "high" || priority_opt == "h") {
-            if (xmz::aux::is_file(g_jb.high_f) == 0) {
+            if (xmz::aux::is_file(g_jb.high_f)) {
                 if (xmz::fs::findstr(g_jb.high_f, process_name) == true) {
                     xmz::fs::rmfilestr(g_jb.high_f, process_name);
                     xmz::log::info(process_name, "has been removed from the high priority list");
@@ -427,7 +418,7 @@ namespace a1ctl {
                 xmz::log::error("file:", g_jb.high_f, "not exist!");
             }
         } else if (priority_opt == "low" || priority_opt == "l") {
-            if (xmz::aux::is_file(g_jb.low_f) == 0) {
+            if (xmz::aux::is_file(g_jb.low_f)) {
                 if (xmz::fs::findstr(g_jb.low_f, process_name) == true) {
                     xmz::fs::rmfilestr(g_jb.low_f, process_name);
                     xmz::log::info(process_name, "has been removed from the low priority list");
@@ -439,7 +430,7 @@ namespace a1ctl {
                 xmz::log::error("file:", g_jb.low_f, "not exist!");
             }
         } else if (priority_opt == "custom" || priority_opt == "c") {
-            if (xmz::aux::is_file(g_jb.custom_f) == 0) {
+            if (xmz::aux::is_file(g_jb.custom_f)) {
                 if (xmz::fs::findstr(g_jb.custom_f, process_name) == true) {
                     pini.rmkey("", process_name);
                     xmz::log::info(process_name, "has been removed from the custom priority list");
@@ -460,21 +451,21 @@ namespace a1ctl {
         a1::config::jb_path g_jb;
         a1::ini::ini_parser pini;
         if (opt == "high" || opt == "h") {
-            if (xmz::aux::is_file(g_jb.high_f) == 0) {
+            if (xmz::aux::is_file(g_jb.high_f)) {
                 xmz::println("high priority list");
                 xmz::fs::readfile(g_jb.high_f);
             } else {
                 xmz::log::error("the high priority list does not exist");
             }
         } else if (opt == "low" || opt == "l") {
-            if (xmz::aux::is_file(g_jb.low_f) == 0) {
+            if (xmz::aux::is_file(g_jb.low_f)) {
                 xmz::println("low priority list");
                 xmz::fs::readfile(g_jb.low_f);
             } else {
                 xmz::log::error("the low priority list does not exist");
             }
         } else if (opt == "custom" || opt == "c") {
-            if (xmz::aux::is_file(g_jb.custom_f) == 0) {
+            if (xmz::aux::is_file(g_jb.custom_f)) {
                 xmz::println("custom priority list");
                 xmz::fs::readfile(g_jb.custom_f);
             } else {

@@ -6,7 +6,7 @@
 a1mod::luatime lt;
 
 int main() {
-    if (xmz::aux::is_file("./test.lua") == 0) {
+    if (xmz::aux::is_file("./test.lua")) {
         lt.init();
         lt.run_file(std::string(xmz::fs::pwd() + "/test.lua").c_str());
         //xmz::println("path:", xmz::fs::pwd());

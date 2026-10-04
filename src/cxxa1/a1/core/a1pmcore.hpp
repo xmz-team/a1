@@ -31,8 +31,8 @@ namespace a1pm {
 
 	inline void init_repo_list() {
 		a1pm::config pmcfg;
-		if (xmz::aux::is_file(pmcfg.repo_f) == 1) { xmz::fs::writefile(pmcfg.repo_default_cfg, pmcfg.repo_f); }
-		if (xmz::aux::is_dir(pmcfg.pm_cache) == 1) { xmz::fs::mkdir(pmcfg.pm_cache); }
+		if (!xmz::aux::is_file(pmcfg.repo_f)) { xmz::fs::writefile(pmcfg.repo_default_cfg, pmcfg.repo_f); }
+		if (!xmz::aux::is_dir(pmcfg.pm_cache)) { xmz::fs::mkdir(pmcfg.pm_cache); }
 	}
 
 	inline void add_repo(const std::string& url) {
@@ -99,7 +99,7 @@ namespace a1pm {
 				return 1;
 			}
 			std::string cache_dir = cfg.pm_cache;
-			if (xmz::aux::is_dir(cache_dir) == 1) { xmz::fs::mkdir(cache_dir); }
+			if (!xmz::aux::is_dir(cache_dir)) { xmz::fs::mkdir(cache_dir); }
 			std::string found_repo;
 			std::string pkg_filepath;
 			std::string pkg_version;
@@ -110,7 +110,7 @@ namespace a1pm {
 			for (const auto& repo_url : sections) {
 				std::string repo_name = url_to_repo_name(repo_url);
 				std::string metadata_file = cache_dir + "/" + repo_name + "_Packages.ini";
-				if (xmz::aux::is_file(metadata_file) != 0) {
+				if (!xmz::aux::is_file(metadata_file)) {
 					xmz::log::warn("Repository metadata not found:", repo_url);
 					continue;
 				}
@@ -201,7 +201,7 @@ namespace a1pm {
 			std::string cache_filename = pkg_filename.empty() ? 
 				std::filesystem::path(pkg_filepath).filename().string() : pkg_filename;
 			std::string download_cache = cache_dir + "/downloads/" + cache_filename;
-			if (xmz::aux::is_dir(cache_dir + "/downloads") == 1) { xmz::fs::mkdir(cache_dir + "/downloads"); }
+			if (!xmz::aux::is_dir(cache_dir + "/downloads")) { xmz::fs::mkdir(cache_dir + "/downloads"); }
 			xmz::log::info("Installing package:", package);
 			xmz::println("	Version:", pkg_version);
 			xmz::println("	From:", found_repo);
@@ -272,7 +272,7 @@ namespace a1pm {
 		}
 
 		std::string cache_dir = cfg.pm_cache;
-		if (xmz::aux::is_dir(cache_dir) == 1) { xmz::fs::mkdir(cache_dir); }
+		if (!xmz::aux::is_dir(cache_dir)) { xmz::fs::mkdir(cache_dir); }
 
 		struct search_result {
 			std::string package;
@@ -288,7 +288,7 @@ namespace a1pm {
 		for (const auto& repo_url : sections) {
 			std::string repo_name = url_to_repo_name(repo_url);
 			std::string metadata_file = cache_dir + "/" + repo_name + "_Packages.ini";
-			if (xmz::aux::is_file(metadata_file) != 0) {
+			if (!xmz::aux::is_file(metadata_file)) {
 				xmz::log::warn("Repository metadata not found:", repo_url);
 				xmz::log::info("Please sync repository first");
 				continue;
@@ -376,12 +376,12 @@ namespace a1pm {
 		}
 
 		std::string cache_dir = cfg.pm_cache;
-		if (xmz::aux::is_dir(cache_dir) == 1) { xmz::fs::mkdir(cache_dir); }
+		if (!xmz::aux::is_dir(cache_dir)) { xmz::fs::mkdir(cache_dir); }
 		bool found = false;
 		for (const auto& repo_url : sections) {
 			std::string repo_name = url_to_repo_name(repo_url);
 			std::string metadata_file = cache_dir + "/" + repo_name + "_Packages.ini";
-			if (xmz::aux::is_file(metadata_file) != 0) { continue; }
+			if (!xmz::aux::is_file(metadata_file)) { continue; }
 			a1::ini::ini_parser pkg_parser;
 			if (!pkg_parser.parse_file(metadata_file)) { continue; }
 			std::string version = pkg_parser.get(query, "version", "");
@@ -389,7 +389,6 @@ namespace a1pm {
 				found = true;
 				std::string name = pkg_parser.get(query, "name", query);
 				std::string description = pkg_parser.get(query, "description", "");
-				//if (description.empty()) { description = pkg_parser.get(query, "descr", ""); }
 				std::string author = pkg_parser.get(query, "author", "");
 				std::string maintainer = pkg_parser.get(query, "maintainer", "");
 				std::string depends = pkg_parser.get(query, "depends", "");
@@ -439,7 +438,7 @@ namespace a1pm {
 		std::string repo_name = url_to_repo_name(repo_url);
 		std::string cache_dir = cfg.pm_cache;
 		std::string metadata_file = cache_dir + "/" + repo_name + "_Packages.ini";
-		if (xmz::aux::is_dir(cache_dir) == 1) { xmz::fs::mkdir(cache_dir); }
+		if (!xmz::aux::is_dir(cache_dir)) { xmz::fs::mkdir(cache_dir); }
 		std::string metadata_url = repo_url;
 		if (metadata_url.back() != '/') { metadata_url += "/"; }
 		metadata_url += "Packages.ini";
@@ -508,7 +507,7 @@ namespace a1pm {
 			return 1;
 		}
 		std::string cache_dir = cfg.pm_cache;
-		if (xmz::aux::is_dir(cache_dir) == 1) { xmz::fs::mkdir(cache_dir); }
+		if (!xmz::aux::is_dir(cache_dir)) { xmz::fs::mkdir(cache_dir); }
 		struct update_info {
 			std::string package;
 			std::string current_version;
@@ -523,7 +522,7 @@ namespace a1pm {
 			for (const auto& repo_url : sections) {
 				std::string repo_name = url_to_repo_name(repo_url);
 				std::string metadata_file = cache_dir + "/" + repo_name + "_Packages.ini";
-				if (xmz::aux::is_file(metadata_file) != 0) { continue; }
+				if (!xmz::aux::is_file(metadata_file)) { continue; }
 				a1::ini::ini_parser pkg_parser;
 				if (!pkg_parser.parse_file(metadata_file)) { continue; }
 				std::string version = pkg_parser.get(pkg_name, "version", "");
@@ -615,7 +614,7 @@ namespace a1pm {
 			for (const auto& repo_url : sections) {
 				std::string repo_name = url_to_repo_name(repo_url);
 				std::string metadata_file = cache_dir + "/" + repo_name + "_Packages.ini";
-				if (xmz::aux::is_file(metadata_file) != 0) { continue; }
+				if (!xmz::aux::is_file(metadata_file)) { continue; }
 				a1::ini::ini_parser pkg_parser;
 				if (!pkg_parser.parse_file(metadata_file)) { continue; }
 				std::string version = pkg_parser.get(pkg_name, "version", "");

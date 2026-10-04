@@ -35,7 +35,7 @@ inline int apply_custom_priority() {
     a1::config::jb_path g_jb;
     if (!config.custom_priority_enabled) { return 0; }
     std::string custom_file = g_jb.a1_dir + "/custom_priority.list";
-    if (xmz::aux::is_file(custom_file.c_str())) { return 0; }
+    if (xmz::aux::is_file(custom_file)) { return 0; }
     xmz::println("Applying custom priority settings...");
     a1::ini::ini_parser parser;
     if (!parser.parse_file(custom_file)) {

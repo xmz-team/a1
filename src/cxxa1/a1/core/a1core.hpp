@@ -110,7 +110,7 @@ namespace a1 {
                             std::vector<std::string>& target_list,
                             const std::vector<std::string>& system_list,
                             bool filter, bool is_high_priority) {
-            if (xmz::aux::is_file(filepath) == 0) {
+            if (xmz::aux::is_file(filepath)) {
                 std::string content = xmz::fs::readfile_str(filepath);
                 auto lines = xmz::str::split(content, "\n");
                 for (const auto& line : lines) {
@@ -143,7 +143,7 @@ namespace a1 {
         }
 
         void read_custom_list(const std::string& filepath) {
-            if (xmz::aux::exist(filepath) != 0) return;
+            if (!xmz::aux::exist(filepath)) return;
             std::string content = xmz::fs::readfile_str(filepath);
             auto lines = xmz::str::split(content, "\n");
             for (const auto& line : lines) {
@@ -427,7 +427,7 @@ namespace a1 {
         if (lockstate) {
             if (*lockstate == 1) { return true; }
         } else {
-            if (xmz::aux::is_file("/tmp/.a1_notifyutil_warnd") == 1) {
+            if (!xmz::aux::is_file("/tmp/.a1_notifyutil_warnd")) {
                 xmz::log::warn("notifyutil not found, cannot detect lock state.");
                 xmz::fs::touch("/tmp/.a1_notifyutil_warned");
             }

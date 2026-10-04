@@ -259,17 +259,17 @@ int main(int argc, char *argv[]) {
         }
 
         if (use_shell) {
-            if (xmz::aux::is_file("/bin/sh") == 0) {
+            if (xmz::aux::is_file("/bin/sh")) {
                 execl("/bin/sh", "sh", "-c", command, (char *)NULL);
-            } else if (xmz::aux::is_file("/usr/bin/sh") == 0) {
+            } else if (xmz::aux::is_file("/usr/bin/sh")) {
                 execl("/usr/bin/sh", "sh", "-c", command, (char *)NULL);
-            } else if (xmz::aux::is_file("/usr/local/bin/sh") == 0) {
+            } else if (xmz::aux::is_file("/usr/local/bin/sh")) {
                 execl("/usr/local/bin/sh", "sh", "-c", command, (char *)NULL);
-            } else if (xmz::aux::is_file("/var/jb/bin/sh") == 0) {
+            } else if (xmz::aux::is_file("/var/jb/bin/sh")) {
                 execl("/var/jb/bin/sh", "sh", "-c", command, (char *)NULL);
-            } else if (xmz::aux::is_file("/var/jb/usr/bin/sh") == 0) {
+            } else if (xmz::aux::is_file("/var/jb/usr/bin/sh")) {
                 execl("/var/jb/usr/bin/sh", "sh", "-c", command, (char *)NULL);
-            } else if (xmz::aux::is_file("/var/jb/usr/local/bin/sh") == 0) {
+            } else if (xmz::aux::is_file("/var/jb/usr/local/bin/sh")) {
                 execl("/var/jb/usr/local/bin/sh", "sh", "-c", command, (char *)NULL);
             }
         } else {

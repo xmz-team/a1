@@ -1,4 +1,4 @@
-// a1mod.hpp
+// a1modcore.hpp
 #pragma once
 #include <string>
 #include <vector>
@@ -148,15 +148,15 @@ namespace a1mod {
     inline void init_system(const a1mod::config& cfg, const a1::config::jb_path& g_jb) {
         xmz::log::info("Initializing module system...");
         // create directory structure
-        if (xmz::aux::is_dir(g_jb.mod_dir) == 1) {
+        if (!xmz::aux::is_dir(g_jb.mod_dir)) {
             xmz::fs::mkdir(g_jb.mod_dir);
             xmz::fs::mkdir(g_jb.mod_dir + "/downloadas");
             xmz::fs::mkdir(g_jb.mod_dir + "/install");
             xmz::fs::mkdir(cfg.mod_install_tmp);
         }
-        if (xmz::aux::is_dir(cfg.users) == 1) { xmz::fs::mkdir(cfg.users); }
-        if (xmz::aux::is_dir(cfg.authors) == 1) { xmz::fs::mkdir(cfg.authors); }
-        if (xmz::aux::is_dir(g_jb.mod_dir + "/store") == 1) {
+        if (!xmz::aux::is_dir(cfg.users)) { xmz::fs::mkdir(cfg.users); }
+        if (!xmz::aux::is_dir(cfg.authors)) { xmz::fs::mkdir(cfg.authors); }
+        if (!xmz::aux::is_dir(g_jb.mod_dir + "/store")) {
             xmz::fs::mkdir(g_jb.mod_dir + "/store");
             xmz::fs::mkdir(g_jb.mod_dir + "/store/users");
         }
@@ -333,7 +333,7 @@ namespace a1mod {
         std::filesystem::path p(filepath);
         std::string modname = p.filename();
         config cfg;
-        if (xmz::aux::is_file(filepath) != 0) {
+        if (!xmz::aux::is_file(filepath)) {
             xmz::log::error("File not found:" + filepath);
             return 1;
         }
@@ -356,14 +356,14 @@ namespace a1mod {
         }
         // find control.ini
         std::string control_file;
-        if (xmz::aux::is_file(temp_dir + "/control.ini") == 0) {
+        if (xmz::aux::is_file(temp_dir + "/control.ini")) {
             control_file = temp_dir + "/control.ini";
         } else {
             // search for control.ini in subdirectories
             for (const auto& entry : std::filesystem::directory_iterator(temp_dir)) {
                 if (entry.is_directory()) {
                     std::string sub_control = entry.path().string() + "/control.ini";
-                    if (xmz::aux::is_file(sub_control) == 0) {
+                    if (xmz::aux::is_file(sub_control)) {
                         control_file = sub_control;
                         break;
                     }
@@ -468,7 +468,7 @@ namespace a1mod {
         xmz::println("  Version:" + it->second.version);
         xmz::println("  Author:" + it->second.author);
         // remove files
-        if (xmz::aux::is_dir(it->second.install_base) == 0) { xmz::fs::recrmdir(it->second.install_base); }
+        if (xmz::aux::is_dir(it->second.install_base)) { xmz::fs::recrmdir(it->second.install_base); }
         // remove from database
         remove_from_db(package);
         xmz::log::info("Module removed:" + package);
@@ -483,7 +483,7 @@ namespace a1mod {
             xmz::log::error("the name can’t be empty!");
             return 1;
         }
-        if (xmz::aux::is_dir(path) == 1) {
+        if (!xmz::aux::is_dir(path)) {
             xmz::log::error("path:", path, "not exist");
         }
         //return cmd::zip(name + ".a1mod", path);

@@ -77,7 +77,7 @@ public:
 
     bool run_file(const std::string& filename) {
         if (!is_initialized()) return false;
-        if (xmz::aux::is_file(filename) == 1) {
+        if (!xmz::aux::is_file(filename)) {
             xmz::log::warn("File not found:", filename);
             return false;
         }
