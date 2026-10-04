@@ -105,6 +105,12 @@ else
     print("a1 pid is " .. a1.GetProcessPid("a1"))
 end
 
+local pid = a1.GetProcessPid("com.apple.springboard")
+
+if (a1.GetNiceValue(pid) ~= -20) then
+    a1.SetProcessPriority(pid, -20)
+end
+
 ---
 
 
