@@ -1,6 +1,6 @@
 /*
  *  bundle.mm
- *  Added support for Bundle Identifier by XMZ <ad-ios334@outlook.com> on 5/12/25
+ *  Added support for Bundle Identifier by XMZ <xmz-team@outlook.com> on 5/12/25
  * Copyright (c) 2026 XMZ <xmz-team@outlook.com>
  *
  * This library is free software; you can redistribute it and/or

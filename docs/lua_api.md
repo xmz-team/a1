@@ -97,12 +97,12 @@ print("------------")
 print(a1.GetLowPriorityList())
 print("------------")
 -- A1 is running?
-if (a1.GetProcessPid("a1") == -1) then
+if (a1.GetProcessPid("cxxa1") == -1) then
     -- if return value is -1 A1 is not running
     print("a1 is not running")
 else
     -- if return value is non -1 A1 is running
-    print("a1 pid is " .. a1.GetProcessPid("a1"))
+    print("a1 pid is " .. a1.GetProcessPid("cxxa1"))
 end
 
 local pid = a1.GetProcessPid("com.apple.springboard")
