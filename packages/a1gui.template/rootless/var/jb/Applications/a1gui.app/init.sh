@@ -1,4 +1,3 @@
-PATH1="$PATH"
 if [ -f "/etc/profile" ]; then
     . "/etc/profile"
 else
@@ -8,7 +7,7 @@ for arg in $@
 do
     case $arg in
         --init|-i)
-            printf "${PATH}:${PATH1}"
+            printf "${PATH}"
             ;;
         --get-jb-env|-gjb)
             jbenv="$(dpkg --print-architecture)"
