@@ -88,6 +88,7 @@ public:
     std::string get_self_path() { return _get_self_path(); }
     std::string get_jb_env() { return _get_jb_env(); }
     void init() {
+        std::string PATH_ENV = "/bin:/usr/bin:/usr/local/bin:/var/jb/bin:/var/jb/usr/bin:/var/jb/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:/var/jb/sbin:/var/jb/usr/sbin:/var/jb/usr/local/sbin:/rootfs/usr/bin:/rootfs/bin:/rootfs/sbin:/rootfs/usr/sbin:/rootfs/usr/local/bin:/rootfs/usr/local/sbin";
         auto exec = [&](const std::string& cmd) -> std::string {
             std::string result;
             char buf[4096];
@@ -99,7 +100,9 @@ public:
         };
         std::string path = exec(std::string("bash -c '" + get_self_path() + "/init.sh --init'"));
         while (!path.empty() && (path.back()=='\n' || path.back()=='\r')) path.pop_back();
-        setenv("PATH", std::string("/bin:/usr/bin:/usr/local/bin:/var/jb/bin:/var/jb/usr/bin:/var/jb/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin:/var/jb/sbin:/var/jb/usr/sbin:/var/jb/usr/local/sbin:/rootfs/usr/bin:/rootfs/bin:/rootfs/sbin:/rootfs/usr/sbin:/rootfs/usr/local/bin:/rootfs/usr/local/sbin" + ":" + path).c_str(), 1);
+        PATH_ENV += ":";
+        PATH_ENV += path;
+        setenv("PATH", PATH_ENV.c_str(), 1);
         std::string get_jb_cmd = exec(std::string("bash -c '" + get_self_path() + "/init.sh -gjb'"));
         setenv("jb", get_jb_cmd.c_str(), 1);
         g_jb.jb = get_jb_cmd;
