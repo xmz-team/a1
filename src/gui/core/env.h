@@ -100,8 +100,10 @@ public:
         };
         std::string path = exec(std::string("bash -c '" + get_self_path() + "/init.sh --init'"));
         while (!path.empty() && (path.back()=='\n' || path.back()=='\r')) path.pop_back();
-        PATH_ENV += ":";
-        PATH_ENV += path;
+        if (!path.empty()) {
+            PATH_ENV += ":";
+            PATH_ENV += path;
+        }
         setenv("PATH", PATH_ENV.c_str(), 1);
         std::string get_jb_cmd = exec(std::string("bash -c '" + get_self_path() + "/init.sh -gjb'"));
         setenv("jb", get_jb_cmd.c_str(), 1);
