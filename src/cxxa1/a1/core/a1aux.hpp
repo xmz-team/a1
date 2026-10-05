@@ -46,8 +46,7 @@ inline int apply_custom_priority() {
     auto process_names = parser.get_key("");
     for (const auto& process_name : process_names) {
         int priority = parser.get_int("", process_name, 20);
-        pid_t pid = -1;
-        a1::find_pid_by_name(process_name.c_str(), pid);
+        a1::find_pid_by_name(process_name.c_str());
         if (pid > 0) {
             if (a1::set::priority(pid, priority)) {
                 if (config.debug_mode) {
@@ -77,8 +76,7 @@ inline void optimize_system() {
         xmz::println("If it fails, please try to re-execute it with sudo a1");
         int count = 0;
         for (const auto& process : high_list) {
-            pid_t pid = -1;
-            a1::find_pid_by_name(process.c_str(), pid);
+            a1::find_pid_by_name(process.c_str());
             if (pid > 0) {
                 if (a1::set::priority(pid, config.high_priority)) {
                     if (config.debug_mode) {
@@ -108,8 +106,7 @@ inline void optimize_system() {
                      std::to_string(config.low_priority) + "):");
         int count = 0;
         for (const auto& process : low_list) {
-            pid_t pid = -1;
-            a1::find_pid_by_name(process.c_str(), pid);
+            a1::find_pid_by_name(process.c_str());
             if (pid > 0) {
                 if (a1::set::priority(pid, config.low_priority)) {
                     if (config.debug_mode) {

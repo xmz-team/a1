@@ -168,11 +168,12 @@ namespace a1 {
     };
 
     // by process find PID
-    inline int find_pid_by_name(const char *target, pid_t& pid) {
+    inline int find_pid_by_name(const char *target) {
         pid = a1::bin::bundle_pid(target);
-        //xmz::println(pid);
         return pid == -1 ? 1 : 0;
     }
+
+    inline int find_pid_by_name(const std::string& target) { return find_pid_by_name(target.c_str()); }
 
     namespace get {
         inline std::string process_name_by_pid(int pid) {
@@ -427,7 +428,7 @@ namespace a1 {
         if (lockstate) {
             if (*lockstate == 1) { return true; }
         } else {
-            if (!xmz::aux::is_file("/tmp/.a1_notifyutil_warnd")) {
+            if (!xmz::aux::is_file("/tmp/.a1_notifyutil_warned")) {
                 xmz::log::warn("notifyutil not found, cannot detect lock state.");
                 xmz::fs::touch("/tmp/.a1_notifyutil_warned");
             }
