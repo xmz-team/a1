@@ -34,3 +34,5 @@ src/gui/a1gui.AllCode.all.md
 .generate.lock
 induce-code-ci
 *.AllCode.all.*
+
+Tests/test-lua/test-lua

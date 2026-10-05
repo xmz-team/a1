@@ -20,6 +20,16 @@ int main(int argc, char * argv[]) {
     g_env.init();
     a1::init();
     xmz::crash::init_crash_handler(g_jb.a1_dir + "/a1gui_crash.log");
+    int out_fd = open((g_jb.a1_dir + "/a1gui.log").c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (out_fd >= 0) {
+        dup2(out_fd, STDOUT_FILENO);
+        if (out_fd != STDOUT_FILENO) close(out_fd);
+    }
+    int err_fd = open((g_jb.a1_dir + "/a1guierror.log").c_str(), O_WRONLY | O_CREAT | O_APPEND, 0644);
+    if (err_fd >= 0) {
+        dup2(err_fd, STDERR_FILENO);
+        if (err_fd != STDERR_FILENO) close(err_fd);
+    }
     @autoreleasepool {
         xmz::log::info("a1gui starting...");
         xmz::log::debug("app path:", g_env.get_self_path());
