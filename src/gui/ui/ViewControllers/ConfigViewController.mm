@@ -1,8 +1,8 @@
 // ConfigViewController.mm
 #import "ConfigViewController.h"
-#import <core/A1Executor.h>
-#import <ui/Categories/UIView+CardStyle.h>
-#include <core/cfg.h>
+#import <gui/core/A1Executor.h>
+#import <gui/ui/Categories/UIView+CardStyle.h>
+#include <gui/core/cfg.h>
 
 @implementation ConfigViewController { UITextView *_configTextView; }
 

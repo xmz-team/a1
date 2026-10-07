@@ -1,10 +1,10 @@
 // StatusViewController.mm
 #import "StatusViewController.h"
-#import <core/A1Executor.h>
-#import <ui/Categories/UIView+CardStyle.h>
-#import <core/env.h>
+#import <gui/core/A1Executor.h>
+#import <gui/ui/Categories/UIView+CardStyle.h>
+#import <gui/core/env.h>
 #include <string>
-#include <core/cfg.h>
+#include <gui/core/cfg.h>
 
 @implementation StatusViewController {
     UIImageView *_statusIcon;

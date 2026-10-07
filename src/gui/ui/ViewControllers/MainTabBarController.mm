@@ -6,7 +6,7 @@
 #import "ConfigViewController.h"
 #import "ModuleViewController.h"
 #import "SponsorViewController.h"
-#include <core/cfg.h>
+#include <gui/core/cfg.h>
 
 @implementation MainTabBarController
 - (void)viewDidLoad {

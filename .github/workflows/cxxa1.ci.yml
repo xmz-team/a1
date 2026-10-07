@@ -19,7 +19,7 @@ jobs:
     - name: Setup
       run: |
         git -c url."https://github.com/".insteadOf="git@github.com:" submodule update --init --recursive
-        chmod +x build
+        chmod +x x
         chmod +x ci/*.sh
         mkdir -p tmp/bin && cd tmp/bin
         if [ $(uname -s) = "Darwin" ]; then
@@ -56,11 +56,11 @@ jobs:
 
     - name: Build
       run: |
-        ./build build-a1-all build-a1-tool
+        ./x build-a1-all build-a1-tool
 
     - name: Package
       run: |
-        ./build pack-all
+        ./x pack-all
         mkdir -p packages/pack-full
         mv packages/cxxa1/*.deb packages/pack-full
         mv packages/a1gui/*.deb packages/pack-full

@@ -1,10 +1,10 @@
 // ModeViewController.mm
 #import <objc/runtime.h>
 #import "ModeViewController.h"
-#import <core/A1Executor.h>
-#import <core/A1Constants.h>
-#import <ui/Categories/UIView+CardStyle.h>
-#include <core/cfg.h>
+#import <gui/core/A1Executor.h>
+#import <gui/core/A1Constants.h>
+#import <gui/ui/Categories/UIView+CardStyle.h>
+#include <gui/core/cfg.h>
 
 @implementation ModeViewController {
     UIScrollView *_scrollView;

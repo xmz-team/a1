@@ -1,7 +1,7 @@
 // SponsorViewController.mm
 #import "SponsorViewController.h"
-#import <ui/Categories/UIView+CardStyle.h>
-#include <core/cfg.h>
+#import <gui/ui/Categories/UIView+CardStyle.h>
+#include <gui/core/cfg.h>
 
 @implementation SponsorViewController { UIScrollView *_scrollView; }
 

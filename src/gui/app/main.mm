@@ -3,12 +3,12 @@
 #import <Foundation/Foundation.h>
 #include <unistd.h>
 
-#import <ui/ViewControllers/MainTabBarController.h>
-#import <core/A1Executor.h>
+#import <gui/ui/ViewControllers/MainTabBarController.h>
+#import <gui/core/A1Executor.h>
 #include <a1/core/config.hpp>
 #import "AppDelegate.h"
-#include <core/env.h>
-#include <core/cfg.h>
+#include <gui/core/env.h>
+#include <gui/core/cfg.h>
 #include <a1/core/a1core.hpp>
 
 #include <libxmz/log.hpp>

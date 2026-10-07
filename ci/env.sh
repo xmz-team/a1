@@ -20,7 +20,7 @@ if [ -z "$jb" ]; then
     fi
     if [[ ! "$(dpkg --print-architecture)" = iphoneos-* ]]; then
         if [ $(uname -s) = "Darwin" ] || [ $(uname -s) = "Linux" ]; then
-            CXXFLAGS1="\
+            _CXXFLAGS1="\
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libzip5/var/jb/usr/lib \
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libzip-dev/var/jb/usr/lib \
   -L$(cd $(dirname ${BASH_SOURCE[0]}) && pwd)/../tmp/lib/libssl-dev/var/jb/usr/lib \
@@ -33,14 +33,15 @@ if [ -z "$jb" ]; then
         fi
     fi
 else
-    CXXFLAGS1="\
+    _CXXFLAGS1="\
 -L$jb/usr/lib \
 -L$jb/usr/local/lib \
 -L$jb/lib \
 -L/usr/lib"
 fi
 
-src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src/cxxa1"
+cxxa1_src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src/cxxa1"
+src_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../src"
 export PATH="${PATH}:$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../tmp/bin"
 
 lib_path=(
@@ -55,22 +56,24 @@ lib_path=(
     -Wl,-rpath,@loader_path/.jbroot/lib
 )
 
-CXXFLAGS="\
-  -target arm64-apple-ios14.0 -isysroot ${SDKROOT} -miphoneos-version-min=14.0 \
+export CXXFLAGS="\
+  -target arm64-apple-ios14.0 \
+  -miphoneos-version-min=14.0 \
+  -isysroot ${SDKROOT} \
   -std=c++17 \
   -framework Foundation -framework Security \
   -I${SDKROOT}/usr/include \
   -I${SDKROOT}/usr/include/c++ \
-  -I${src_path} -I. -Isrc/cxxa1 -Isrc/bin/bundle -Isrc/bin \
+  -I${cxxa1_src_path} -I. -Isrc/cxxa1 -Isrc/bin/bundle -Isrc/bin -I${src_path}/gui -I${src_path}/cxxa1 -I${src_path}/bin -I${src_path} \
   -Ilibs/libxmz -Ilibs/lua \
   -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs -Ilibs \
   -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs/libxmz \
   -I$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)/../libs/lua \
   -I${jb}/usr/include -I${jb}/usr/local/include \
-  -I${src_path}/../bin/bundle -I${src_path}/../.. \
+  -I${src_path}/bin/bundle -I${cxxa1_src_path}/../.. \
   ${lib_path[@]} \
   -Wl,-undefined,dynamic_lookup \
-  $CXXFLAGS1 $CXXFLAGS2"
+  $_CXXFLAGS1 $_CXXFLAGS2 $CXXFLAGS1 $CXXFLAGS2"
 
 sign() {
     local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"

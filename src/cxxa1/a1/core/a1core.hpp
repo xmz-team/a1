@@ -170,7 +170,7 @@ namespace a1 {
     // by process find PID
     inline int find_pid_by_name(const char *target) {
         pid_t pid = a1::bin::bundle_pid(target);
-        return pid == -1 ? 1 : 0;
+        return pid == -1 ? 0 : pid; /* return 0 by error, otherwise return PID */
     }
 
     inline int find_pid_by_name(const std::string& target) { return find_pid_by_name(target.c_str()); }

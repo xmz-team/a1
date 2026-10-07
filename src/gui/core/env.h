@@ -19,12 +19,11 @@
 #include <a1/core/config.hpp>
 
 inline a1::config::jb_path g_jb;
-
 namespace a1gui {
 class env {
 private:
     std::string _get_jb_env() {
-        auto run_capture = [&](char *const argv[], char *buf, size_t cap) -> int {
+        auto run_capture = [&](char *buf, size_t cap) -> int {
             int pipefd[2];
             if (pipe(pipefd) == -1) {
                 perror("pipe");
@@ -41,9 +40,19 @@ private:
                 close(pipefd[0]);
                 dup2(pipefd[1], STDOUT_FILENO);
                 close(pipefd[1]);
-                execvp(argv[0], argv);
-                perror("execvp");
-                _exit(127);
+                if (xmz::aux::is_file("/var/jb/usr/bin/dpkg")) {
+                    execl("/var/jb/usr/bin/dpkg", "dpkg", "--print-architecture", nullptr);
+                    perror("execl");
+                    _exit(127);
+                } else if (xmz::aux::is_file(std::string([[[NSBundle mainBundle] bundlePath] UTF8String]) + "/.jbroot/usr/bin/dpkg")) {
+                    execl((std::string([[[NSBundle mainBundle] bundlePath] UTF8String]) + "/../../usr/bin/dpkg").c_str(), "dpkg", "--print-architecture", nullptr);
+                    perror("execl");
+                    _exit(127);
+                } else {
+                    execl("/usr/bin/dpkg", "dpkg", "--print-architecture", nullptr);
+                    perror("execl");
+                    _exit(127);
+                }
             }
             close(pipefd[1]);
             size_t used = 0;
@@ -60,12 +69,7 @@ private:
             return 0;
         };
         char arch[128];
-        char *argv[] = {
-            const_cast<char*>("dpkg"),
-            const_cast<char*>("--print-architecture"),
-            nullptr
-        };
-        if (run_capture(argv, arch, sizeof arch) == 0) {
+        if (run_capture(arch, sizeof arch) == 0) {
             arch[std::strcspn(arch, "\n")] = '\0';
             return arch;
         } else {

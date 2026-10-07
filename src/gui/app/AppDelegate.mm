@@ -4,10 +4,10 @@
 #include <unistd.h>
 
 #import "AppDelegate.h"
-#include <core/cfg.h>
-#include <core/env.h>
-#import <ui/ViewControllers/MainTabBarController.h>
-#import <core/A1Executor.h>
+#include <gui/core/cfg.h>
+#include <gui/core/env.h>
+#import <gui/ui/ViewControllers/MainTabBarController.h>
+#import <gui/core/A1Executor.h>
 #include <a1/core/config.hpp>
 
 #include <libxmz/log.hpp>
