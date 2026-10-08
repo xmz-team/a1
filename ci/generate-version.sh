@@ -86,7 +86,7 @@ generate_version() {
             -e "s/@a1ctl_version@/${a1ctl_v}/g" \
             -e "s/@a1mod_version@/${a1mod_v}/g" \
             -e "s/@a1pm_version@/${a1pm_v}/g" \
-            "${src_path}/a1/core/version.hpp.in" > "${cxxa1_src_path}/a1/core/version.hpp"
+            "${cxxa1_src_path}/a1/core/version.hpp.in" > "${cxxa1_src_path}/a1/core/version.hpp"
 
         sed -e "s/@version@/${gui_v}/g" \
             "${src_path}/gui/Info.plist.in" > "${src_path}/gui/Info.plist"
