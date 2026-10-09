@@ -89,7 +89,7 @@ public:
     bool SetVmSysctlByName(const std::string& name, int new_value) { return a1::sys::set_vm_sysctl_by_name(name, new_value); }
     bool GetAndSetVmSysctl(const std::string& name, int new_value, const std::string& display_name) { return a1::sys::get_and_set_vm_sysctl(name, new_value, display_name); }
     void GetVmSwapUsage() { a1::sys::get_vm_swapusage(); }
-    VmSwapUsageInfo GetVmSwapUsageInfo() {
+    vm_swap_usage_info GetVmSwapUsageInfo() {
         a1::sys::swap_usage_info info = a1::sys::get_vm_swapusage_info();
         vm_swap_usage_info r;
         r.ok         = info.ok;
