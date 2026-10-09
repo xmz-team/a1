@@ -212,7 +212,7 @@ static int lua_GetVmSwapUsage(lua_State* L) {
 static int lua_GetVmSwapUsageInfo(lua_State* L) {
     a1mod::apis::a1api api;
     auto result = api.GetVmSwapUsageInfo();
-    lua_traits::to_lua<std::map<std::string, std::string>>::push(L, result);
+    lua_traits::to_lua<a1::_modapi::vm_swap_usage_info>::push(L, result);
     return 1;
 }
 

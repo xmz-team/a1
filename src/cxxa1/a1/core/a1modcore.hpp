@@ -90,8 +90,6 @@ namespace a1mod {
         a1::config::jb_path g_jb;
         a1::ini::ini_parser parser;
         std::string db_path = g_jb.mod_dir + "/module.db.ini";
-        //parser.set("GLOBAL", "last_updated", g_module_db.last_updated);
-        //parser.set_int("GLOBAL", "total_modules", g_module_db.modules.size());
         for (const auto& [package_name, entry] : g_module_db.modules) {
             std::string section = package_name;
             parser.set(section, "name", entry.name);

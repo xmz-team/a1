@@ -9,6 +9,7 @@ extern "C" {
 #include <vector>
 #include <map>
 #include <type_traits>
+#include <a1/core/mod/a1mod_struct.hpp>
 
 namespace a1mod::lua_traits {
     template<typename T> struct from_lua;
@@ -62,6 +63,22 @@ namespace a1mod::lua_traits {
                 lua_pushlstring(L, pair.first.c_str(), pair.first.size());
                 lua_pushnumber(L, pair.second);
                 lua_settable(L, -3);
+            }
+        }
+    };
+
+    template<> struct to_lua<a1::_modapi::vm_swap_usage_info> {
+        static void push(lua_State* L, const a1::_modapi::vm_swap_usage_info& v) {
+            lua_newtable(L);
+            lua_pushboolean(L, v.ok);            lua_setfield(L, -2, "ok");
+            lua_pushinteger(L, (lua_Integer)v.total);  lua_setfield(L, -2, "total");
+            lua_pushinteger(L, (lua_Integer)v.used);   lua_setfield(L, -2, "used");
+            lua_pushinteger(L, (lua_Integer)v.avail);  lua_setfield(L, -2, "avail");
+            lua_pushinteger(L, (lua_Integer)v.free);   lua_setfield(L, -2, "free");
+            lua_pushnumber (L, v.used_ratio);          lua_setfield(L, -2, "used_ratio");
+            if (!v.ok) {
+                lua_pushstring (L, v.error.c_str());   lua_setfield(L, -2, "error");
+                lua_pushinteger(L, v.err_code);        lua_setfield(L, -2, "err_code");
             }
         }
     };

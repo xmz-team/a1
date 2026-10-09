@@ -127,12 +127,12 @@ int main(int argc, char *argv[]) {
         }
         std::string opt = argv[2];
         if (opt == "on") {
-            a1ctl::update_config("loop", true);
+            a1ctl::update_config("loop_mode", true);
             a1ctl::update_config("auto_adjust", false);
             a1ctl::update_config("scheduled_guard", false);
             xmz::log::info("loop mode is on (other modes have been turned off automatically)");
         } else if (opt == "off") {
-            a1ctl::update_config("loop", false);
+            a1ctl::update_config("loop_mode", false);
             xmz::log::info("loop mode is off");
         } else {
             xmz::log::error("usage: loop <on|off>");
@@ -145,7 +145,7 @@ int main(int argc, char *argv[]) {
         std::string opt = argv[2];
         if (opt == "on") {
             a1ctl::update_config("auto_adjust", true);
-            a1ctl::update_config("loop", false);
+            a1ctl::update_config("loop_mode", false);
             a1ctl::update_config("scheduled_guard", false);
             xmz::log::info("real-time auto-adjust mode is on (other modes have been turned off automatically)");
         } else if (opt == "off") {
@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
         std::string opt = argv[2];
         if (opt == "on") {
             a1ctl::update_config("scheduled_guard", true);
-            a1ctl::update_config("loop", false);
+            a1ctl::update_config("loop_mode", false);
             a1ctl::update_config("auto_adjust", false);
             xmz::log::info("scheduled guard mode is on (other modes have been turned off automatically)");
         } else if (opt == "off") {
