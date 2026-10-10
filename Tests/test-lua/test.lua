@@ -26,3 +26,5 @@ else
     a1.SetProcessNiceValue(pid, -20)
     print("Now SpringBoard Nice is: " .. a1.GetNiceValue(pid))
 end
+
+print("version of a1 is: " .. a1.GetA1Version(a1))

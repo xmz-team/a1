@@ -96,7 +96,6 @@ public:
 private:
     lua_State* L;
     bool initialized;
-
     void register_a1api() {
         lua_newtable(L);
         REGISTER_LUA_FUNCTION(GetProcessPid);
@@ -125,6 +124,7 @@ private:
         REGISTER_LUA_FUNCTION(GetAndSetVmSysctl);
         REGISTER_LUA_FUNCTION(GetVmSwapUsage);
         REGISTER_LUA_FUNCTION(GetVmSwapUsageInfo);
+        REGISTER_LUA_FUNCTION(GetA1Version);
         lua_setglobal(L, "a1");
     }
 };

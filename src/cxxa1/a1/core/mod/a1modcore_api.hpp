@@ -3,7 +3,7 @@
 #include <a1/core/a1core.hpp>
 #include <a1/core/a1ctlcore.hpp>
 #include <a1/core/mod/a1mod_struct.hpp>
-
+#include <a1/core/version.hpp>
 #include <libxmz/io.hpp>
 #include <libxmz/fs.hpp>
 #include <libxmz/aux.hpp>
@@ -101,6 +101,21 @@ public:
         r.error      = info.error;
         r.err_code   = info.err_code;
         return r;
+    }
+
+    std::string_view GetA1Version(std::string_view name = "") {
+        static constexpr std::pair<std::string_view, std::string_view> versions[] = {
+            {"a1",      a1::version::a1},
+            {"a1ctl",   a1::version::a1ctl},
+            {"a1mod",   a1::version::a1mod},
+            {"a1pm",    a1::version::a1pm},
+            {"a1gui",   a1::version::a1gui},
+            {"gui",     a1::version::gui},
+            {"general", a1::version::general},
+            {"",        a1::version::general},
+        };
+        for (auto [k, v] : versions) if (k == name) return v;
+        return {};
     }
 private:
     a1::config::jb_path g_jb;

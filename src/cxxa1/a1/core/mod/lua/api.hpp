@@ -216,6 +216,14 @@ static int lua_GetVmSwapUsageInfo(lua_State* L) {
     return 1;
 }
 
+static int lua_GetA1Version(lua_State* L) {
+    a1mod::apis::a1api api;
+    std::string_view name = "";
+    if (lua_gettop(L) >= 1 && lua_isstring(L, 1)) name = lua_tostring(L, 1);
+    lua_traits::to_lua<std::string_view>::push(L, api.GetA1Version(name));
+    return 1;
+}
+
 #define REGISTER_LUA_FUNCTION(name) \
     lua_pushcfunction(L, lua_##name); \
     lua_setfield(L, -2, #name);

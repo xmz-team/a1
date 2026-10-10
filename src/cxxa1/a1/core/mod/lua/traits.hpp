@@ -82,4 +82,5 @@ namespace a1mod::lua_traits {
             }
         }
     };
+    template<> struct to_lua<std::string_view> { static void push(lua_State* L, std::string_view value) { lua_pushlstring(L, value.data(), value.size()); } };
 } /* namespace a1mod::lua_traits */

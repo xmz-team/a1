@@ -1,23 +1,13 @@
 #!/bin/bash
-
-set -e
-
-if [ -f '/etc/profile' ]; then
-    source /etc/profile
-elif [ -f '/var/jb/etc/profile' ]; then
-    source /var/jb/etc/profile
-else
-    echo 'Where the fuck "profile"?' 1>&2
-fi
+set -euo pipefail
+source /etc/profile || source /var/jb/etc/profile
 
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
+elif [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
+    jb="$(jbroot)"
 else
-    if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
-        jb="$(jbroot)"
-    else
-        jb=""
-    fi
+    jb=""
 fi
 
 myini="$jb/a1/bin/myini"

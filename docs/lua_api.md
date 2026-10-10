@@ -35,6 +35,8 @@ Its design is meant to be embedded into applications, giving them flexible ways 
 - Get A1 config path
 ### a1.GetVmSwapUsageInfo()
 - Get VM swap usage info (table)
+### a1.GetA1Version(name)
+- Get the version number of the A1 suite (Note: If no parameters or empty strings are passed, the total version number will be returned)
 
 # Assist API
 ### a1.IsDeviceLocked()
@@ -110,6 +112,8 @@ local pid = a1.GetProcessPid("com.apple.springboard")
 if (a1.GetNiceValue(pid) ~= -20) then
     a1.SetProcessPriority(pid, -20)
 end
+
+print("version of a1 is: " .. a1.GetA1Version(a1))
 
 ---
 

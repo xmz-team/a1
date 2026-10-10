@@ -7,6 +7,9 @@ namespace a1::_coreapi::version {
     inline constexpr std::string_view a1ctl = "@a1ctl_version@";
     inline constexpr std::string_view a1mod = "@a1mod_version@";
     inline constexpr std::string_view a1pm  = "@a1pm_version@";
+    inline constexpr std::string_view a1gui = "@gui_version@";
+    inline constexpr std::string_view gui = a1gui;
+    inline constexpr std::string_view general = "@general_version@";
 }
 
 namespace a1::version {
@@ -14,4 +17,7 @@ namespace a1::version {
     using _coreapi::version::a1ctl;
     using _coreapi::version::a1mod;
     using _coreapi::version::a1pm;
+    using _coreapi::version::a1gui;
+    using _coreapi::version::gui;
+    using _coreapi::version::general;
 }

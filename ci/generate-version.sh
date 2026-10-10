@@ -86,6 +86,8 @@ generate_version() {
             -e "s/@a1ctl_version@/${a1ctl_v}/g" \
             -e "s/@a1mod_version@/${a1mod_v}/g" \
             -e "s/@a1pm_version@/${a1pm_v}/g" \
+            -e "s/@a1gui_version@/${gui_v}/g" \
+            -e "s/@general_version@/${general_v}/g" \
             "${cxxa1_src_path}/a1/core/version.hpp.in" > "${cxxa1_src_path}/a1/core/version.hpp"
 
         sed -e "s/@version@/${gui_v}/g" \
