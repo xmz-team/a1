@@ -27,4 +27,5 @@ else
     print("Now SpringBoard Nice is: " .. a1.GetNiceValue(pid))
 end
 
-print("version of a1 is: " .. a1.GetA1Version(a1))
+print("version of a1 is: " .. a1.GetA1Version("a1"))
+a1.GetVmSwapUsage()

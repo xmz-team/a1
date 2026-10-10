@@ -111,9 +111,10 @@ local pid = a1.GetProcessPid("com.apple.springboard")
 
 if (a1.GetNiceValue(pid) ~= -20) then
     a1.SetProcessPriority(pid, -20)
+    print("The Nice value of SpringBoard has been changed to -20")
 end
 
-print("version of a1 is: " .. a1.GetA1Version(a1))
+print("version of a1 is: " .. a1.GetA1Version("a1"))
 
 ---
 

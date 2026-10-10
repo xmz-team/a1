@@ -535,10 +535,11 @@ namespace a1 {
             if (sysctlbyname("vm.swapusage", &swap_usage, &swap_len, nullptr, 0) == -1) {
                 xmz::log::error("Failed to get vm.swapusage:", strerror(errno));
             } else {
-                xmz::log::info(
-                    "vm.swapusage: total=", swap_usage.xsu_total,
-                    " used=", swap_usage.xsu_used,
-                    " avail=", swap_usage.xsu_avail
+                xmz::log::println(
+                    "\nvm.swapusage:",
+                    "  total =", swap_usage.xsu_total,
+                    "  used =", swap_usage.xsu_used,
+                    "  avail =", swap_usage.xsu_avail
                 );
             }
         }
