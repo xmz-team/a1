@@ -3,9 +3,10 @@
 #include <cstring>
 #include <string>
 namespace a1::config::program_name {
-    inline std::string a1 = "cxxa1";
-    inline std::string a1ctl = "cxxa1ctl";
-    inline std::string a1mod = "cxxa1mod";
-    inline std::string a1pm = "cxxa1pm";
-    inline std::string gui = "a1gui";
+    inline constexpr std::string_view a1    = "cxxa1";
+    inline constexpr std::string_view a1ctl = "cxxa1ctl";
+    inline constexpr std::string_view a1mod = "cxxa1mod";
+    inline constexpr std::string_view a1pm  = "cxxa1pm";
+    inline constexpr std::string_view gui   = "a1gui";
+    inline constexpr std::string_view a1gui = gui;
 } /* a1::config::program_name */
