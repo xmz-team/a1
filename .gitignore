@@ -19,20 +19,9 @@ credentials.json
 .terraform/
 tmp/*
 
-.induce-code
-induce-code
-a1.AllCode.all.md
-src/induce-code
-src/a1.AllCode.all.md
-
 *.a
 *.o
 
-src/gui/induce-code
-src/gui/a1gui.AllCode.all.md
-
 .generate.lock
-induce-code-ci
-*.AllCode.all.*
 
 Tests/test-lua/test-lua
