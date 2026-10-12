@@ -147,7 +147,7 @@ namespace a1mod {
         // create directory structure
         if (!xmz::aux::is_dir(g_jb.mod_dir)) {
             xmz::fs::mkdir(g_jb.mod_dir);
-            xmz::fs::mkdir(g_jb.mod_dir + "/downloadas");
+            xmz::fs::mkdir(g_jb.mod_dir + "/downloads");
             xmz::fs::mkdir(g_jb.mod_dir + "/install");
             xmz::fs::mkdir(cfg.mod_install_tmp);
         }
