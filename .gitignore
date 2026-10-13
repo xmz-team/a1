@@ -25,3 +25,5 @@ tmp/*
 .generate.lock
 
 Tests/test-lua/test-lua
+.git-upload
+
