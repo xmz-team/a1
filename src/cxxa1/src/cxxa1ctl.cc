@@ -16,7 +16,7 @@ inline std::string help_text(const std::string& myself) {
  / /\  / |     | |_| | | | | |_) 
 /_/--\ |_|     |_| | \_\_/ |_|_) 
 
-Author: LF | Maintainer: LF, AD
+Author: LF | Maintainer: LF, AD, XMZ, amzxus
 Organization(QQ): 1030152896
 )") + "Usage: " + myself + " [options] [command]" + R"(
 Basic Commands:
