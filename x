@@ -61,6 +61,7 @@ b_gui() {
     src_gui="${src_path}/gui"
     clang++ -ObjC++ -fobjc-arc \
         $CXXFLAGS \
+        -framework UIKit \
         -Wno-deprecated-declarations \
         -DA1_USE_GUI_CFG \
         -lzip -lcurl -lssl -lcrypto \

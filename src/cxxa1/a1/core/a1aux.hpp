@@ -16,9 +16,7 @@ inline void wait_for_springboard() {
     xmz::println("checking SpringBoard...");
     while (true) {
         int sb_pid = a1::bin::bundle_pid("com.apple.springboard");
-        if (sb_pid == -1) {
-            sb_pid = a1::bin::bundle_pid("SpringBoard");
-        }
+        if (sb_pid == -1) sb_pid = a1::bin::bundle_pid("SpringBoard");
         if (sb_pid != -1) {
             if (kill(sb_pid, 0) == 0) {
                 xmz::println("SpringBoard ready.");
@@ -67,7 +65,7 @@ inline void optimize_system() {
     xmz::println("Optimizing system priorities...");
     wait_for_springboard();
     a1::priority_manager pm;
-    pm.read_priority_lists(true);
+    pm.read_priority_lists(false);
     // apply high priority list
     const auto& high_list = pm.get_high_list();
     if (!high_list.empty()) {

@@ -537,9 +537,9 @@ namespace a1 {
             } else {
                 xmz::println(
                     "\nvm.swapusage:",
-                    "  total =", swap_usage.xsu_total,
-                    "  used =", swap_usage.xsu_used,
-                    "  avail =", swap_usage.xsu_avail
+                    "\n  total =", swap_usage.xsu_total,
+                    "\n  used =", swap_usage.xsu_used,
+                    "\n  avail =", swap_usage.xsu_avail
                 );
             }
         }

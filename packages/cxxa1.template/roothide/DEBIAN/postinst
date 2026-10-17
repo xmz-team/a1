@@ -1,37 +1,29 @@
 #!/bin/bash
+set -x
+set -euo pipefail
 
-#set -x
-
-if [ -f '/etc/profile' ]; then
-    source /etc/profile
-elif [ -f '/var/jb/etc/profile' ]; then
-    source /var/jb/etc/profile
-else
-    echo 'Where the fuck "profile"?' 1>&2
-fi
-
+jb=""
+jb_a1=""
+orig_path=$(pwd)
+set +x
+source /etc/profile >/dev/null || source /var/jb/etc/profile
+set -x
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
+elif [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
+    jb="$(jbroot)"
 else
-    if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
-        unset jb;
-        jb="$(jbroot)"
-    else
-        unset jb;
-        jb=""
-    fi
+    jb=""
 fi
 
 jb_a1="$jb/a1"
 
-_finish(){
-	f="${1}"
-	[ -z "${f}" ] || [ -z "${SILEO}" ] && return
-	read -r fd ver <<-EOF                    
-			${SILEO}                                    
-			EOF
-	[ "${ver}" -ge 1 ] || return
-	echo "finish:${f}" >&"${fd}"
+_finish() {
+    local f="${1}" fd ver
+    [ -z "${f}" ] || [ -z "${SILEO:-}" ] && return
+    read -r fd ver <<< "${SILEO:-}"
+    [ "${ver}" -ge 1 ] || return
+    printf 'finish:%s\n' "${f}" >&"${fd}"
 }
 
 echo "Tweak by LF"
@@ -48,10 +40,10 @@ chown 0:0 $jb/usr/local/bin/a1cil
 chmod 755 $jb/usr/local/bin/a1cil
 chown 0:0 -R $jb_a1/bin
 
-chmod 4755 $jb_a1/bin/cxxa1
-chmod 4755 $jb_a1/bin/cxxa1ctl
-chmod 4755 $jb_a1/bin/cxxa1mod
-chmod 4755 $jb_a1/bin/cxxa1pm
+[ -f $jb_a1/bin/cxxa1 ]    && chmod 4755 $jb_a1/bin/cxxa1
+[ -f $jb_a1/bin/cxxa1ctl ] && chmod 4755 $jb_a1/bin/cxxa1ctl
+[ -f $jb_a1/bin/cxxa1mod ] && chmod 4755 $jb_a1/bin/cxxa1mod
+[ -f $jb_a1/bin/cxxa1pm ]  && chmod 4755 $jb_a1/bin/cxxa1pm
 
 ln -sf $jb_a1/bin/bundle $jb/usr/bin/
 ln -sf $jb_a1/bin/bundle_pid $jb/usr/bin/
@@ -61,8 +53,6 @@ ln -sf $jb_a1/bin/flock $jb/usr/bin/
 ln -sf $jb_a1/bin/flock-ios $jb/usr/bin/
 
 ln -sf $jb_a1/bin/myini $jb/usr/bin/
-
-orig_path=$(pwd)
 
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
     [ -d "/rootfs" ] && cd /rootfs/var
@@ -74,8 +64,7 @@ if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
     touch .type_is_roothide
     cd bin && ln -sf "$(jbroot)" .jbroot
     cd $orig_path
-fi
-if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
+elif [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     cd $jb_a1
     touch .type_is_rootless
     cd $orig_path
@@ -108,8 +97,6 @@ else
         exit 1
     fi
 fi
-
-unset orig_path
 
 echo "A1 install done."
 echo "Enjoy！"

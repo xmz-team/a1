@@ -1,22 +1,18 @@
 #!/bin/bash
 
-if [ -f '/etc/profile' ]; then
-    . /etc/profile
-elif [ -f '/var/jb/etc/profile' ]; then
-     . /var/jb/etc/profile
-else
-    echo 'Where the fuck "profile"?' 1>&2
-fi
+set -euo pipefail
 
+jb=""
+orig_path=$(pwd)
+
+source /etc/profile || source /var/jb/etc/profile
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
 elif [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
-    jb=$(jbroot)
+    jb="$(jbroot)"
 else
     jb=""
 fi
-
-orig_path="$(pwd)"
 
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm" ]; then
     echo "[Error]: Rootful is not supported"
@@ -28,9 +24,9 @@ chmod 4755 "$jb/Applications/a1gui.app/a1gui"
 
 cd "$jb/Applications/a1gui.app/"
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
-ln -sf "$(jbroot)" ./.jbroot
+    ln -sf "$(jbroot)" ./.jbroot
 elif [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
-ln -sf "/var/jb" ./.jbroot
+    ln -sf "/var/jb" ./.jbroot
 fi
 cd $orig_path
 
