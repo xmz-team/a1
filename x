@@ -129,9 +129,11 @@ if [ ${#targets[@]} -eq 0 ]; then
     exit 1
 fi
 
-if [ ! -f "${script_path}/.generate.lock" ]; then
-    generate_version general
-    touch "${script_path}/.generate.lock"
+if [ "$is_local_build" = false ]; then
+    if [ ! -f "${script_path}/.generate.lock" ]; then
+        generate_version general
+        touch "${script_path}/.generate.lock"
+    fi
 fi
 
 for target in "${targets[@]}"
