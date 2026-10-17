@@ -17,11 +17,18 @@ generate_version() {
 
     _commit_count_since() {
         local tag="$1"
-        git rev-list --count "${tag}..HEAD" 2>/dev/null || echo 0
+        local exclude_bot="${2:-false}"
+        if [ "$exclude_bot" = true ]; then
+            git rev-list --count "${tag}..HEAD" \
+                --invert-grep --grep='^chore: bump version \[skip ci\]$' 2>/dev/null || echo 0
+        else
+            git rev-list --count "${tag}..HEAD" 2>/dev/null || echo 0
+        fi
     }
 
     _bump() {
         local name="$1"
+        local is_ci_bot="${2:-false}"
         local tag
         tag="$(_git_tag_of "$name")"
         if [[ -z "$tag" ]]; then
@@ -31,7 +38,7 @@ generate_version() {
         local major minor patch build
         read -r major minor patch build <<< "$(_parse_version "$tag")"
         local cnt
-        cnt="$(_commit_count_since "$tag")"
+        cnt="$(_commit_count_since "$tag" "$is_ci_bot")"
         local new_build=$((build + cnt))
         printf '%s.%s.%s.%s' "$major" "$minor" "$patch" "$new_build"
     }
@@ -103,11 +110,13 @@ generate_version() {
 
     local targets=()
     local arg
+    local is_ci_bot=false
     for arg in "$@"
     do
         case "$arg" in
             all|"") targets=(a1 a1ctl a1mod a1pm gui general) ;;
             a1|a1ctl|a1mod|a1pm|gui|general) targets+=("$arg") ;;
+            --is-ci-bot) is_ci_bot=true ;;
             --no-*) ;;
             *) echo "[Error]: unsupported parameter: $arg" >&2; return 1 ;;
         esac

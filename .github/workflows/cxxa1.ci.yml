@@ -60,7 +60,7 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         source ci/generate-version.sh
-        generate_version all
+        generate_version all --is-ci-bot
         git add version.ini src/cxxa1/a1/core/version.hpp src/gui/Info.plist
         git diff --staged --quiet || git commit -m "chore: bump version [skip ci]"
         git push
