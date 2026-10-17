@@ -27,7 +27,10 @@ a1_return_script = jb + "/usr/local/bin/a1-return";
         std::string mod_cfg = mod_dir + "/config.ini";
         std::string mod_list = mod_dir + "/module.list.ini";
     private:
-        std::string get_jb() { const char *v = std::getenv("jb"); return v ? v : ""; }
+        std::string get_jb() {
+            char *v = std::getenv("jb");
+            return v ? v : "";
+        }
     };
 } /* namespace a1::config */
 #endif /* A1_USE_GUI_CFG */

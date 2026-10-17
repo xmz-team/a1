@@ -22,7 +22,8 @@ namespace a1::config {
         std::string mod_dir;
         std::string mod_cfg;
         std::string mod_list;
-        jb_path() = default;
+        //jb_path() = default;
+        jb_path() { init(); }
         void init() {
             jb = get_jb();
             a1_dir = jb + "/a1";
