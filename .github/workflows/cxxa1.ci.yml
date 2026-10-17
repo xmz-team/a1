@@ -57,11 +57,11 @@ jobs:
 
     - name: Build
       run: |
-        ./x build-a1-all build-a1-tool
+        ./x build-a1-all build-a1-tool --is-local-build
 
     - name: Package
       run: |
-        ./x pack-all
+        ./x pack-all --is-local-build
         mkdir -p packages/pack-full
         mv packages/cxxa1/*.deb packages/pack-full
         mv packages/a1gui/*.deb packages/pack-full
@@ -71,6 +71,7 @@ jobs:
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"
         source ci/generate-version.sh
+        generate_version all
         git add version.ini src/cxxa1/a1/core/version.hpp src/gui/Info.plist
         git diff --staged --quiet || git commit -m "chore: bump version [skip ci]"
         git push
