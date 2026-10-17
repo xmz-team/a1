@@ -31,9 +31,9 @@ inline void wait_for_springboard() {
 inline int apply_custom_priority() {
     auto& config = a1::coreapi::set_defaults_cfg();
     a1::config::jb_path g_jb;
-    if (!config.custom_priority_enabled) { return 0; }
+    if (!config.custom_priority_enabled) { return 1; }
     std::string custom_file = g_jb.a1_dir + "/custom_priority.list";
-    if (xmz::aux::is_file(custom_file)) { return 0; }
+    if (!xmz::aux::is_file(custom_file)) { return 1; }
     xmz::println("Applying custom priority settings...");
     a1::ini::ini_parser parser;
     if (!parser.parse_file(custom_file)) {
@@ -47,16 +47,12 @@ inline int apply_custom_priority() {
         pid_t pid = a1::find_pid_by_name(process_name);
         if (pid > 0) {
             if (a1::set::priority(pid, priority)) {
-                if (config.debug_mode) {
-                    xmz::println("  " + process_name + " -> " + std::to_string(priority));
-                }
+                if (config.debug_mode) xmz::println("  " + process_name + " -> " + std::to_string(priority));
                 count++;
             }
         }
     }
-    if (count > 0) {
-        xmz::println("Adjusted " + std::to_string(count) + " processes with custom priorities");
-    }
+    if (count > 0) xmz::println("Adjusted " + std::to_string(count) + " processes with custom priorities");
     return count;
 }
 // main optimization logic

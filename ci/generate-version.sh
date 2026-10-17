@@ -1,4 +1,10 @@
 #generate-version.sh
+# description:
+#   [version-only-a1|a1ctl|a1mod|a1pm|gui|generate] update the corresponding version number
+#   for example: [version-only-a1], only update the a1 version number
+#   [version-only-all]   update all version number
+#   [version-only-other] no update version number
+
 generate_version() {
     local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
     source "${script_path}/env.sh"

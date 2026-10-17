@@ -59,7 +59,7 @@ inline void usage(const char *prog) {
 
 inline void version(void) {
     xmz::println("flock (darwin compatible) 1.1");
-    exit(0);
+    exit(1);
 }
 
 int main(int argc, char *argv[]) {
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
             break;
         case 'w':
             timeout = atoi(optarg);
-            // fix: -w 0 is equivalent to -n
+            // -w 0 is equivalent to -n
             if (timeout == 0) {
                 nonblock = 1;
                 timeout = -1;
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
         if (*endptr == '\0') {
             // pure number, directly used as fd
         } else {
-            // fix: Catalog unlocking support
+            // catalog unlocking support
             fd = open(target, O_RDONLY);
             if (fd < 0) {
                 fd = open(target, O_RDONLY | O_DIRECTORY);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
     // general mode: <file> <command...> or <file> -c <command>
     if (optind >= argc) usage(argv[0]);
     filename = argv[optind++];
-    // fix: Intelligent processing of directories and ordinary files
+    // Intelligent processing of directories and ordinary files
     int open_flags = 0;
     if (lock_type == LOCK_SH) {
         open_flags = O_RDONLY;
@@ -200,7 +200,7 @@ int main(int argc, char *argv[]) {
     }
     // try to open it with ordinary files first
     fd = open(filename, open_flags | O_CREAT, 0666);
-    // fix: If it fails and it is a directory, try to open it in the directory way
+    // If it fails and it is a directory, try to open it in the directory way
     if (fd < 0 && errno == EISDIR) {
         fd = open(filename, O_RDONLY);
         if (fd >= 0) {
@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
             // flock doesn't care about read and write rights, only cares about the lock type
         }
     }
-    // repair: macOS needs O_DIRECTORY to open some directories
+    // iOS/macOS needs O_DIRECTORY to open some directories
     if (fd < 0 && errno == EISDIR) {
         fd = open(filename, O_RDONLY | O_DIRECTORY);
     }
@@ -240,7 +240,7 @@ int main(int argc, char *argv[]) {
         close(fd);
         return 1;
     }
-    // fix: Set FD_CLOEXEC before fork to prevent accidental inheritance of sub-process
+    // Set FD_CLOEXEC before fork to prevent accidental inheritance of sub-process
     if (!close_fd) {
         fcntl(fd, F_SETFD, FD_CLOEXEC);
     }

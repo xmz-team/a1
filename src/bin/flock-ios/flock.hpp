@@ -39,13 +39,13 @@ inline void sigalarm_handler(int sig) {
     alarm_fired = 1;
 }
 
-// fix: Add a general signal processor for EINTR retry
+// Add a general signal processor for EINTR retry
 inline void sig_ignore(int sig) {
     (void)sig;
     // it is only used to interrupt flock, not for other processing
 }
 
-// fix: Package flock system calls and automatically process EINTR retry (except for timeout)
+// Package flock system calls and automatically process EINTR retry (except for timeout)
 inline int flock_with_retry(int fd, int operation, int timeout, int *was_timeout) {
     struct sigaction sa, old_sigalrm, old_sigint, old_sigterm;
     int ret;
