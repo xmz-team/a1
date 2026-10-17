@@ -55,13 +55,9 @@ jobs:
         dpkg-deb -R libssl-dev_3.2.1_iphoneos-arm64.deb libssl-dev
         cd ../..
 
-    - name: Build
+    - name: Build and Package
       run: |
-        ./x build-a1-all build-a1-tool --is-local-build
-
-    - name: Package
-      run: |
-        ./x pack-all --is-local-build
+        ./x build-a1-all build-a1-tool pack-all --is-local-build
         mkdir -p packages/pack-full
         mv packages/cxxa1/*.deb packages/pack-full
         mv packages/a1gui/*.deb packages/pack-full
