@@ -4,11 +4,11 @@ Upstream-Contact: xmz-team
 Source: https://github.com/xmz-team/a1
 
 Files: *
-Copyright: 2026 XMZ <xmz-team@outlook.com>, LF <yitat1006@outlook.com>, AD-iOS <ad-ios334@outlook.com>
+Copyright: 2026 XMZ <xmz-team@outlook.com>, LF <yitat1006@outlook.com>, AD-iOS <ad-ios334@outlook.com>, amzxus <amzxus@gmail.com>
 License: MIT
 
 Files: src/cxxa1/*
-Copyright: 2026 XMZ <xmz-team@outlook.com>, LF <yitat1006@outlook.com>, AD-iOS <ad-ios334@outlook.com>
+Copyright: 2026 XMZ <xmz-team@outlook.com>, LF <yitat1006@outlook.com>, AD-iOS <ad-ios334@outlook.com>, amzxus <amzxus@gmail.com>
 License: MIT
 
 Files: src/bin/*/*.hpp src/bin/*/*.cc src/cxxa1/a1/core/myini.hpp

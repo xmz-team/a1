@@ -9,17 +9,17 @@ git clone --recursive https://github.com/xmz-team/a1.git
 # if you use ssh
 # git clone --recursive git@github.com:xmz-team/a1.git
 cd a1
-# SDKROOT="/path/to/YouSDK" ./x build-a1-all build-a1-tool pack-all
+SDKROOT="/path/to/YouSDK" ./x build-a1-all build-a1-tool pack-all
 
 # example
 # if it is Theos
-# SDKROOT="${THEOS_SDK_ROOT}" ./x build-a1-all build-a1-tool pack-all
+SDKROOT="${THEOS_SDK_ROOT}" ./x build-a1-all build-a1-tool pack-all
 
 # if you are a PC/non-iOS
-# ./x build-a1-all build-a1-tool pack-all
+./x build-a1-all build-a1-tool pack-all
 
 # or you need to specify the SDK instead of using the default SDK to download version 16.5
-# SDKROOT="/path/to/YouSDK" ./x build-a1-all build-a1-tool pack-all
+SDKROOT="/path/to/YouSDK" ./x build-a1-all build-a1-tool pack-all
 ```
 
 # description
