@@ -3,13 +3,13 @@
 #include <string_view>
 #include <string>
 namespace a1::_coreapi::version {
-    inline constexpr std::string_view a1    = "2.0.0.315";
-    inline constexpr std::string_view a1ctl = "2.0.0.227";
-    inline constexpr std::string_view a1mod = "2.0.0.227";
-    inline constexpr std::string_view a1pm  = "2.0.0.216";
-    inline constexpr std::string_view a1gui = "0.1.3.138";
+    inline constexpr std::string_view a1    = "2.0.0.317";
+    inline constexpr std::string_view a1ctl = "2.0.0.229";
+    inline constexpr std::string_view a1mod = "2.0.0.229";
+    inline constexpr std::string_view a1pm  = "2.0.0.218";
+    inline constexpr std::string_view a1gui = "0.1.3.140";
     inline constexpr std::string_view gui = a1gui;
-    inline constexpr std::string_view general = "2.0.1.112";
+    inline constexpr std::string_view general = "2.0.1.114";
 }
 
 namespace a1::version {
