@@ -15,20 +15,64 @@ generate_version() {
         printf '%s %s %s %s' "$major" "$minor" "$patch" "$build"
     }
 
-    _commit_count_since() {
-        local tag="$1"
-        local exclude_bot="${2:-false}"
-        if [ "$exclude_bot" = true ]; then
-            git rev-list --count "${tag}..HEAD" \
-                --invert-grep --grep='^chore: bump version \[skip ci\]$' 2>/dev/null || echo 0
-        else
-            git rev-list --count "${tag}..HEAD" 2>/dev/null || echo 0
+    _parse_version_markers() {
+        local msg
+        msg="$(git log -1 --pretty=%B 2>/dev/null || true)"
+        [[ -z "$msg" ]] && return 0
+
+        if grep -qE '^chore: bump version' <<< "$msg"; then
+            return 0
         fi
+
+        if grep -qE '\[version-only-other\]' <<< "$msg"; then
+            return 0
+        fi
+
+        local -a matched=()
+        local tag
+
+        if grep -qE '\[version-only-all\]' <<< "$msg"; then
+            matched=(a1 a1ctl a1mod a1pm gui general)
+            printf '%s\n' "${matched[@]}"
+            return 0
+        fi
+
+        if grep -qE '\[version-only-generate\]' <<< "$msg"; then
+            matched+=(general)
+        fi
+
+        for tag in a1 a1ctl a1mod a1pm gui
+        do
+            if grep -qE "\[version-only-${tag}\]" <<< "$msg"; then
+                matched+=("$tag")
+            fi
+        done
+
+        local -a uniq=()
+        local item seen
+        for item in "${matched[@]}"
+        do
+            seen=false
+            for u in "${uniq[@]}"
+            do
+                [[ "$u" == "$item" ]] && { seen=true; break; }
+            done
+            $seen || uniq+=("$item")
+        done
+
+        printf '%s\n' "${uniq[@]}"
+    }
+
+    _is_marked() {
+        local name="$1"
+        local markers
+        markers="$(_parse_version_markers)"
+        [[ -z "$markers" ]] && return 1
+        grep -qx "$name" <<< "$markers"
     }
 
     _bump() {
         local name="$1"
-        local is_ci_bot="${2:-false}"
         local tag
         tag="$(_git_tag_of "$name")"
         if [[ -z "$tag" ]]; then
@@ -37,10 +81,10 @@ generate_version() {
         fi
         local major minor patch build
         read -r major minor patch build <<< "$(_parse_version "$tag")"
-        local cnt
-        cnt="$(_commit_count_since "$tag" "$is_ci_bot")"
-        local new_build=$((build + cnt))
-        printf '%s.%s.%s.%s' "$major" "$minor" "$patch" "$new_build"
+        if _is_marked "$name"; then
+            build=$((build + 1))
+        fi
+        printf '%s.%s.%s.%s' "$major" "$minor" "$patch" "$build"
     }
 
     _retag() {
@@ -110,14 +154,13 @@ generate_version() {
 
     local targets=()
     local arg
-    local is_ci_bot=false
     for arg in "$@"
     do
         case "$arg" in
             all|"") targets=(a1 a1ctl a1mod a1pm gui general) ;;
             a1|a1ctl|a1mod|a1pm|gui|general) targets+=("$arg") ;;
-            --is-ci-bot) is_ci_bot=true ;;
-            --no-*) ;;
+            --is-ci-bot) ;; # Backward compatibility
+            --no-*) ;;      # Backward compatibility
             *) echo "[Error]: unsupported parameter: $arg" >&2; return 1 ;;
         esac
     done
@@ -157,9 +200,7 @@ get_version() {
         local ver="${tag#*-v}"
         local major minor patch build
         IFS='.' read -r major minor patch build <<< "$ver"
-        local cnt
-        cnt="$(git rev-list --count "${tag}..HEAD" 2>/dev/null || echo 0)"
-        printf '%s.%s.%s.%s' "$major" "$minor" "$patch" "$((build + cnt))"
+        printf '%s.%s.%s.%s' "$major" "$minor" "$patch" "$build"
     }
 
     local key="$1"
