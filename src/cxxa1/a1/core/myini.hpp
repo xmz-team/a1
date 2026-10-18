@@ -17,6 +17,8 @@ public:
         return parse_str(content);
     }
 
+    bool readfile(const std::string& filepath) { return parse_file(filepath); }
+
     bool parse_str(const std::string& content) {
         data_.clear();
         std::string currentSection;
@@ -53,6 +55,8 @@ public:
         }
         return true;
     }
+
+    bool readstr(const std::string& content) { return parse_file(content); }
 
     std::string get(const std::string& sec,
                     const std::string& key,

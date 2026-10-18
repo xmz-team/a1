@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
         }
     } else if (cmd == "add") {
         if (argc < 3) {
-            xmz::log::error("usage: add <high|low> <process> or add <process> <value>");
+            xmz::log::error("usage: add <high|low> <process> or add custom <process> <value> or add <process> <value>");
             return 1;
         }
         std::string opt = argv[2];
@@ -198,6 +198,10 @@ int main(int argc, char *argv[]) {
         } else if (opt == "low" || opt == "l") {
             if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
             a1ctl::add_priority("l", argv[3], g_cfg.low_priority);
+        } else if (opt == "custom" || opt == "c") {
+            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
+            if (!check_opt(argv[4])) { xmz::log::error("the priority value cannot be empty."); return 1; }
+            a1ctl::add_priority("c", argv[3], std::stoi(argv[4]));
         } else {
             std::string type = "c";
             std::string process = argv[2];
@@ -206,12 +210,24 @@ int main(int argc, char *argv[]) {
         }
     } else if (cmd == "remove") {
         if (argc < 3) {
-            xmz::log::error("usage: remove <process>");
+            xmz::log::error("usage: remove <high|low|custom> <process> or remove <process>");
             return 1;
         }
-        a1ctl::remove_priority("high", argv[2]);
-        a1ctl::remove_priority("low", argv[2]);
-        a1ctl::remove_priority("custom", argv[2]);
+        std::string opt = argv[2];
+        if (opt == "high" || opt == "h") {
+            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
+            a1ctl::remove_priority("high", argv[3]);
+        } else if (opt == "low" || opt == "l") {
+            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
+            a1ctl::remove_priority("low", argv[3]);
+        } else if (opt == "custom" || opt == "c") {
+            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
+            a1ctl::remove_priority("custom", argv[3]);
+        } else {
+            a1ctl::remove_priority("high", argv[2]);
+            a1ctl::remove_priority("low", argv[2]);
+            a1ctl::remove_priority("custom", argv[2]);
+        }
     } else if (cmd == "list") {
         if (argc < 3) {
             xmz::log::error("usage: list <high|low|custom>");

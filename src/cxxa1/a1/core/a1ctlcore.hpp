@@ -385,7 +385,7 @@ namespace a1ctl {
                     if (priority_value != -255 && priority_value >= 0 && priority_value < 100) {
                         pini.parse_file(g_jb.custom_f);
                         pini.set("", process_name, std::to_string(priority_value));
-                        pini.save_append(g_jb.custom_f);
+                        pini.save_cover(g_jb.custom_f);
                         xmz::log::info(process_name, "has been added to the custom priority list");
                         auto_apply_check();
                     } else {
@@ -433,7 +433,7 @@ namespace a1ctl {
             }
         } else if (priority_opt == "custom" || priority_opt == "c") {
             if (xmz::aux::is_file(g_jb.custom_f)) {
-                if (xmz::fs::findstr(g_jb.custom_f, process_name) == true) {
+                if (xmz::fs::fmfindstr(g_jb.custom_f, process_name) == true) {
                     pini.parse_file(g_jb.custom_f);
                     pini.rmkey("", process_name);
                     pini.save_cover(g_jb.custom_f);

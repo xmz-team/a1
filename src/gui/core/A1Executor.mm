@@ -139,9 +139,9 @@ auto& _env = g_env;
 }
 
 - (void)addPriority:(NSString *)process type:(A1PriorityType)type value:(NSString *)value {
-    if (type == A1PriorityHigh) [self runA1ctl:@[@"add", @"high", process]];
-    else if (type == A1PriorityLow) [self runA1ctl:@[@"add", @"low", process]];
-    else if (type == A1PriorityCustom) [self runA1ctl:@[@"add", process, value ?: @"20"]];
+    if (type == A1PriorityHigh)        [self runA1ctl:@[@"add", @"high", process]];
+    else if (type == A1PriorityLow)    [self runA1ctl:@[@"add", @"low", process]];
+    else if (type == A1PriorityCustom) [self runA1ctl:@[@"add", @"custom", process, value]];
 }
 
 - (void)removePriority:(NSString *)process { [self runA1ctl:@[@"remove", process]]; }
