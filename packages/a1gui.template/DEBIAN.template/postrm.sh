@@ -13,4 +13,7 @@ else
     jb=""
 fi
 
-rm -f $jb/Applications/a1gui.app/.jbroot
+jb_a1="$jb/a1"
+
+rm -f "$jb/Applications/a1gui.app/.jbroot"
+rm -f "${jb_a1}/a1gui*.log"

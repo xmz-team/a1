@@ -6,7 +6,7 @@ pack() {
     local time="$(date '+%Y%m%d-%H%M%S')"
     setinfo() {
         local name=$1
-        locsl jbenv=$2
+        local jbenv=$2
         cp -a packages/${name}.template/DEBIAN.template/* "packages/${name}/${jbenv}/DEBIAN/" || return 1
         ( cd "packages/${name}/${jbenv}/DEBIAN/" && for f in p*.sh; do mv "$f" "${f%.sh}"; done )
     }
@@ -17,6 +17,7 @@ pack() {
     fi
     rm -rf packages/cxxa1
     cp -a packages/cxxa1.template packages/cxxa1
+
     setinfo "cxxa1" "rootless"
     setinfo "cxxa1" "roothide"
     setinfo "cxxa1" "rootful"

@@ -7,7 +7,9 @@ plutil -key 'AppleLanguages' "$([ -e '/rootfs' ] && echo '/rootfs')/var/mobile/L
 jb=""
 jb_a1=""
 orig_path=$(pwd)
+
 source /etc/profile || source /var/jb/etc/profile
+
 if [ "$(dpkg --print-architecture)" = "iphoneos-arm64" ]; then
     jb="/var/jb"
 elif [ "$(dpkg --print-architecture)" = "iphoneos-arm64e" ]; then
@@ -18,12 +20,16 @@ fi
 
 jb_a1="$jb/a1"
 instfile="${jb_a1}/.installed"
-export temp="/tmp/$$"
+package="io.github.xmz-team.a1"
+temp_f="/tmp/${package}-update"
+temp_d="${temp_f}.d"
+is_rc="/tmp/${package}-is-rc"
 
-if [ -f ${instfile} ]; then
-    cp -r ${jb_a1}/configs ${temp}/
-    cp -r ${jb_a1}/modules ${temp}/
-    cp -r ${jb_a1}/*.list  ${temp}/
-    export installed=true
-fi
-
+case $1 in
+    upgrade)
+        cp -aR ${jb_a1}/configs ${temp_d}/
+        cp -ar ${jb_a1}/modules ${temp_d}/
+        cp -ar ${jb_a1}/*.list  ${temp_d}/
+        touch ${temp_f}
+        ;;
+esac
