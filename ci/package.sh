@@ -4,6 +4,12 @@ pack() {
     source "${script_path}/env.sh"
     source "${script_path}/generate-version.sh"
     local time="$(date '+%Y%m%d-%H%M%S')"
+    setinfo() {
+        local name=$1
+        locsl jbenv=$2
+        cp -a packages/${name}.template/DEBIAN.template/* "packages/${name}/${jbenv}/DEBIAN/" || return 1
+        ( cd "packages/${name}/${jbenv}/DEBIAN/" && for f in p*.sh; do mv "$f" "${f%.sh}"; done )
+    }
     cd "$script_path/../"
     mkdir -p packages/packdeb/$time
     if ls packages/cxxa1/*.deb >/dev/null 2>&1; then
@@ -11,11 +17,19 @@ pack() {
     fi
     rm -rf packages/cxxa1
     cp -a packages/cxxa1.template packages/cxxa1
+    setinfo "cxxa1" "rootless"
+    setinfo "cxxa1" "roothide"
+    setinfo "cxxa1" "rootful"
+
     if ls packages/a1gui/*.deb >/dev/null 2>&1; then
         mv packages/a1gui/*.deb packages/packdeb/$time/
     fi
     rm -rf packages/a1gui
     cp -a packages/a1gui.template packages/a1gui
+
+    setinfo "a1gui" "rootless"
+    setinfo "a1gui" "roothide"
+
     build_a1() {
         [ -z "$1" ] && echo "[Error]: the parameter cannot be empty" >&2
         cp cxx* packages/cxxa1/$1/$2/a1/bin/
@@ -54,3 +68,4 @@ pack() {
 pack_a1() { pack "no-pack-a1gui" "$@"; }
 pack_a1gui() { pack "no-pack-a1" "$@"; }
 pack_all() { pack "all" "$@"; }
+
