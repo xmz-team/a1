@@ -25,6 +25,24 @@ temp_f="/tmp/${package}-update"
 temp_d="${temp_f}.d"
 is_rc="/tmp/${package}-is-rc"
 
+cat > /tmp/io.github.xmz-team.a1.reboot-userspace.plist <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+ "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key><string>io.github.xmz-team.a1.reboot-userspace</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$jb/usr/bin/sh</string>
+        <string>-c</string>
+        <string>sleep 5; exec $jb/usr/bin/launchctl reboot userspace</string>
+    </array>
+    <key>RunAtLoad</key><true/>
+</dict>
+</plist>
+PLIST
+
 main() {
     if [ ${_lang_is_zh_cn} = true ]; then
         echo "调整来自LF"
@@ -141,7 +159,7 @@ main() {
 
         if [ ${_lang_is_zh_cn} = true ]; then
             r=$(uialert -b "设置你的A1
-提示: A1的默认配置没有启动任何模式，如果你需要请点击“开始设置”, 否则A1只会执行一次而不会常驻后台" -p "开始设置" -s "使用默认配置" "设置")
+提示: A1的默认配置没有启动任何模式, 如果你需要请点击“开始设置”, 否则A1只会执行一次而不会常驻后台" -p "开始设置" -s "使用默认配置" "设置")
         else
             r=$(uialert -b "Set your A1
 Tip: The default configuration of A1 does not start any mode. If you need it, please click 'Start Settings', otherwise A1 will only be executed once and will not stay in the background." -p "Start setting" -s "Use default confign" "Setting")
@@ -200,13 +218,20 @@ case $1 in
 esac
 
 if [ ${_lang_is_zh_cn} = true ]; then
-    r=$(uialert -p "确定" -s "取消" "是否重启用户空间？");
+    r=$(uialert -p "确定" -s "取消" "是否重启用户空间?");
 else
     r=$(uialert -p "YES" -s "NO" "reboot userspace?");
 fi
 
 case ${r} in
-    0) launchctl reboot userspace; ;;
-    1) exit 0;                     ;;
+    0)
+        launchctl unload /tmp/io.github.xmz-team.a1.reboot-userspace.plist
+        launchctl load /tmp/io.github.xmz-team.a1.reboot-userspace.plist
+        exit 0;
+        ;;
+    1)
+        rm -f /tmp/io.github.xmz-team.a1.reboot-userspace.plist
+        exit 0;
+        ;;
 esac
 
