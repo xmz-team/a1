@@ -587,7 +587,7 @@ namespace a1 {
 
     // clean func
     inline void kill_pid(const char *script_name = nullptr) {
-        if (script_name == nullptr) { script_name = "a1"; }
+        if (script_name == nullptr) { script_name = "cxxa1"; }
         int count = 0;
         auto get_a1_pid = [](const std::string& script_name) -> std::vector<int> {
             std::vector<int> pids;
