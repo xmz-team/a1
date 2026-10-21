@@ -6,7 +6,13 @@
 
 #include <libxmz/log.hpp>
 #include <libxmz/io.hpp>
+
 #include <string>
+#include <string_view>
+#include <optional>
+#include <functional>
+#include <unordered_map>
+#include <vector>
 #include <cstdlib>
 #include <unistd.h>
 
@@ -51,6 +57,7 @@ Configuration Management:
   restore                  Restore configuration from backup
   compat <on|off>          Enable/disable compatibility mode
   mod-switch <on|off>      Enable/turn off the mod mode
+  lock <on|off>            Enable/disable lock
 
 Other:
   help                     Show this help
@@ -68,11 +75,338 @@ Tips:
 )";
 }
 
-a1ctl::lock_manager g_lock_mgr;
+inline a1ctl::lock_manager g_lock_mgr;
 inline void signal_handler(int sig) {
     xmz::log::info("received the signal", sig, "is cleaning up and exiting...");
     g_lock_mgr.release();
-    exit(sig);
+    exit(128 + sig);
+}
+
+struct args {
+    int argc;
+    char** argv;
+    std::string_view at(int i) const {
+        if (i < 0 || i >= argc || argv[i] == nullptr) return {};
+        return std::string_view(argv[i]);
+    }
+    bool has(int i) const { return i >= 0 && i < argc && argv[i] != nullptr; }
+};
+
+inline bool need_args(const args& a, int need, const char* usage) {
+    if (a.argc < need) {
+        xmz::log::error("usage: ", usage);
+        return false;
+    }
+    return true;
+}
+
+inline std::optional<bool> parse_onoff(std::string_view v) {
+    if (v == "on")  return true;
+    if (v == "off") return false;
+    return std::nullopt;
+}
+
+inline std::optional<int> parse_int(std::string_view v) {
+    if (v.empty()) return std::nullopt;
+    try {
+        size_t pos = 0;
+        int r = std::stoi(std::string(v), &pos);
+        if (pos != v.size()) return std::nullopt;
+        return r;
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+namespace cmd {
+inline int switch_exclusive_mode(const args& a,
+                                 const char* on_key,
+                                 const char* off_key,
+                                 const std::vector<const char*>& others,
+                                 const char* usage,
+                                 const char* on_msg,
+                                 const char* off_msg) {
+    if (!need_args(a, 3, usage)) return 1;
+    auto v = parse_onoff(a.at(2));
+    if (!v) { xmz::log::error("usage: ", usage); return 1; }
+    if (*v) {
+        a1ctl::update_config(on_key, true);
+        for (auto k : others) a1ctl::update_config(k, false);
+        xmz::log::info(on_msg, " (other modes have been turned off automatically)");
+    } else {
+        if (off_key) a1ctl::update_config(off_key, false);
+        else         a1ctl::update_config(on_key, false);
+        xmz::log::info(off_msg);
+    }
+    return 0;
+}
+
+struct add_args {
+    std::string type;     // "h" / "l" / "c"
+    std::string process;
+    int         value{};  // only custom
+};
+
+inline std::optional<add_args> parse_add(const args& a) {
+    // add high|h <process>
+    // add low |l <process>
+    // add custom|c <process> <value>
+    // add <process> <value>
+    if (!a.has(2)) return std::nullopt;
+    const auto p2 = a.at(2);
+    auto read_value = [&](int idx) -> std::optional<int> {
+        auto v = parse_int(a.at(idx));
+        if (!v || *v < 0 || *v > 99) return std::nullopt;
+        return v;
+    };
+
+    if (p2 == "high" || p2 == "h") {
+        if (!a.has(3)) return std::nullopt;
+        return add_args{"h", std::string(a.at(3)), 0};
+    }
+    if (p2 == "low" || p2 == "l") {
+        if (!a.has(3)) return std::nullopt;
+        return add_args{"l", std::string(a.at(3)), 0};
+    }
+    if (p2 == "custom" || p2 == "c") {
+        if (!a.has(4)) return std::nullopt;
+        auto v = read_value(4);
+        if (!v) return std::nullopt;
+        return add_args{"c", std::string(a.at(3)), *v};
+    }
+
+    if (!a.has(3)) return std::nullopt;
+    auto v = read_value(3);
+    if (!v) return std::nullopt;
+    return add_args{"c", std::string(p2), *v};
+}
+
+inline int handle_add(const args& a) {
+    if (!need_args(a, 3,
+        "add <high|low> <process> | add custom <process> <value> | add <process> <value>")) return 1;
+
+    auto parsed = parse_add(a);
+    if (!parsed) {
+        xmz::log::error("invalid arguments for add");
+        xmz::log::error("usage: add <high|low> <process> | add custom <process> <value> | add <process> <value>");
+        return 1;
+    }
+
+    auto& g_cfg = a1::coreapi::get_cfg();
+    if (parsed->type == "h") a1ctl::add_priority("h", parsed->process, g_cfg.high_priority);
+    else if (parsed->type == "l") a1ctl::add_priority("l", parsed->process, g_cfg.low_priority);
+    else a1ctl::add_priority("c", parsed->process, parsed->value);
+    return 0;
+}
+
+inline int handle_remove(const args& a) {
+    if (!need_args(a, 3, "remove <high|low|custom> <process> | remove <process>")) return 1;
+    const auto p2 = a.at(2);
+    auto rm = [&](const char* kind, std::string_view proc) -> int {
+        if (proc.empty()) { xmz::log::error("the process name cannot be empty."); return 1; }
+        a1ctl::remove_priority(kind, std::string(proc));
+        return 0;
+    };
+
+    if (p2 == "high" || p2 == "h")   return rm("high",   a.at(3));
+    if (p2 == "low" || p2 == "l")    return rm("low",    a.at(3));
+    if (p2 == "custom" || p2 == "c") return rm("custom", a.at(3));
+
+    a1ctl::remove_priority("high",   std::string(p2));
+    a1ctl::remove_priority("low",    std::string(p2));
+    a1ctl::remove_priority("custom", std::string(p2));
+    return 0;
+}
+
+inline int handle_list(const args& a) {
+    if (!need_args(a, 3, "list <high|low|custom>")) return 1;
+    a1ctl::list_priority(std::string(a.at(2)));
+    return 0;
+}
+
+inline int handle_clear(const args& a) {
+    if (!need_args(a, 3, "clear <high|low|custom>")) return 1;
+    a1ctl::clear_priority(std::string(a.at(2)));
+    return 0;
+}
+
+inline int handle_set(const args& a) {
+    if (!need_args(a, 4, "set <high|low|launchd> <value>")) return 1;
+    auto v = parse_int(a.at(3));
+    if (!v) { xmz::log::error("invalid priority value:", std::string(a.at(3))); return 1; }
+    return a1ctl::set_priority_value(std::string(a.at(2)), *v);
+}
+
+} /* namespace cmd */
+
+using handler = std::function<int(const args&)>;
+using cmd_table = std::unordered_map<std::string_view, handler>;
+
+inline cmd_table build_commands() {
+    cmd_table t;
+    t["start"] = t["1"] = [](const args&) -> int {
+        a1ctl::start_a1();
+        return 0;
+    };
+
+    t["stop"] = t["0"] = [](const args&) -> int {
+        a1::kill_pid();
+        xmz::log::info("A1 has stopped");
+        return 0;
+    };
+
+    t["restart"] = [](const args&) -> int {
+        a1::kill_pid();
+        sleep(2);
+        a1ctl::start_a1();
+        return 0;
+    };
+
+    t["status"] = [](const args&) -> int {
+        a1ctl::check_status();
+        return 0;
+    };
+
+    t["loop"] = [](const args& a) -> int {
+        return cmd::switch_exclusive_mode(
+            a,
+            "loop_mode", nullptr,
+            {"auto_adjust", "scheduled_guard"},
+            "loop <on|off>",
+            "loop mode is on",
+            "loop mode is off");
+    };
+
+    t["auto-adjust"] = [](const args& a) -> int {
+        return cmd::switch_exclusive_mode(
+            a,
+            "auto_adjust", nullptr,
+            {"loop_mode", "scheduled_guard"},
+            "auto-adjust <on|off>",
+            "real-time auto-adjust mode is on",
+            "real-time auto-adjust mode is off");
+    };
+
+    t["scheduled-guard"] = t["guard"] = [](const args& a) -> int {
+        return cmd::switch_exclusive_mode(
+            a,
+            "scheduled_guard", nullptr,
+            {"loop_mode", "auto_adjust"},
+            "scheduled-guard <on|off>",
+            "scheduled guard mode is on",
+            "scheduled guard mode is off");
+    };
+
+    t["custom"] = [](const args& a) -> int {
+        if (!need_args(a, 3, "custom <on|off>")) return 1;
+        auto v = parse_onoff(a.at(2));
+        if (!v) { xmz::log::error("usage: custom <on|off>"); return 1; }
+        a1ctl::update_config("custom_priority_enabled", *v);
+        xmz::log::info(*v ? "custom priority is on" : "custom priority is off");
+        return 0;
+    };
+
+    t["add"]    = cmd::handle_add;
+    t["remove"] = cmd::handle_remove;
+    t["list"]   = cmd::handle_list;
+    t["clear"]  = cmd::handle_clear;
+    t["set"]    = cmd::handle_set;
+
+    t["config"] = t["show-config"] = [](const args&) -> int {
+        a1ctl::show_config();
+        return 0;
+    };
+
+    t["set-interval"] = [](const args& a) -> int {
+        if (!need_args(a, 3, "set-interval <seconds>")) return 1;
+        auto v = parse_int(a.at(2));
+        if (!v) { xmz::log::error("invalid seconds:", std::string(a.at(2))); return 1; }
+        a1ctl::update_config_int("optimize_interval", *v);
+        return 0;
+    };
+
+    t["loop-sleep"] = [](const args& a) -> int {
+        if (!need_args(a, 3, "loop-sleep <seconds>")) return 1;
+        auto v = parse_int(a.at(2));
+        if (!v || *v < 1) {
+            xmz::log::error("loop sleep time must be a positive integer");
+            return 1;
+        }
+        a1ctl::update_config_int("loop_sleep_interval", *v);
+        return 0;
+    };
+
+    t["auto-apply"] = [](const args& a) -> int {
+        if (!need_args(a, 3, "auto-apply <on|off>")) return 1;
+        auto v = parse_onoff(a.at(2));
+        if (!v) { xmz::log::error("usage: auto-apply <on|off>"); return 1; }
+        a1ctl::set_auto_apply(*v);
+        return 0;
+    };
+
+    t["restore"] = t["restore-config"] = [](const args&) -> int {
+        a1ctl::init_config();
+        xmz::log::info("configuration restored from backup");
+        return 0;
+    };
+
+    t["compat"] = t["compat-mode"] = [](const args& a) -> int {
+        if (!need_args(a, 3, "compat <on|off>")) return 1;
+        auto v = parse_onoff(a.at(2));
+        if (!v) { xmz::log::error("usage: compat <on|off>"); return 1; }
+        a1ctl::compat_mode(*v);
+        return 0;
+    };
+
+    t["mod-switch"] = [](const args& a) -> int {
+        if (!need_args(a, 3, "mod-switch <on|off>")) return 1;
+        auto v = parse_onoff(a.at(2));
+        if (!v) { xmz::log::error("usage: mod-switch <on|off>"); return 1; }
+        a1ctl::mod_switch_mode(*v);
+        return 0;
+    };
+
+    t["lock"] = [](const args& a) -> int {
+        if (!need_args(a, 3, "lock <on|off>")) return 1;
+        auto v = parse_onoff(a.at(2));
+        if (!v) {
+            xmz::log::error("please enter on/off, such as a1ctl lock on");
+            return 1;
+        }
+        a1ctl::update_config("lock_use", *v);
+        if (*v) {
+            xmz::log::info("lock has been turned on");
+            xmz::log::info("lock ensures the program is not affected by other processes while running,");
+            xmz::log::info("avoiding accidents (e.g. config file corruption).");
+            xmz::log::info("Drawback: only one process can run at a time.");
+        } else {
+            xmz::log::info("lock is closed");
+            xmz::log::warn("lock has been turned off, A1 can now run in multi-threaded mode.");
+            xmz::log::warn("however, this may cause data such as configuration files to be damaged.");
+        }
+        return 0;
+    };
+
+    t["help"]    = t["--help"] = t["-h"] = t["h"] = [](const args& a) -> int {
+        xmz::println(help_text(std::string(a.at(0))));
+        return 0;
+    };
+
+    t["version"] = [](const args&) -> int {
+        xmz::println("A1Ctl Version:", a1::version::a1ctl);
+        return 0;
+    };
+
+    t["-f"] = [](const args& a) -> int {
+        if (a.has(2) && a.at(2) == "start") {
+            a1ctl::start_a1_foreground();
+            return 0;
+        }
+        xmz::log::error("command error: ", std::string(a.has(2) ? a.at(2) : ""));
+        return 1;
+    };
+
+    return t;
 }
 
 int main(int argc, char *argv[]) {
@@ -91,270 +425,36 @@ int main(int argc, char *argv[]) {
     }
 
     a1ctl::init_config();
-    auto& g_cfg = a1::coreapi::get_cfg();
 
     bool lock_use = pini.get_bool("", "lock_use", true);
-
     if (lock_use) {
         std::string lock_file = g_jb.a1_dir + "/lock";
         g_lock_mgr.init(lock_file);
         g_lock_mgr.set_enabled(true);
-        if (!g_lock_mgr.acquire()) { return 1; }
-        signal(SIGINT, signal_handler);
+        if (!g_lock_mgr.acquire()) return 1;
+        signal(SIGINT,  signal_handler);
         signal(SIGTERM, signal_handler);
         atexit([]() { g_lock_mgr.release(); });
     }
 
-    std::string cmd = argv[1];
+    args a{argc, argv};
+    auto table = build_commands();
 
-    auto check_opt = [](char *arg) -> bool { if (arg == nullptr) { return false; } return true; };
-
-    if (cmd == "1" || cmd == "start") {
-        a1ctl::start_a1();
-    } else if (cmd == "0" || cmd == "stop") {
-        a1::kill_pid();
-        xmz::log::info("A1 has stopped");
-    } else if (cmd == "restart") {
-        a1::kill_pid();
-        sleep(2);
-        a1ctl::start_a1();
-    } else if (cmd == "status") {
-        a1ctl::check_status();
-    } else if (cmd == "loop") {
-        if (argc < 3) {
-            xmz::log::error("usage: loop <on|off>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "on") {
-            a1ctl::update_config("loop_mode", true);
-            a1ctl::update_config("auto_adjust", false);
-            a1ctl::update_config("scheduled_guard", false);
-            xmz::log::info("loop mode is on (other modes have been turned off automatically)");
-        } else if (opt == "off") {
-            a1ctl::update_config("loop_mode", false);
-            xmz::log::info("loop mode is off");
+    int rc = 0;
+    auto it = table.find(a.at(1));
+    if (it == table.end()) {
+        if (a.at(1).empty()) {
+            xmz::println(help_text(std::string(a.at(0))));
+            rc = 0;
         } else {
-            xmz::log::error("usage: loop <on|off>");
-        }
-    } else if (cmd == "auto-adjust") {
-        if (argc < 3) {
-            xmz::log::error("usage: auto-adjust <on|off>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "on") {
-            a1ctl::update_config("auto_adjust", true);
-            a1ctl::update_config("loop_mode", false);
-            a1ctl::update_config("scheduled_guard", false);
-            xmz::log::info("real-time auto-adjust mode is on (other modes have been turned off automatically)");
-        } else if (opt == "off") {
-            a1ctl::update_config("auto_adjust", false);
-            xmz::log::info("real-time auto-adjust mode is off");
-        } else {
-            xmz::log::error("usage: auto-adjust <on|off>");
-        }
-    } else if (cmd == "scheduled-guard" || cmd == "guard") {
-        if (argc < 3) {
-            xmz::log::error("usage: scheduled-guard <on|off> or guard <on|off>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "on") {
-            a1ctl::update_config("scheduled_guard", true);
-            a1ctl::update_config("loop_mode", false);
-            a1ctl::update_config("auto_adjust", false);
-            xmz::log::info("scheduled guard mode is on (other modes have been turned off automatically)");
-        } else if (opt == "off") {
-            a1ctl::update_config("scheduled_guard", false);
-            xmz::log::info("scheduled guard mode is off");
-        } else {
-            xmz::log::error("usage: scheduled-guard <on|off> or guard <on|off>");
-        }
-    } else if (cmd == "custom") {
-        if (argc < 3) {
-            xmz::log::error("usage: custom <on|off>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "on") {
-            a1ctl::update_config("custom_priority_enabled", true);
-            xmz::log::info("custom priority is on");
-        } else if (opt == "off") {
-            a1ctl::update_config("custom_priority_enabled", false);
-            xmz::log::info("custom priority is off");
-        } else {
-            xmz::log::error("usage: custom <on|off>");
-        }
-    } else if (cmd == "add") {
-        if (argc < 3) {
-            xmz::log::error("usage: add <high|low> <process> or add custom <process> <value> or add <process> <value>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "high" || opt == "h") {
-            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
-            a1ctl::add_priority("h", argv[3], g_cfg.high_priority);
-        } else if (opt == "low" || opt == "l") {
-            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
-            a1ctl::add_priority("l", argv[3], g_cfg.low_priority);
-        } else if (opt == "custom" || opt == "c") {
-            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
-            if (!check_opt(argv[4])) { xmz::log::error("the priority value cannot be empty."); return 1; }
-            a1ctl::add_priority("c", argv[3], std::stoi(argv[4]));
-        } else {
-            std::string type = "c";
-            std::string process = argv[2];
-            int value = std::stoi(argv[3]);
-            a1ctl::add_priority(type, process, value);
-        }
-    } else if (cmd == "remove") {
-        if (argc < 3) {
-            xmz::log::error("usage: remove <high|low|custom> <process> or remove <process>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "high" || opt == "h") {
-            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
-            a1ctl::remove_priority("high", argv[3]);
-        } else if (opt == "low" || opt == "l") {
-            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
-            a1ctl::remove_priority("low", argv[3]);
-        } else if (opt == "custom" || opt == "c") {
-            if (!check_opt(argv[3])) { xmz::log::error("the process name cannot be empty."); return 1; }
-            a1ctl::remove_priority("custom", argv[3]);
-        } else {
-            a1ctl::remove_priority("high", argv[2]);
-            a1ctl::remove_priority("low", argv[2]);
-            a1ctl::remove_priority("custom", argv[2]);
-        }
-    } else if (cmd == "list") {
-        if (argc < 3) {
-            xmz::log::error("usage: list <high|low|custom>");
-            return 1;
-        }
-        if (!check_opt(argv[2])) { xmz::log::error("the options cannot be empty."); return 1; }
-        a1ctl::list_priority(argv[2]);
-    } else if (cmd == "clear") {
-        if (argc < 3) {
-            xmz::log::error("usage: clear <high|low|custom>");
-            return 1;
-        }
-        if (!check_opt(argv[2])) { xmz::log::error("the options cannot be empty."); return 1; }
-        a1ctl::clear_priority(argv[2]);
-    } else if (cmd == "set") {
-        if (argc < 4) {
-            xmz::log::error("usage: set <high|low|launchd> <value>");
-            return 1;
-        }
-        if (!check_opt(argv[2])) { xmz::log::error("the options cannot be empty."); return 1; }
-        if (!check_opt(argv[3])) { xmz::log::error("the value cannot be empty."); return 1; }
-        a1ctl::set_priority_value(argv[2], std::atoi(argv[3]));
-    } else if (cmd == "config" || cmd == "show-config") {
-        a1ctl::show_config();
-    } else if (cmd == "set-interval") {
-        if (argc < 3) {
-            xmz::log::error("usage: set-interval <seconds>");
-            return 1;
-        }
-        if (!check_opt(argv[2])) { xmz::log::error("the seconds cannot be empty."); return 1; }
-        a1ctl::update_config_int("optimize_interval", std::atoi(argv[2]));
-    } else if (cmd == "loop-sleep") {
-        if (argc < 3) {
-            xmz::log::error("usage: loop-sleep <seconds>");
-            return 1;
-        }
-        if (!check_opt(argv[2])) { xmz::log::error("the seconds cannot be empty."); return 1; }
-        int val = std::atoi(argv[2]);
-        if (val < 1) {
-            xmz::log::error("loop sleep time must be a positive integer");
-            return 1;
-        }
-        a1ctl::update_config_int("loop_sleep_interval", val);
-    } else if (cmd == "auto-apply") {
-        if (argc < 3) {
-            xmz::log::error("usage: auto-apply <on|off>");
-            return 1;
-        }
-        if (!check_opt(argv[2])) { xmz::log::error("the options cannot be empty."); return 1; }
-        std::string opt = argv[2];
-        if (opt == "on") {
-            a1ctl::set_auto_apply(true);
-        } else if (opt == "off") {
-            a1ctl::set_auto_apply(false);
-        } else {
-            xmz::log::error("unknown option:", opt);
-            xmz::log::error("usage: auto-apply <on|off>");
-            return 1;
-        }
-    } else if (cmd == "restore" || cmd == "restore-config") {
-        a1ctl::init_config();
-        xmz::log::info("configuration restored from backup");
-    } else if (cmd == "compat" || cmd == "compat-mode") {
-        if (argc < 3) {
-            xmz::log::error("usage: compat <on|off>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "on") {
-            a1ctl::compat_mode(true);
-        } else if (opt == "off") {
-            a1ctl::compat_mode(false);
-        } else {
-            xmz::log::error("unknown option:", opt);
-            xmz::log::error("usage: compat <on|off>");
-            return 1;
-        }
-    } else if (cmd == "mod-switch") {
-        if (argc < 3) {
-            xmz::log::error("usage: mod-switch <on|off>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "on") {
-            a1ctl::mod_switch_mode(true);
-        } else if (opt == "off") {
-            a1ctl::mod_switch_mode(false);
-        } else {
-            xmz::log::error("unknown option:", opt);
-            xmz::log::error("usage: mod-switch <on|off>");
-            return 1;
-        }
-    } else if (cmd == "help" || cmd == "--help" || cmd == "-h" || cmd == "h" || cmd == "") {
-        xmz::println(help_text(std::string(argv[0])));
-    } else if (cmd == "version") {
-        xmz::println("A1Ctl Version:", a1::version::a1ctl);
-    } else if (cmd == "-f") {
-        if (argc >= 3 && std::string(argv[2]) == "start") {
-            a1ctl::start_a1_foreground();
-        } else {
-            xmz::log::error("command error: ", (argc >= 3 ? argv[2] : ""));
-        }
-    } else if (cmd == "lock") {
-        if (argc < 3) {
-            xmz::log::error("usage: lock <on|off>");
-            return 1;
-        }
-        std::string opt = argv[2];
-        if (opt == "on") {
-            a1ctl::update_config("lock_use", true);
-            xmz::log::info("lock has been turned on");
-            xmz::log::info("lock is a mechanism that can ensure that the program is not affected by other processes when running,");
-            xmz::log::info("avoid accidents (such as document damage, etc.)");
-            xmz::log::info("but it also has its own shortcomings: it can only be executed in a single process and cannot be executed simultaneously.");
-        } else if (opt == "off") {
-            a1ctl::update_config("lock_use", false);
-            xmz::log::info("lock is closed");
-            xmz::log::warn("lock has been turned off, and a1 can now perform multi-threaded mode.");
-            xmz::log::warn("however, this may cause data such as configuration files to be damaged.");
-        } else {
-            xmz::log::error("please enter on/off, such as a1ctl lock on");
+            xmz::log::error("unknown command: ", std::string(a.at(1)));
+            xmz::log::info("use 'a1ctl help' to view help");
+            rc = 1;
         }
     } else {
-        xmz::log::error("unknown command: ", cmd);
-        xmz::log::info("use 'a1ctl help' to view help");
-        return 1;
+        rc = it->second(a);
     }
+
     g_lock_mgr.release();
-    return 0;
+    return rc;
 }
