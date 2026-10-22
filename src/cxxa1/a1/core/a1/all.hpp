@@ -1,0 +1,11 @@
+// all.hpp
+#pragma once
+#include <a1/core/a1/colors.hpp>
+#include <a1/core/a1/aux.hpp>
+#include <a1/core/a1/sys.hpp>
+#include <a1/core/a1/get.hpp>
+#include <a1/core/a1/set.hpp>
+#include <a1/core/a1/priority_manager.hpp>
+#include <a1/core/a1/kill_pid.hpp>
+#include <a1/core/a1/adjust_process_auto.hpp>
+#include <a1/core/a1/runtime.hpp>
