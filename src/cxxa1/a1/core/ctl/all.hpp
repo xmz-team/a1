@@ -1,0 +1,9 @@
+// all.hpp
+#pragma once
+#include <a1/core/ctl/aux.hpp>
+#include <a1/core/ctl/start.hpp>
+#include <a1/core/ctl/cmd.hpp>
+#include <a1/core/ctl/update_config.hpp>
+#include <a1/core/ctl/add_priority.hpp>
+#include <a1/core/ctl/remove_priority.hpp>
+#include <a1/core/ctl/open.hpp>

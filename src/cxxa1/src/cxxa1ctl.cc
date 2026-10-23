@@ -58,6 +58,8 @@ Configuration Management:
   compat <on|off>          Enable/disable compatibility mode
   mod-switch <on|off>      Enable/turn off the mod mode
   lock <on|off>            Enable/disable lock
+  open-gui                 Open A1GUI APP
+  open <bundle id>         Open APP by bundle ID
 
 Other:
   help                     Show this help
@@ -353,7 +355,7 @@ inline cmd_table build_commands() {
     t["compat"] = t["compat-mode"] = [](const args& a) -> int {
         if (!need_args(a, 3, "compat <on|off>")) return 1;
         auto v = parse_onoff(a.at(2));
-        if (!v) { xmz::log::error("usage: compat <on|off>"); return 1; }
+        if (!v) xmz::log::error("usage: compat <on|off>"); return 1;
         a1ctl::compat_mode(*v);
         return 0;
     };
@@ -404,6 +406,20 @@ inline cmd_table build_commands() {
         }
         xmz::log::error("command error: ", std::string(a.has(2) ? a.at(2) : ""));
         return 1;
+    };
+
+    t["open-gui"] = [](const args&) -> int {
+        return a1ctl::open_app_by_bundleid("io.github.xmz-team.a1gui");
+    };
+
+    t["open"] = [](const args& a) -> int {
+        if (!need_args(a, 3, "open <bundle id>")) return 1;
+        std::string bundle_id(a.at(2));
+        if (bundle_id.empty()) {
+            xmz::log::error("bundle id cannot be empty");
+            return 1;
+        }
+        return a1ctl::open_app_by_bundleid(bundle_id);
     };
 
     return t;
