@@ -3,8 +3,8 @@
 #include <string>
 
 #include <a1/core/config.hpp>
-#include <a1/core/a1cfg.hop>
-#include <a1/core/myini.hop>
+#include <a1/core/a1cfg.hpp>
+#include <a1/core/myini.hpp>
 #include <a1/core/a1/kill_pid.hpp>
 
 #include <libxmz/fs.hpp>

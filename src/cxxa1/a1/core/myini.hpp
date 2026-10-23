@@ -64,7 +64,7 @@ public:
     int get_int(const std::string& sec, const std::string& key, int def = 0) const {
         auto s = get(sec, key);
         if (s.empty()) return def;
-        try return std::stoi(s); catch (...) return def;
+        try { return std::stoi(s); } catch (...) { return def };
     }
 
     bool get_bool(const std::string& sec, const std::string& key, bool def = false) const {
