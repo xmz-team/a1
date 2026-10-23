@@ -6,6 +6,7 @@
 #include <a1/core/a1cfg.hpp>
 #include <a1/core/myini.hpp>
 #include <a1/core/a1/kill_pid.hpp>
+#include <a1/core/ctl/start.hpp>
 
 #include <libxmz/fs.hpp>
 #include <libxmz/aux.hpp>
