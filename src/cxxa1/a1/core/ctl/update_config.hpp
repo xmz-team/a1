@@ -3,7 +3,7 @@
 #include <string>
 #include <type_traits>
 
-#include <a1/core/aux.hpp>
+#include <a1/core/ctl/aux.hpp>
 #include <a1/core/config.hpp>
 #include <a1/core/myini.hpp>
 

@@ -15,6 +15,9 @@
 #include <libxmz/log.hpp>
 
 namespace a1ctl {
+    // forward declaration to prevent compilation errors
+    inline int check_a1_running();
+    inline int check_config_conflict();
     // backstage start up
     inline void start_a1_service() {
         a1::config::jb_path g_jb;
