@@ -1,7 +1,7 @@
 // get.hpp
 #pragma once
 #include <string>
-#include <cstdint.h>
+#include <stdint.h>
 #include <sys/resource.h>
 #include <cerrno>
 #include <mach/mach_time.h>

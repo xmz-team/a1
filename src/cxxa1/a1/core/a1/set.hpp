@@ -1,7 +1,7 @@
 // set.hpp
 #pragma once
 #include <string>
-#include <cstdint.h>
+#include <stdint.h>
 #include <sys/resource.h>
 #include <cerrno>
 #include <unistd.h>

@@ -13,6 +13,8 @@
 #include <src/bin/bundle/libproc.h>
 
 #include <libxmz/log.hpp>
+#include <libxmz/aux.hpp>
+#include <libxmz/fs.hpp>
 
 namespace a1 {
     inline void init() {

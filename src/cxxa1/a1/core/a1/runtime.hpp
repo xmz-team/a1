@@ -11,7 +11,7 @@
 #include <a1/core/config.hpp>
 #include <a1/core/a1/priority_manager.hpp>
 #include <a1/core/a1/get.hpp>
-#include <a1/core/a1adjust_process_auto.hpp>
+#include <a1/core/a1/adjust_process_auto.hpp>
 #include <a1/core/a1/aux.hpp>
 
 #include <src/bin/bundle/libproc.h>
