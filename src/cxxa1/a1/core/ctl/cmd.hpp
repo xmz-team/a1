@@ -57,7 +57,7 @@ namespace a1ctl {
             } else if (priority_type == "low" || priority_type == "l") { update_config_int("low_priority", value);
             } else if (priority_type == "launchd" || priority_type == "lchd") { update_config_int("launchd_priority", value);
             } else {
-                xmz::log::error("undefined options:", priority_type)
+                xmz::log::error("undefined options:", priority_type);
                 xmz::log::error("priority_type cannot be empty, priority_type need high|low|launchd");
                 return 1;
             }
