@@ -36,6 +36,9 @@ b_a1() {
 b_a1ctl() {
     clang++ -ObjC++ \
      $CXXFLAGS \
+     -framework CoreFoundation \
+     -framework SpringBoardServices \
+     -framework CoreServices \
      -lzip \
      ${cxxa1_src_path}/src/cxxa1ctl.cc -o cxxa1ctl
     sign bin cxxa1ctl

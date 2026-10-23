@@ -62,6 +62,7 @@ export CXXFLAGS="\
   -isysroot ${SDKROOT} \
   -std=c++17 \
   -framework Foundation -framework Security \
+  -F${SDKROOT}/System/Library/PrivateFrameworks \
   -I${SDKROOT}/usr/include \
   -I${SDKROOT}/usr/include/c++ \
   -I${cxxa1_src_path} -I. -Isrc/cxxa1 -Isrc/bin/bundle -Isrc/bin -I${src_path}/gui -I${src_path}/cxxa1 -I${src_path}/bin -I${src_path} \
