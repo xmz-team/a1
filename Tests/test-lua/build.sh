@@ -5,4 +5,4 @@ c++ -ObjC++ \
   -framework Foundation \
   -framework Security \
   ../../libs/lua/liblua.a \
-  test.cc -o test-lua
+  test.cc -o ../obj/test-lua
