@@ -13,6 +13,7 @@
 
 #include <libxmz/io.hpp>
 #include <libxmz/log.hpp>
+#include <libxmz/aux.hpp>
 
 namespace a1ctl {
     // forward declaration to prevent compilation errors

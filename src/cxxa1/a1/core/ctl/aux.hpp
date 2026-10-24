@@ -7,6 +7,7 @@
 #include <a1/core/myini.hpp>
 #include <a1/core/a1/kill_pid.hpp>
 #include <a1/core/ctl/start.hpp>
+#include <a1/core/get_sys_list.hpp>
 
 #include <libxmz/fs.hpp>
 #include <libxmz/aux.hpp>
