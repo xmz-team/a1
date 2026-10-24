@@ -1,7 +1,8 @@
-// sys.hpp
+// kill_pid.hpp
 #pragma once
 #include <string>
 #include <vector>
+#include <functional>
 #include <sys/types.h>
 #include <unistd.h>
 #include <signal.h>
@@ -12,72 +13,105 @@
 #include <libxmz/io.hpp>
 
 namespace a1 {
-    inline void kill_pid(const char *script_name = nullptr) {
-        if (script_name == nullptr) script_name = "cxxa1";
-        int count = 0;
-        auto get_a1_pid = [](const std::string& script_name) -> std::vector<int> {
-            std::vector<int> pids;
-            int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0 };
-            size_t size = 0;
-            if (sysctl(mib, 4, nullptr, &size, nullptr, 0) < 0) { return pids; }
-            std::vector<kinfo_proc> procs(size / sizeof(kinfo_proc));
-            if (sysctl(mib, 4, procs.data(), &size, nullptr, 0) < 0) { return pids; }
-            size_t count = size / sizeof(kinfo_proc);
-            for (size_t i = 0; i < count; ++i) {
-                int pid = procs[i].kp_proc.p_pid;
-                if (pid <= 0) continue;
-                std::string comm = procs[i].kp_proc.p_comm;
-                if (pid == getpid()) continue;
-                std::string cmdline;
-                char buf[PROC_PIDPATHINFO_MAXSIZE] = {0};
-                int ret = proc_pidpath(pid, buf, sizeof(buf));
-                if (ret > 0) cmdline = buf;
-                bool match_a1 = false;
-                if (comm.size() >= 2) match_a1 = (comm.substr(comm.size() - 2) == "cxxa1");
-                if (!match_a1 && !cmdline.empty()) {
-                    size_t pos = cmdline.find_last_of('/');
-                    std::string basename = (pos != std::string::npos) ? cmdline.substr(pos + 1) : cmdline;
-                    match_a1 = (basename.size() >= 2 && basename.substr(basename.size() - 2) == "cxxa1");
-                }
-                bool match_script = !script_name.empty() &&
-                                    (comm.find(script_name) != std::string::npos ||
-                                    cmdline.find(script_name) != std::string::npos);
-                if (match_a1 || match_script) pids.push_back(pid);
-            }
-            return pids;
+    namespace _proc {
+        struct info {
+            pid_t pid;
+            std::string comm;
+            int stat;              // process status(SZOMB, etc.)
+            std::string cmdline;   // full path of executable file
         };
-        std::vector<int> pids = get_a1_pid(script_name);
-        pid_t current_pid = getpid();
-        pid_t parent_pid = getppid();
-        for (int pid_int : pids) {
-            pid_t pid = static_cast<pid_t>(pid_int);
-            if (pid != current_pid && pid != parent_pid && pid > 0) {
-                xmz::println("Kill", script_name, "process PID:", pid);
-                kill(pid, SIGTERM);
-                usleep(500000);
-                int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, pid};
-                struct kinfo_proc info;
-                size_t info_size = sizeof(info);
-                if (sysctl(mib, 4, &info, &info_size, nullptr, 0) == 0 && info.kp_proc.p_stat != 0) kill(pid, SIGKILL);
-                count++;
-            }
-        }
-        int mib[] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
+    } /* namespace _proc */
+
+    inline std::vector<_proc::info> list_all_procs() {
+        std::vector<_proc::info> result;
+        int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0 };
         size_t size = 0;
-        if (sysctl(mib, 4, nullptr, &size, nullptr, 0) == 0) {
-            std::vector<kinfo_proc> procs(size / sizeof(kinfo_proc));
-            if (sysctl(mib, 4, procs.data(), &size, nullptr, 0) == 0) {
-                size_t proc_count = size / sizeof(kinfo_proc);
-                for (size_t i = 0; i < proc_count; ++i) {
-                    if (procs[i].kp_proc.p_stat == SZOMB) {
-                        pid_t pid = procs[i].kp_proc.p_pid;
-                        std::string comm = procs[i].kp_proc.p_comm;
-                        if (comm.find(script_name) != std::string::npos) kill(pid, SIGKILL);
-                    }
-                }
+        if (sysctl(mib, 4, nullptr, &size, nullptr, 0) < 0) return result;
+        std::vector<kinfo_proc> procs(size / sizeof(kinfo_proc));
+        if (sysctl(mib, 4, procs.data(), &size, nullptr, 0) < 0) return result;
+        size_t count = size / sizeof(kinfo_proc);
+        result.reserve(count);
+        for (size_t i = 0; i < count; ++i) {
+            _proc::info info;
+            info.pid  = procs[i].kp_proc.p_pid;
+            info.comm = procs[i].kp_proc.p_comm;
+            info.stat = procs[i].kp_proc.p_stat;
+            if (info.pid > 0) {
+                char buf[PROC_PIDPATHINFO_MAXSIZE] = {0};
+                if (proc_pidpath(info.pid, buf, sizeof(buf)) > 0) info.cmdline = buf;
+            }
+            result.push_back(std::move(info));
+        }
+        return result;
+    }
+
+    inline std::string get_pid_path(pid_t pid) {
+        char buf[PROC_PIDPATHINFO_MAXSIZE] = {0};
+        if (proc_pidpath(pid, buf, sizeof(buf)) > 0) return buf;
+        return {};
+    }
+
+    // filter PID by predicate
+    inline std::vector<pid_t> find_pids(const std::function<bool(const _proc::info&)>& pred,
+                                        const std::vector<_proc::info>& procs) {
+        std::vector<pid_t> pids;
+        pid_t self = getpid(), parent = getppid();
+        for (const auto& p : procs) {
+            if (p.pid <= 0 || p.pid == self || p.pid == parent) continue;
+            if (pred(p)) pids.push_back(p.pid);
+        }
+        return pids;
+    }
+
+    inline bool terminate_pid(pid_t pid, useconds_t grace_us = 500000) {
+        if (pid <= 0) return false;
+        kill(pid, SIGTERM);
+        usleep(grace_us);
+        int mib[] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, pid };
+        struct kinfo_proc info;
+        size_t info_size = sizeof(info);
+        if (sysctl(mib, 4, &info, &info_size, nullptr, 0) == 0 && info.kp_proc.p_stat != 0) kill(pid, SIGKILL);
+        return true;
+    }
+
+    // clean up the zombies with the specified name (substring matching)
+    inline int reap_zombies(const std::string& name,
+                            const std::vector<_proc::info>& procs) {
+        int n = 0;
+        for (const auto& p : procs) {
+            if (p.stat == SZOMB && p.comm.find(name) != std::string::npos) {
+                kill(p.pid, SIGKILL);
+                ++n;
             }
         }
+        return n;
+    }
+
+    inline void kill_pid(const char* script_name = nullptr) {
+        if (script_name == nullptr) script_name = "cxxa1";
+        const std::string name = script_name;
+        auto procs = list_all_procs();
+        auto matcher = [&](const _proc::info& p) -> bool {
+            bool match_a1 = p.comm.size() >= 5 && p.comm.substr(p.comm.size() - 5) == "cxxa1";
+            if (!match_a1 && !p.cmdline.empty()) {
+                size_t pos = p.cmdline.find_last_of('/');
+                std::string base = (pos != std::string::npos) ? p.cmdline.substr(pos + 1) : p.cmdline;
+                match_a1 = base.size() >= 5 && base.substr(base.size() - 5) == "cxxa1";
+            }
+            bool match_script = p.comm.find(name) != std::string::npos || p.cmdline.find(name) != std::string::npos;
+            return match_a1 || match_script;
+        };
+
+        auto pids = find_pids(matcher, procs);
+        int count = 0;
+        for (pid_t pid : pids) {
+            xmz::println("Kill", name, "process PID:", pid);
+            if (terminate_pid(pid)) ++count;
+        }
+
+        reap_zombies(name, procs);
+
         if (count == 0) xmz::println("There is no old process to clean up");
-        else xmz::println("Cleaned", count, "old processes");
+        else            xmz::println("Cleaned", count, "old processes");
     }
 } /* namespace a1 */
