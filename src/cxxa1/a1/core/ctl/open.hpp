@@ -15,5 +15,5 @@ namespace a1ctl {
         return ret;
     }
 
-    inline int open_app_by_bundleid(const std::string& bundle_id) { return open_by_bundleid(bundle_id.c_str()); }
+    inline int open_app_by_bundleid(const std::string& bundle_id) { return open_app_by_bundleid(bundle_id.c_str()); }
 } // namespace a1ctl
