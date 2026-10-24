@@ -355,7 +355,7 @@ inline cmd_table build_commands() {
     t["compat"] = t["compat-mode"] = [](const args& a) -> int {
         if (!need_args(a, 3, "compat <on|off>")) return 1;
         auto v = parse_onoff(a.at(2));
-        if (!v) xmz::log::error("usage: compat <on|off>"); return 1;
+        if (!v) { xmz::log::error("usage: compat <on|off>"); return 1; }
         a1ctl::compat_mode(*v);
         return 0;
     };

@@ -3,7 +3,7 @@
 #set -x # debug
 
 unset jb
-jbenv="$(dpkg --print-architecture)"
+export jbenv="$(dpkg --print-architecture)"
 
 if [ "$jbenv" = "iphoneos-arm64" ]; then
     jb="/var/jb"
