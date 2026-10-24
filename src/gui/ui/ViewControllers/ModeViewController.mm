@@ -26,9 +26,9 @@
 - (void)modeStatusChanged:(NSNotification *)note {
     if (note.object == self) return;
     NSString *key = note.userInfo[@"key"];
-    if (![key isEqualToString:@"module"]) return;
+    if (![key isEqualToString:@"module_switch"]) return;
     dispatch_async(dispatch_get_main_queue(), ^{
-        UISwitch *sw = self->_switches[@"module"];
+        UISwitch *sw = self->_switches[@"module_switch"];
         if (sw) {
             NSDictionary *modes = [[A1Executor shared] currentModeStatus];
             sw.on = [modes[@"module_switch"] isEqualToString:@"on"];
