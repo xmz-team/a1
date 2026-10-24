@@ -1,6 +1,8 @@
+#!/bin/bash -e
+
 c++ -ObjC++ \
-  -I../../src/cxxa1 -I../../ \
-  -I../../src/bin/bundle \
+  -I../src/cxxa1 -I.. \
+  -I../src/bin/bundle \
   -framework Foundation \
   -framework Security \
-  test_a1_run.cc -o test-run
+  test_a1_run.cc -o ../obj/test-run

@@ -1,11 +1,3 @@
-.idea
-packages/a1/*
-packages/a1gui/*
-packages/gui/*
-packages/packdeb.d/*
-packages/packdeb/*
-packages/cxxa1/*
-
 .env
 .env.*
 *.pem
@@ -17,14 +9,19 @@ secrets/
 credentials.json
 *.secret
 .terraform/
-tmp/*
 
-*.a
-*.o
+*.[oa]
 
 .generate.lock
-
-Tests/test-lua/test-lua
 .git-upload
-
 .DS_Store
+.idea
+Tests/obj/*
+
+packages/a1/*
+packages/a1gui/*
+packages/gui/*
+packages/packdeb.d/*
+packages/packdeb/*
+packages/cxxa1/*
+tmp/

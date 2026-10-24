@@ -1,10 +1,10 @@
 Package: io.github.xmz-team.a1gui
 Section: App
-Maintainer: XMX-Team <xmz-team@outlook.com>, LF
+Maintainer: LF <yitat1006@outlook.com>, AD <ad-ios334@outlook.com>, XMZ <xmz-team@outlook.com>, amzxus <amzxus@gmail.com>
 Architecture: iphoneos-arm64e
 Pre-Depends: firmware (>= 14.0), a1
 Description: This is the GUI graphical interface version of A1
 Name: A1 GUI2
-Author: LF
+Author: LF <yitat1006@outlook.com>
 Icon: file:///Applications/a1gui.app/AppIcon.png
 Conflicts: official.ad.and.lf.app.a1

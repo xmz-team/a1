@@ -3,8 +3,8 @@ Name: A1
 Architecture: iphoneos-arm64
 Section: a1
 Depends: firmware (>= 14.0), mobilesubstrate, preferenceloader, libzip5, libssl3, libcurl4-openssl-dev, shell-cmds, coreutils, uikittools-extra, uikittools, plutil
-Author: LF
-Maintainer: LF, AD, XMZ
+Author: LF <yitat1006@outlook.com>
+Maintainer: LF <yitat1006@outlook.com>, AD <ad-ios334@outlook.com>, XMZ <xmz-team@outlook.com>, amzxus <amzxus@gmail.com>
 SileoDepiction: https://xmz-team.github.io/repo/sileodepiction/a1/js.json
 Icon: https://img.icons8.com/?size=512&id=IXAPBCK6dFKv&format=png
 Description: Optimize Jetsam and kernel parameters to enhance background task performance.
