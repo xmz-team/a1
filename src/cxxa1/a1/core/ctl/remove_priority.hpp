@@ -4,7 +4,7 @@
 
 #include <a1/core/ctl/aux.hpp>
 #include <a1/core/config.hpp>
-#include <a1/core/myini.hop>
+#include <a1/core/myini.hpp>
 
 #include <libxmz/fs.hpp>
 #include <libxmz/aux.hpp>
