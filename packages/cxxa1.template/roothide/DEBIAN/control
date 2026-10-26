@@ -7,10 +7,11 @@ Author: LF <yitat1006@outlook.com>
 Maintainer: LF <yitat1006@outlook.com>, AD <ad-ios334@outlook.com>, XMZ <xmz-team@outlook.com>, amzxus <amzxus@gmail.com>
 SileoDepiction: https://xmz-team.github.io/repo/sileodepiction/a1/js.json
 Icon: https://img.icons8.com/?size=512&id=IXAPBCK6dFKv&format=png
-Description: Optimize Jetsam and kernel parameters to enhance background task performance.
-  通过调整 Jetsam 机制与内核参数，显著提升后台任务运行效率。
-  - Reduce priority of non-essential processes to improve system fluidity.
-    降低非核心进程优先级，优化系统流畅度。
-  - Modify kernel memory management parameters for better background task handling.
-    优化内核内存管理参数，改善后台任务调度机制。
-  - 终端输入a1手动执行，输入a1ctl打开管理面板
+Description: - Optimize Jetsam and kernel parameters to enhance background task performance.
+ - 通过调整 Jetsam 机制与内核参数，显著提升后台任务运行效率.
+ - Reduce priority of non-essential processes to improve system fluidity.
+ - 降低非核心进程优先级，优化系统流畅度.
+ - Modify kernel memory management parameters for better background task handling.
+ - 优化内核内存管理参数，改善后台任务调度机制.
+ - Terminal input a1 for manual execution, input a1ctl to open the management panel
+ - 终端输入a1手动执行，输入a1ctl打开管理面板

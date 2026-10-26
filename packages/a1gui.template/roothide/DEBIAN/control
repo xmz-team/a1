@@ -3,8 +3,13 @@ Section: App
 Maintainer: LF <yitat1006@outlook.com>, AD <ad-ios334@outlook.com>, XMZ <xmz-team@outlook.com>, amzxus <amzxus@gmail.com>
 Architecture: iphoneos-arm64e
 Pre-Depends: firmware (>= 14.0), a1
-Description: This is the GUI graphical interface version of A1
+Description: - A1 GUI graphical interface version
+ This is the GUI graphical interface version of A1.
+ - 这是A1的GUI图形界面版本.
+ - Note: Roothide's support is experimental!
+ - 注意：Roothide的支持是实验性的！
 Name: A1 GUI2
 Author: LF <yitat1006@outlook.com>
 Icon: file:///Applications/a1gui.app/AppIcon.png
 Conflicts: official.ad.and.lf.app.a1
+Version: 0.0.1

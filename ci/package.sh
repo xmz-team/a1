@@ -3,7 +3,7 @@ pack() {
     local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
     source "${script_path}/env.sh"
     source "${script_path}/generate-version.sh"
-    local time="$(date '+%Y%m%d-%H%M%S')"
+    local time="$(date -u +'%Y%m%dT-%H%M%SZ')"
     setinfo() {
         local name=$1
         local jbenv=$2
