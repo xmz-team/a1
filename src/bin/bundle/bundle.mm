@@ -47,7 +47,7 @@ int main(int argc, const char * argv[]) {
             return -1;
         }
 
-        const char *process_name = a1::bin::pid_bundle(atoi(argv[1]));
+        std::string process_name = a1::bin::pid_bundle(atoi(argv[1]));
         xmz::print(process_name);
         return 0;
 
@@ -77,10 +77,9 @@ int main(int argc, const char * argv[]) {
                 xmz::perrln("Missing PID argument");
                 return 1;
             }
-            const char *process_name = a1::bin::pid_bundle(atoi(argv[2]));
+            std::string process_name = a1::bin::pid_bundle(atoi(argv[2]));
             xmz::print(process_name);
             return 0;
-
         } else {
             xmz::log::error("Undefined option:", cmd);
             return 1;

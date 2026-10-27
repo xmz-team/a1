@@ -1,13 +1,15 @@
 #pragma once
 #include "bundle_pid.hpp"
+#include <string>
+
 namespace a1::bin {
-inline const char* pid_bundle(int pid) {
+inline std::string pid_bundle(int pid) {
     @autoreleasepool {
-        if (pid <= 0) return NULL;
+        if (pid <= 0) return {};
         char pathBuffer[PROC_PIDPATHINFO_MAXSIZE];
-        if (proc_pidpath(pid, pathBuffer, sizeof(pathBuffer)) <= 0) return NULL;
+        if (proc_pidpath(pid, pathBuffer, sizeof(pathBuffer)) <= 0) return {};
         NSString *fullPath = [NSString stringWithUTF8String:pathBuffer];
-        // try to get the signature information of the main executable file directlygnature information of the main executable file directly
+
         NSURL *url = [NSURL fileURLWithPath:fullPath];
         SecStaticCodeRef staticCode = NULL;
         if (SecStaticCodeCreateWithPath((__bridge CFURLRef)url, kSecCSDefaultFlags, &staticCode) == 0) {
@@ -15,14 +17,14 @@ inline const char* pid_bundle(int pid) {
             if (SecCodeCopySigningInformation(staticCode, kSecCSDefaultFlags, &info) == 0) {
                 NSString *signID = (__bridge NSString *)CFDictionaryGetValue(info, kSecCodeInfoIdentifier);
                 if (signID) {
-                    const char *result = strdup([signID UTF8String]);
+                    std::string result = [signID UTF8String];
                     CFRelease(info);
                     CFRelease(staticCode);
                     return result;
                 }
                 NSDictionary *plist = (__bridge NSDictionary *)CFDictionaryGetValue(info, kSecCodeInfoPList);
                 if (plist && plist[@"CFBundleIdentifier"]) {
-                    const char *result = strdup([plist[@"CFBundleIdentifier"] UTF8String]);
+                    std::string result = [plist[@"CFBundleIdentifier"] UTF8String];
                     CFRelease(info);
                     CFRelease(staticCode);
                     return result;
@@ -31,6 +33,7 @@ inline const char* pid_bundle(int pid) {
             }
             CFRelease(staticCode);
         }
+
         NSSet *validExtensions = [NSSet setWithArray:@[@"app", @"framework", @"bundle", @"xpc", @"plugin", @"dylib", @"appex"]];
         NSString *currentPath = [fullPath stringByDeletingLastPathComponent];
         int depth = 0;
@@ -44,14 +47,14 @@ inline const char* pid_bundle(int pid) {
                     if (SecCodeCopySigningInformation(bundleCode, kSecCSDefaultFlags, &bundleInfo) == 0) {
                         NSString *signID = (__bridge NSString *)CFDictionaryGetValue(bundleInfo, kSecCodeInfoIdentifier);
                         if (signID) {
-                            const char *result = strdup([signID UTF8String]);
+                            std::string result = [signID UTF8String];
                             CFRelease(bundleInfo);
                             CFRelease(bundleCode);
                             return result;
                         }
                         NSDictionary *plist = (__bridge NSDictionary *)CFDictionaryGetValue(bundleInfo, kSecCodeInfoPList);
                         if (plist && plist[@"CFBundleIdentifier"]) {
-                            const char *result = strdup([plist[@"CFBundleIdentifier"] UTF8String]);
+                            std::string result = [plist[@"CFBundleIdentifier"] UTF8String];
                             CFRelease(bundleInfo);
                             CFRelease(bundleCode);
                             return result;
@@ -66,7 +69,7 @@ inline const char* pid_bundle(int pid) {
             depth++;
         }
         NSString *processName = [fullPath lastPathComponent];
-        return strdup([processName UTF8String]);
+        return std::string([processName UTF8String]);
     }
 }
 } /* namespace a1::bin */

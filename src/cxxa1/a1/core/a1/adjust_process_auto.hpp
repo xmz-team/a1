@@ -31,13 +31,7 @@ namespace a1 {
             }
         }
 
-        if (proc_name.empty() && pid > 0) {
-            const char* raw = a1::bin::pid_bundle(pid);
-            if (raw != nullptr) {
-                proc_name = raw;
-                free((void*)raw);
-            }
-        }
+        if (proc_name.empty() && pid > 0) proc_name = a1::bin::pid_bundle(pid);
 
         if (priority_str == nullptr) {
             xmz::log::error("adjust_process_auto_impl: need priority!");

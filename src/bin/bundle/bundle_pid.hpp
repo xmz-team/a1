@@ -30,10 +30,6 @@ OSStatus SecCodeCopySigningInformation(SecStaticCodeRef code, SecCSFlags flags, 
 }
 #endif
 
-#ifdef __cplusplus
-inline int bundle_pid(const char *target);
-#endif
-
 namespace a1::bin::_bundle_pid {
 /* Signature check core */
 inline BOOL checkSignature(NSString *path, NSString *targetID) {
@@ -78,13 +74,9 @@ inline int findPIDByBundle(const char *target) {
             
             NSString *fullPath = [NSString stringWithUTF8String:pathBuffer];
             /* Document name matching */
-            if ([[fullPath lastPathComponent] caseInsensitiveCompare:targetInput] == NSOrderedSame) {
-                free(procs); return pid;
-            }
+            if ([[fullPath lastPathComponent] caseInsensitiveCompare:targetInput] == NSOrderedSame) free(procs); return pid;
             /* Signature matching */
-            if (checkSignature(fullPath, targetInput)) {
-                free(procs); return pid;
-            }
+            if (checkSignature(fullPath, targetInput)) free(procs); return pid;
             /* Upward tracing feature identification */
             NSString *currentPath = [fullPath stringByDeletingLastPathComponent];
             int depth = 0;
@@ -92,9 +84,7 @@ inline int findPIDByBundle(const char *target) {
                 NSString *ext = [[currentPath pathExtension] lowercaseString];
                 /* If this directory has the Bundle suffix, just check it. */
                 if (ext.length > 0 && [validExtensions containsObject:ext]) {
-                    if (checkSignature(currentPath, targetInput)) {
-                        free(procs); return pid;
-                    }
+                    if (checkSignature(currentPath, targetInput)) free(procs); return pid;
                     /* Once you enter the Bundle directory (regardless of whether the ID matches), stop climbing upwards. */
                     break;
                 }
@@ -109,8 +99,6 @@ inline int findPIDByBundle(const char *target) {
 
 } // namespace a1::bin::_bundle_pid
 
-#ifdef __cplusplus
 namespace a1::bin {
 inline int bundle_pid(const char *target) { return a1::bin::_bundle_pid::findPIDByBundle(target); }
 } /* namespace a1::bin */
-#endif
