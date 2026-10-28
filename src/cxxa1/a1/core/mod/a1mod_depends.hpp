@@ -15,9 +15,7 @@
 #include <a1/core/myini.hpp>
 #include <a1/core/mod/a1mod_version.hpp>
 
-namespace a1mod {
-namespace depends {
-
+namespace a1mod::depends {
 struct dep_info {
     std::string name;
     std::string version_constraint;
@@ -89,8 +87,8 @@ inline bool check_dep_satisfied(
     const dep_info& dep, 
     const std::map<std::string, std::string>& installed) {
     auto it = installed.find(dep.name);
-    if (it == installed.end()) { return dep.optional; }
-    if (dep.version_constraint.empty()) { return true; }
+    if (it == installed.end())          return dep.optional;
+    if (dep.version_constraint.empty()) return true;
     return version::satisfies(it->second, dep.version_constraint);
 }
 
@@ -105,8 +103,7 @@ inline bool resolve_deps(
     std::set<std::string> visited;
     std::set<std::string> in_stack;
     std::vector<std::string> order;
-    std::function<bool(const std::string&)> dfs = 
-    [&](const std::string& name) -> bool {
+    std::function<bool(const std::string&)> dfs = [&](const std::string& name) -> bool {
         if (in_stack.count(name)) {
             xmz::log::error("circular dependency detected:", name);
             conflicts.push_back(name);
@@ -128,7 +125,7 @@ inline bool resolve_deps(
             if (dep.optional) continue;
             if (!dfs(dep.name)) {
                 auto inst_it = installed.find(dep.name);
-                if (inst_it != installed.end() && version::satisfies(inst_it->second, dep.version_constraint)) { continue; }
+                if (inst_it != installed.end() && version::satisfies(inst_it->second, dep.version_constraint)) continue;
                 return false;
             }
         }
@@ -137,7 +134,7 @@ inline bool resolve_deps(
         order.push_back(name);
         return true;
     };
-    if (!dfs(module_name)) { return false; }
+    if (!dfs(module_name)) return false;
     resolved = order;
     return true;
 }
@@ -154,5 +151,4 @@ inline bool validate_deps(
     }
     return true;
 }
-} // namespace depends
-} // namespace a1mod
+} // namespace a1mod::depends

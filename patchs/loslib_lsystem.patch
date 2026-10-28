@@ -1,11 +1,12 @@
---- loslib.c.orig	2026-08-24 06:43:26.963199000 +0800
-+++ loslib.c	2026-08-24 07:06:32.762221174 +0800
-@@ -135,7 +135,23 @@
+--- loslib.c	2026-10-28 19:49:21.224320000 +0800
++++ loslib.c	2026-10-28 19:53:54.539447872 +0800
+@@ -135,7 +135,24 @@
  /* Despite claiming to be ISO C, iOS does not implement 'system'. */
  #define l_system(cmd) ((cmd) == NULL ? 0 : -1)
  #else
 -#define l_system(cmd)	system(cmd)  /* default definition */
 +#include <sys/wait.h>
++#include <sys/types.h>
 +#include <unistd.h>
 +#include <errno.h>
 +static int l_system(const char *cmd) {

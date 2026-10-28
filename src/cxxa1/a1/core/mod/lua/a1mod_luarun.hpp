@@ -12,7 +12,7 @@ extern "C" {
 #include <type_traits>
 
 #include <a1/core/mod/lua/traits.hpp>
-#include <a1/core/mod/a1modcore_api.hpp>
+#include <a1/core/mod/a1mod_api.hpp>
 #include <a1/core/mod/lua/api.hpp>
 
 #include <libxmz/aux.hpp>

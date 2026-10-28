@@ -9,7 +9,7 @@ extern "C" {
 #include <vector>
 #include <map>
 
-#include <a1/core/mod/a1modcore_api.hpp>
+#include <a1/core/mod/a1mod_api.hpp>
 
 namespace a1mod {
 static int lua_GetProcessPid(lua_State* L) {

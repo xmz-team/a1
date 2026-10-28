@@ -8,8 +8,7 @@
 
 #include <libxmz/str.hpp>
 
-namespace a1mod {
-namespace version {
+namespace a1mod::version {
 struct parsed_version {
     int epoch;
     std::string upstream;
@@ -23,11 +22,11 @@ inline std::vector<std::string> split_version(const std::string& str, const std:
     size_t start = 0;
     size_t end = 0;
     while ((end = str.find_first_of(delims, start)) != std::string::npos) {
-        if (end > start) { parts.push_back(str.substr(start, end - start)); }
+        if (end > start) parts.push_back(str.substr(start, end - start));
         parts.push_back(str.substr(end, 1));
         start = end + 1;
     }
-    if (start < str.length()) { parts.push_back(str.substr(start)); }
+    if (start < str.length()) parts.push_back(str.substr(start));
     return parts;
 }
 
@@ -61,7 +60,7 @@ inline int compare_version_strings(const std::string& a, const std::string& b) {
         size_t len_i = i - start_i;
         size_t len_j = j - start_j;
         if (len_i != len_j) { return len_i < len_j ? -1 : 1; }
-        for (size_t k = 0; k < len_i; k++) { if (a[start_i + k] != b[start_j + k]) { return a[start_i + k] < b[start_j + k] ? -1 : 1; } }
+        for (size_t k = 0; k < len_i; k++) if (a[start_i + k] != b[start_j + k]) return a[start_i + k] < b[start_j + k] ? -1 : 1;
     }
     return 0;
 }
@@ -79,8 +78,7 @@ inline parsed_version parse(const std::string& version) {
     size_t last_dash = ver.rfind('-');
     if (last_dash != std::string::npos) {
         std::string after_dash = ver.substr(last_dash + 1);
-        bool is_numeric = !after_dash.empty() && 
-                         std::all_of(after_dash.begin(), after_dash.end(), ::isdigit);
+        bool is_numeric = !after_dash.empty() && std::all_of(after_dash.begin(), after_dash.end(), ::isdigit);
         if (is_numeric) {
             pv.revision = after_dash;
             ver = ver.substr(0, last_dash);
@@ -94,7 +92,7 @@ inline int compare(const std::string& ver_a, const std::string& ver_b) {
     parsed_version a = parse(ver_a);
     parsed_version b = parse(ver_b);
     // compare epochs
-    if (a.epoch != b.epoch) { return a.epoch < b.epoch ? -1 : 1; }
+    if (a.epoch != b.epoch) return a.epoch < b.epoch ? -1 : 1;
     // compare upstream versions
     int cmp = compare_version_strings(a.upstream, b.upstream);
     if (cmp != 0) return cmp;
@@ -103,7 +101,7 @@ inline int compare(const std::string& ver_a, const std::string& ver_b) {
         int rev_a = 0, rev_b = 0;
         try { if (!a.revision.empty()) rev_a = std::stoi(a.revision); } catch (...) { rev_a = 0; }
         try { if (!b.revision.empty()) rev_b = std::stoi(b.revision); } catch (...) { rev_b = 0; }
-        if (rev_a != rev_b) { return rev_a < rev_b ? -1 : 1; }
+        if (rev_a != rev_b) return rev_a < rev_b ? -1 : 1;
     }
     return 0;
 }
@@ -134,15 +132,10 @@ inline bool satisfies(const std::string& version, const std::string& constraint)
     ver.erase(0, ver.find_first_not_of(" \t"));
     ver.erase(ver.find_last_not_of(" \t") + 1);
     int cmp = compare(version, ver);
-    if (op == ">=" || op == ">") {
-        return op == ">=" ? cmp >= 0 : cmp > 0;
-    } else if (op == "<=" || op == "<") {
-        return op == "<=" ? cmp <= 0 : cmp < 0;
-    } else if (op == "==" || op == "=") {
-        return cmp == 0;
-    } else if (op == "!=") {
-        return cmp != 0;
-    }
+    if (op == ">=" || op == ">")      return op == ">=" ? cmp >= 0 : cmp > 0;
+    else if (op == "<=" || op == "<") return op == "<=" ? cmp <= 0 : cmp < 0;
+    else if (op == "==" || op == "=") return cmp == 0;
+    else if (op == "!=")              return cmp != 0;
     return false;
 }
 
@@ -152,10 +145,8 @@ inline bool in_range(const std::string& version, const std::string& range) {
     auto parts = xmz::str::split(range, ",");
     for (auto& part : parts) {
         part = xmz::str::trim(part);
-        if (!part.empty() && !satisfies(version, part)) { return false; }
+        if (!part.empty() && !satisfies(version, part)) return false;
     }
     return true;
 }
-
-} // namespace version
-} // namespace a1mod
+} // namespace a1mod::version

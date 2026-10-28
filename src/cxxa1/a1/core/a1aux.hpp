@@ -4,7 +4,7 @@
 #include <string>
 #include <a1/core/a1core.hpp>
 #include <a1/core/set_defaults.hpp>
-#include <a1/core/mod/a1mod_luarun.hpp>
+#include <a1/core/mod/lua/a1mod_luarun.hpp>
 #include <libxmz/io.hpp>
 #include <libxmz/aux.hpp>
 #include <libxmz/fs.hpp>

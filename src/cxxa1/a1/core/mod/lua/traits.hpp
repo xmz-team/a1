@@ -9,12 +9,11 @@ extern "C" {
 #include <vector>
 #include <map>
 #include <type_traits>
-#include <a1/core/mod/a1mod_struct.hpp>
+#include <a1/core/mod/lua/struct.hpp>
 
 namespace a1mod::lua_traits {
     template<typename T> struct from_lua;
-    template<> struct from_lua<int> { 
-        static int get(lua_State* L, int index) { return (int)luaL_checkinteger(L, index); } };
+    template<> struct from_lua<int>  { static int get(lua_State* L, int index) { return (int)luaL_checkinteger(L, index); } };
     template<> struct from_lua<bool> { static bool get(lua_State* L, int index) { return lua_toboolean(L, index) != 0; } };
     template<> struct from_lua<std::string> {
         static std::string get(lua_State* L, int index) {

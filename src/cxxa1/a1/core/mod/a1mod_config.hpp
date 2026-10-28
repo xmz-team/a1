@@ -26,16 +26,14 @@ struct packinfo {
     std::vector<std::string> depends_apt;
     std::vector<std::string> section;
     bool is_valid() const {
-        return !package.empty() && 
-               !maintainer.empty() && 
-               !version.empty() && 
-               !description.empty();
+        return !package.empty() && !maintainer.empty() &&
+               !version.empty() && !description.empty();
     }
     std::vector<std::string> get_miss_fields() const {
         std::vector<std::string> miss;
-        if (package.empty()) miss.push_back("package");
-        if (maintainer.empty()) miss.push_back("maintainer");
-        if (version.empty()) miss.push_back("version");
+        if (package.empty())     miss.push_back("package");
+        if (maintainer.empty())  miss.push_back("maintainer");
+        if (version.empty())     miss.push_back("version");
         if (description.empty()) miss.push_back("description");
         return miss;
     }
@@ -60,7 +58,6 @@ struct module_entry {
 
 inline packinfo parse_packinfo(const a1::ini::ini_parser& parser) {
     packinfo info;
-    
     info.package = parser.get("", "package");
     info.name = parser.get("", "name", info.package);
     info.version = parser.get("", "version");
@@ -115,7 +112,7 @@ inline packinfo parse_packinfo(const a1::ini::ini_parser& parser) {
 
 inline packinfo parse_packfile(const std::string& filepath) {
     a1::ini::ini_parser parser;
-    if (!parser.parse_file(filepath)) { return packinfo{}; }
+    if (!parser.parse_file(filepath)) return packinfo{};
     return parse_packinfo(parser);
 }
 
@@ -128,5 +125,4 @@ public:
     std::string users = install_db_path;
     std::string authors = install_db_path;
 };
-
 } // namespace a1mod

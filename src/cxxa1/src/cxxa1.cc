@@ -11,7 +11,7 @@
 #include <a1/core/myini.hpp>
 #include <a1/core/config.hpp>
 #include <a1/core/set_defaults.hpp>
-#include <a1/core/mod/a1mod_luarun.hpp>
+#include <a1/core/mod/lua/a1mod_luarun.hpp>
 #include <a1/core/version.hpp>
 
 #include <string>

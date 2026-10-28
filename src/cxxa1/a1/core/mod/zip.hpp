@@ -1,12 +1,16 @@
 // zip.hpp
+#pragma once
+#include <filesystem>
+#include <string>
+#include <vector>
+#include <fstream>
+
 #include <libxmz/fs.hpp>
 #include <libxmz/aux.hpp>
+
 #include <zip.h>
-#include <vector>
-#include <string>
 
 namespace a1mod::cmd {
-
 inline int zip(const std::string& zip_path, const std::vector<std::string>& files) {
     int err = 0;
     zip_t* z = zip_open(zip_path.c_str(), ZIP_CREATE | ZIP_TRUNCATE, &err);
@@ -28,9 +32,7 @@ inline int zip(const std::string& zip_path, const std::vector<std::string>& file
 inline int zip(const std::string& zip_path, const std::string& dir_path) {
     if (!xmz::aux::is_dir(dir_path)) return -1;
     std::vector<std::string> files;
-    for (const auto& entry : std::filesystem::recursive_directory_iterator(dir_path)) {
-        if (entry.is_regular_file()) { files.push_back(entry.path().string()); }
-    }
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(dir_path)) if (entry.is_regular_file()) files.push_back(entry.path().string());
     return zip(zip_path, files);
 }
 
@@ -50,13 +52,13 @@ inline int unzip(const std::string& zip_path, const std::string& dest_dir) {
             continue;
         }
         std::string parent = full.substr(0, full.find_last_of('/'));
-        if (!xmz::aux::exist(parent)) { std::filesystem::create_directories(parent); }
+        if (!xmz::aux::exist(parent)) std::filesystem::create_directories(parent);
         zip_file_t* zf = zip_fopen_index(z, i, 0);
         if (!zf) { zip_close(z); return -1; }
         std::string content;
         char buf[8192];
         zip_int64_t n;
-        while ((n = zip_fread(zf, buf, sizeof(buf))) > 0) { content.append(buf, n); }
+        while ((n = zip_fread(zf, buf, sizeof(buf))) > 0) content.append(buf, n);
         zip_fclose(zf);
         std::ofstream out(full, std::ios::binary);
         if (!out) { zip_close(z); return -1; }

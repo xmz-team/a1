@@ -1,5 +1,6 @@
 // a1mod_struct.hpp
 #pragma once
+#include <string>
 #include <variant>
 #include <cstdint>
 namespace a1::_modapi {
