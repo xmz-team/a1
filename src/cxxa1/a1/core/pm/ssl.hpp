@@ -18,14 +18,14 @@ inline std::string get_file_hash_hex(const std::string& path) {
         return "";
     }
     char buffer[8192];
-    while (file.read(buffer, sizeof(buffer))) { EVP_DigestUpdate(ctx, buffer, file.gcount()); }
+    while (file.read(buffer, sizeof(buffer))) EVP_DigestUpdate(ctx, buffer, file.gcount());
     EVP_DigestUpdate(ctx, buffer, file.gcount());
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned int len;
     EVP_DigestFinal_ex(ctx, hash, &len);
     EVP_MD_CTX_free(ctx);
     std::stringstream ss;
-    for (unsigned int i = 0; i < len; i++) { ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i]; }
+    for (unsigned int i = 0; i < len; i++) ss << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
     return ss.str();
 }
 
@@ -39,7 +39,7 @@ inline std::string get_file_hash_bin(const std::string& path) {
         return "";
     }
     char buffer[8192];
-    while (file.read(buffer, sizeof(buffer))) { EVP_DigestUpdate(ctx, buffer, file.gcount()); }
+    while (file.read(buffer, sizeof(buffer))) EVP_DigestUpdate(ctx, buffer, file.gcount());
     EVP_DigestUpdate(ctx, buffer, file.gcount());
     unsigned char hash[EVP_MAX_MD_SIZE];
     unsigned int len;
@@ -53,5 +53,5 @@ inline bool verify_file_hash(const std::string& path, const std::string& expecte
     std::string actual = get_file_hash_hex(path);
     return actual == expected_hex;
 }
-
 } /* namespace a1pm::ssl */
+

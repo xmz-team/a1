@@ -152,3 +152,4 @@ inline bool validate_deps(
     return true;
 }
 } // namespace a1mod::depends
+

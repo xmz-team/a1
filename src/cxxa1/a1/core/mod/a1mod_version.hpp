@@ -150,3 +150,4 @@ inline bool in_range(const std::string& version, const std::string& range) {
     return true;
 }
 } // namespace a1mod::version
+

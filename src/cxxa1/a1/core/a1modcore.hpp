@@ -17,8 +17,6 @@
 #include <a1/core/mod/core/define.hpp>
 #include <a1/core/mod/all.hpp>
 #include <a1/core/mod/a1mod_config.hpp>
-#include <a1/core/mod/a1mod_version.hpp>
-#include <a1/core/mod/a1mod_depends.hpp>
 #include <a1/core/mod/zip.hpp>
 
 namespace a1mod {
@@ -122,21 +120,21 @@ namespace a1mod {
             if (entry.is_directory()) xmz::fs::cp(xmz::fs::cptype::recdir, entry.path().string(), dest);
             else                      xmz::fs::cp(xmz::fs::cptype::file, entry.path().string(), dest);
         }
-        for (const auto& entry : std::filesystem::directory_iterator(install_base)) { if (entry.path().extension() == ".lua") { chmod(entry.path().c_str(), 0755); } }
+        for (const auto& entry : std::filesystem::directory_iterator(install_base)) if (entry.path().extension() == ".lua") chmod(entry.path().c_str(), 0755);
         // create module entry
         module_entry entry;
-        entry.name = info.name;
-        entry.package = info.package;
-        entry.version = info.version;
-        entry.description = info.description;
-        entry.author = author;
-        entry.maintainer = info.maintainer.empty() ? author : info.maintainer[0];
-        entry.path = install_base;
-        entry.install_base = install_base;
-        entry.installed_date = xmz::get_time_str();
-        entry.last_updated = xmz::get_time_str();
-        entry.depends = info.depends;
-        entry.depends_apt = info.depends_apt;
+        entry.name             = info.name;
+        entry.package          = info.package;
+        entry.version          = info.version;
+        entry.description      = info.description;
+        entry.author           = author;
+        entry.maintainer       = info.maintainer.empty() ? author : info.maintainer[0];
+        entry.path             = install_base;
+        entry.install_base     = install_base;
+        entry.installed_date   = xmz::get_time_str();
+        entry.last_updated     = xmz::get_time_str();
+        entry.depends          = info.depends;
+        entry.depends_apt      = info.depends_apt;
         add_to_db(entry);
         xmz::fs::recrmdir(temp_dir);
         xmz::log::info("Module installed successfully!");
