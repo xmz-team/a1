@@ -19,11 +19,10 @@
  */
 /*
  * Because of Apple's grass platform team, otherwise it can only use macOS SDK to compile.
- * Apple has added a compilation period limit to the CoreFoundation of iOS SDK. According to the CoreFoundation header part of iOS SDK, it can be found that only the SDK of macOS can be used for compilation, but the grass platform is here. Apple has not deleted the implementation. That is to say, as long as you want to bypass the restrictions of CoreFoundation, you can use these restricted APIs.
+ * Apple added compile-time restrictions (API_UNAVAILABLE) to some APIs in the CoreFoundation framework of the iOS SDK. Looking at the CoreFoundation headers in the iOS SDK, you can see that some APIs can only be compiled with the macOS SDK (API_UNAVAILABLE restricts compilation on others like iOS), but here's the kicker. Apple hasn’t actually removed the implementations in the CoreFoundation framework (they’re still in the system, maybe for internal use?), so as long as you bypass these APIs in the iOS SDK CoreFoundation headers that are marked as unavailable for iOS (or similar), you can use these APIs that were originally off-limits.
  */
-#if !defined(__COREFOUNDATION_COREFOUNDATION__)
-#define __COREFOUNDATION_COREFOUNDATION__ 1
-#define __COREFOUNDATION__ 1
+#if !defined(__COREFOUNDATION_CFUSERNOTIFICATION__)
+#define __COREFOUNDATION_CFUSERNOTIFICATION__ 1
 #include <stdint.h>
 typedef unsigned long  CFTypeID;
 typedef unsigned long  CFOptionFlags;
@@ -79,5 +78,4 @@ constexpr CFOptionFlags kCFUserNotificationUseRadioButtonsFlag = (1UL << 6);
 static inline CFOptionFlags CFUserNotificationSecureTextField(CFIndex i) { return (CFOptionFlags)(1UL << (16 + i)); }
 static inline CFOptionFlags CFUserNotificationCheckBoxChecked(CFIndex i) { return (CFOptionFlags)(1UL << (8 + i)); }
 static inline CFOptionFlags CFUserNotificationPopUpSelection(CFIndex n)  { return (CFOptionFlags)(n << 24); }
-#endif /* ! __COREFOUNDATION_COREFOUNDATION__ */
-
+#endif /* ! __COREFOUNDATION_CFUSERNOTIFICATION__ */
