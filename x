@@ -18,6 +18,7 @@ b_a1() {
         rm -f ${script_path}/libs/lua/loslib.c && mv ${script_path}/libs/lua/loslib.c.orig ${script_path}/libs/lua/loslib.c
         cd ${script_path}
         clang++ -ObjC++ \
+         -framework CoreFoundation \
          $CXXFLAGS \
          ${cxxa1_src_path}/src/cxxa1.cc -o cxxa1 \
          -lm ${script_path}/libs/lua/liblua.a
@@ -26,20 +27,22 @@ b_a1() {
             echo "[Error]: cache: ${script_path}/libs/lua/liblua.a does not exist" && exit 1;
         else
             clang++ -ObjC++ \
+             -framework CoreFoundation \
              $CXXFLAGS \
              ${cxxa1_src_path}/src/cxxa1.cc -o cxxa1 \
              -lm ${script_path}/libs/lua/liblua.a
         fi
     fi
     sign bin cxxa1
+    sign -c cxxa1 uialert.ens.xml
 }
 
 b_a1ctl() {
     clang++ -ObjC++ \
-     $CXXFLAGS \
      -framework CoreFoundation \
      -framework SpringBoardServices \
      -framework CoreServices \
+     $CXXFLAGS \
      -lzip \
      ${cxxa1_src_path}/src/cxxa1ctl.cc -o cxxa1ctl
     sign bin cxxa1ctl

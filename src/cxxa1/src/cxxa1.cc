@@ -6,6 +6,7 @@
 #include <libxmz/aux.hpp>
 #include <libxmz/time.hpp>
 
+#include <src/bin/ui/uialert.hpp>
 #include <a1/core/a1core.hpp>
 #include <a1/core/a1aux.hpp>
 #include <a1/core/myini.hpp>
@@ -68,7 +69,20 @@ int main() {
     if (std::getenv("jb") == nullptr) {
         xmz::log::warn("A1 need set jb env value!");
         xmz::log::info("Use a1 status, not cxxa1!");
-        return 1;
+        auto get_jb = a1::bin::uialert::input("Set jb env", "jb env");
+        if (get_jb.button == kCFUserNotificationCancelResponse) {
+            xmz::log::warn("User cancelled");
+            return 1;
+        }
+
+        if (get_jb.inputs.empty() || get_jb.inputs.front().empty()) {
+            xmz::log::error("The input cannot be empty");
+            return 1;
+        }
+
+        const std::string &jb_value = get_jb.inputs.front();
+        xmz::log::info("jb =", jb_value);
+        if (setenv("jb", jb_value.c_str(), 1) != 0) return 1;
     }
     a1::init();
     a1::config::jb_path g_jb;

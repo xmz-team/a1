@@ -77,16 +77,32 @@ export CXXFLAGS="\
   $_CXXFLAGS1 $_CXXFLAGS2 $CXXFLAGS1 $CXXFLAGS2"
 
 sign() {
-    local script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
-    local SIGN_OPT1="-Hsha1 -Hsha256 -M"
-    if [ "$1" = "bin" ]; then
-        local SIGN_OPT="-S${script_path}/../a1.bin.ens.xml $SIGN_OPT1"
-    elif [ "$1" = "gui" ]; then
-        local SIGN_OPT="-S${script_path}/../a1c.ens.xml $SIGN_OPT1"
-    else
-        echo "[Error]: unsupported parameters: $1" >&2
-        return 1;
+    local script_path ens_d SIGN_OPT1 SIGN_OPT=()
+    script_path="$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)"
+    ens_d="${script_path}/../ens"
+    SIGN_OPT1=(-Hsha1 -Hsha256 -M)
+    case "$1" in
+        bin) SIGN_OPT=(-S"${ens_d}/a1.bin.ens.xml" "${SIGN_OPT1[@]}"); ;;
+        gui) SIGN_OPT=(-S"${ens_d}/a1c.ens.xml" "${SIGN_OPT1[@]}"); ;;
+        -c)
+            if [ -z "$3" ]; then
+                echo "[Error]: -c requires an ens file name as 3rd argument" >&2
+                return 1
+            fi
+            if [ ! -f "${ens_d}/$3" ]; then
+                echo "[Error]: ens file not found: ${ens_d}/$3" >&2
+                return 1
+            fi
+            SIGN_OPT=(-S"${ens_d}/$3" "${SIGN_OPT1[@]}")
+            ;;
+        *)
+            echo "[Error]: unsupported parameters: $1" >&2
+            return 1
+            ;;
+    esac
+    if [ -z "$2" ]; then
+        echo "[Error]: the name of the document that needs to be signed" >&2
+        return 1
     fi
-    [ -z "$2" ] && echo "[Error]: the name of the document that needs to be signed" >&2 && return 1;
-    ldid ${SIGN_OPT} "$2"
+    ldid "${SIGN_OPT[@]}" "$2"
 }
