@@ -60,7 +60,7 @@ export CXXFLAGS="\
   -target arm64-apple-ios14.0 \
   -miphoneos-version-min=14.0 \
   -isysroot ${SDKROOT} \
-  -std=c++17 \
+  -std=c++17 -g \
   -framework Foundation -framework Security \
   -F${SDKROOT}/System/Library/PrivateFrameworks \
   -I${SDKROOT}/usr/include \

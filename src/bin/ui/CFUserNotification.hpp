@@ -1,5 +1,5 @@
 /*
- * CF.hpp
+ * CFUserNotification.hpp
  * Created by XMZ <xmz-team@outlook.com> on 2026-10-31
  * Copyright (c) 2026 XMZ <xmz-team@outlook.com>
  *
@@ -17,10 +17,9 @@
  * License along with this library; if not, see
  * <https://www.gnu.org/licenses/lgpl-3.0.html>.
  */
-/*
- * Because of Apple's grass platform team, otherwise it can only use macOS SDK to compile.
- * Apple added compile-time restrictions (API_UNAVAILABLE) to some APIs in the CoreFoundation framework of the iOS SDK. Looking at the CoreFoundation headers in the iOS SDK, you can see that some APIs can only be compiled with the macOS SDK (API_UNAVAILABLE restricts compilation on others like iOS), but here's the kicker. Apple hasn’t actually removed the implementations in the CoreFoundation framework (they’re still in the system, maybe for internal use?), so as long as you bypass these APIs in the iOS SDK CoreFoundation headers that are marked as unavailable for iOS (or similar), you can use these APIs that were originally off-limits.
- */
+
+/* Apple does not allow it to be used in iOS SDK, and can only be declared manually. */
+
 #if !defined(__COREFOUNDATION_CFUSERNOTIFICATION__)
 #define __COREFOUNDATION_CFUSERNOTIFICATION__ 1
 #include <stdint.h>

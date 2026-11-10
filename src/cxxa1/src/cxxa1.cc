@@ -143,7 +143,7 @@ Tip: Enter rootless/rootfhide/rootful will also get the corresponding path)", "j
             // reload config
             a1::aux::read_a1_config();
             // check if loop mode is still enabled
-            if (!a1::coreapi::set_defaults_cfg().loop_mode) { break; }
+            if (!a1::coreapi::set_defaults_cfg().loop_mode) break;
             // re-read priority lists with filter
             pm.read_priority_lists(true);
             xmz::println("Running optimization cycle...");
