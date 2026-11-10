@@ -57,10 +57,10 @@ lib_path=(
 )
 
 export CXXFLAGS="\
-  -target arm64-apple-ios14.0 \
-  -miphoneos-version-min=14.0 \
+  -target arm64-apple-ios15 \
+  -miphoneos-version-min=15 \
   -isysroot ${SDKROOT} \
-  -std=c++17 -g \
+  -std=c++17 -O2 \
   -framework Foundation -framework Security \
   -F${SDKROOT}/System/Library/PrivateFrameworks \
   -I${SDKROOT}/usr/include \

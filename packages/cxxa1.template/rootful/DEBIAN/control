@@ -2,7 +2,7 @@ Package: a1
 Name: A1
 Architecture: iphoneos-arm
 Section: a1
-Depends: firmware (>= 14.0), mobilesubstrate, preferenceloader, libzip5, libssl3, libcurl4-openssl-dev, shell-cmds, coreutils, uikittools-extra, uikittools, plutil
+Depends: firmware (>= 15.0), libzip5, libssl3, libcurl4-openssl-dev, shell-cmds, coreutils, uikittools-extra, uikittools, plutil
 Author: LF <yitat1006@outlook.com>
 Maintainer: LF <yitat1006@outlook.com>, AD <ad-ios334@outlook.com>, XMZ <xmz-team@outlook.com>, amzxus <amzxus@gmail.com>
 SileoDepiction: https://xmz-team.github.io/repo/sileodepiction/a1/js.json
