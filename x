@@ -5,6 +5,9 @@ source ${script_path}/ci/env.sh
 source ${script_path}/ci/package.sh
 source ${script_path}/ci/build-tool.sh
 source ${script_path}/ci/generate-version.sh
+if [ -x $(command -v strip) ]; then
+    STRIP=${$(command -v strip):-};
+fi
 
 b_a1() {
     local lua_patch_file="${script_path}/patchs/loslib_lsystem.patch"
@@ -34,6 +37,7 @@ b_a1() {
         fi
     fi
     sign bin cxxa1
+    $STRIP cxxa1
     sign -c cxxa1 uialert.ens.xml
 }
 
@@ -45,6 +49,7 @@ b_a1ctl() {
      $CXXFLAGS \
      -lzip \
      ${cxxa1_src_path}/src/cxxa1ctl.cc -o cxxa1ctl
+    $STRIP cxxa1ctl
     sign bin cxxa1ctl
 }
 
@@ -53,6 +58,7 @@ b_a1mod() {
      $CXXFLAGS \
      -lzip -lssl -lcrypto \
      ${cxxa1_src_path}/src/cxxa1mod.cc -o cxxa1mod
+    $STRIP cxxa1mod
     sign bin cxxa1mod
 }
 
@@ -61,6 +67,7 @@ b_a1pm() {
      $CXXFLAGS \
      -lzip -lcurl -lssl -lcrypto \
      ${cxxa1_src_path}/src/cxxa1pm.cc -o cxxa1pm
+    $STRIP cxxa1pm
     sign bin cxxa1pm
 }
 
@@ -77,6 +84,7 @@ b_gui() {
         ${src_gui}/ui/ViewControllers/*.mm \
         ${src_gui}/core/*.mm \
         -o a1gui
+    $STRIP a1gui
     sign gui a1gui
 }
 
