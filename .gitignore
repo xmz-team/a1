@@ -25,4 +25,4 @@ packages/packdeb.d/*
 packages/packdeb/*
 packages/cxxa1/*
 tmp/
-*.dYSM
+*.dSYM
