@@ -9,7 +9,7 @@ namespace a1::_coreapi::version {
     inline constexpr std::string_view a1pm  = "2.0.0.230";
     inline constexpr std::string_view a1gui = "0.1.3.152";
     inline constexpr std::string_view gui = a1gui;
-    inline constexpr std::string_view general = "2.0.1.126";
+    inline constexpr std::string_view general = "2.1.1.2";
 }
 
 namespace a1::version {
