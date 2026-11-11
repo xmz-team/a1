@@ -5,8 +5,8 @@ source ${script_path}/ci/env.sh
 source ${script_path}/ci/package.sh
 source ${script_path}/ci/build-tool.sh
 source ${script_path}/ci/generate-version.sh
-if [ -x $(command -v strip) ]; then
-    STRIP=${$(command -v strip):-};
+if [ -x "$(command -v strip)" ]; then
+    STRIP="$(command -v strip)"
 fi
 
 b_a1() {
