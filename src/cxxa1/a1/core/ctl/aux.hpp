@@ -164,4 +164,10 @@ namespace a1ctl {
             return;
         }
     }
+
+    inline int stop_service() {
+        a1::kill_pid("cxxa1");
+        if (a1::bin::bundle_pid("cxxa1") != -1) return 0;
+        else                                    return 1;
+    }
 } /* namespace a1ctl */

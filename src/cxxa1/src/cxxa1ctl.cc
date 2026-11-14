@@ -26,46 +26,49 @@ Author: LF | Maintainer: LF, AD, XMZ, amzxus
 Organization(QQ): 1030152896
 )") + "Usage: " + myself + " [options] [command]" + R"(
 Basic Commands:
-  start                    Start A1
-  stop                     Stop A1
-  status                   View status
-  restart                  Restart A1
+  start                              Start A1
+  stop                               Stop A1
+  status                             View status
+  restart                            Restart A1
 
 Mode Control:
-  loop <on|off>            Enable/disable loop mode
-  auto-adjust <on|off>     Enable/disable real-time auto-adjust mode (1s polling)
-  scheduled-guard <on|off> Enable/disable scheduled guard mode (15s polling)
-  custom <on|off>          Enable/disable custom priority
+  loop <on|off>                      Enable/disable loop mode
+  auto-adjust <on|off>               Enable/disable real-time auto-adjust mode (1s polling)
+  scheduled-guard <on|off>           Enable/disable scheduled guard mode (15s polling)
+  custom <on|off>                    Enable/disable custom priority
 
 Priority Management:
-  add high <process>       Add to high priority list
-  add low <process>        Add to low priority list
-  add <process> <value>    Add custom priority (0-99)
-  remove <process>         Remove from priority list
-  list <high|low|custom>   View priority list
-  clear <high|low|custom>  Clear priority list
-  set <type> <value>       Set priority value
+  add high <process>                 Add to high priority list
+  add low <process>                  Add to low priority list
+  add custom <process> <value>       Add to low priority list
+  add <process> <value>              Add custom priority (0-99)
+  remove high <process>              Remove high priority list process
+  remove low <process>               Remove low priority list process
+  remove custom <process>            Remove custom priority list process
+  remove <process>                   Remove from priority list
+  list <high|low|custom>             View priority list
+  clear <high|low|custom>            Clear priority list
+  set <type> <value>                 Set priority value
 
   type: high, low, launchd*
   value: 0-39 (Jetsam value)
 
 Configuration Management:
-  config                   View current configuration
-  set-interval <seconds>   Set optimization interval
-  loop-sleep <seconds>     Set loop interval
-  auto-apply <on|off>      Enable/disable auto-apply
-  restore                  Restore configuration from backup
-  compat <on|off>          Enable/disable compatibility mode
-  mod-switch <on|off>      Enable/turn off the mod mode
-  lock <on|off>            Enable/disable lock
-  open-gui                 Open A1GUI APP
-  open <bundle id>         Open APP by bundle ID
+  config                             View current configuration
+  set-interval <seconds>             Set optimization interval
+  loop-sleep <seconds>               Set loop interval
+  auto-apply <on|off>                Enable/disable auto-apply
+  restore                            Restore configuration from backup
+  compat <on|off>                    Enable/disable compatibility mode
+  mod-switch <on|off>                Enable/turn off the mod mode
+  lock <on|off>                      Enable/disable lock
+  open-gui                           Open A1GUI APP
+  open <bundle id>                   Open APP by bundle ID
 
 Other:
-  help                     Show this help
-  version                  Show Version
-  -f                       Forced start/foreground mode
-
+  help                               Show this help
+  version                            Show Version
+  force <start|stop|restart>         Forced execution
 Tips:
   Real-time auto-adjust mode: Check new processes every second and adjust priority (more aggressive)
   Scheduled guard mode: Check every 15 seconds (more battery efficient)
@@ -399,9 +402,16 @@ inline cmd_table build_commands() {
         return 0;
     };
 
-    t["-f"] = [](const args& a) -> int {
+    t["force"] = [](const args& a) -> int {
         if (a.has(2) && a.at(2) == "start") {
             a1ctl::start_a1_foreground();
+            return 0;
+        } else if (a.has(2) && a.at(2) == "stop") {
+            a1ctl::stop_service();
+            return 0;
+        } else if (a.has(2) && a.at(2) == "restart") {
+            a1ctl::stop_service();
+            a1ctl::start_a1();
             return 0;
         }
         xmz::log::error("command error: ", std::string(a.has(2) ? a.at(2) : ""));
