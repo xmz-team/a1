@@ -13,7 +13,6 @@ credentials.json
 *.[oa]
 
 .generate.lock
-.git-upload
 .DS_Store
 .idea
 Tests/obj/*
